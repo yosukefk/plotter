@@ -7,7 +7,7 @@ gdal.UseExceptions()
 class background_adder:
     #https://ocefpaf.github.io/python4oceanographers/blog/2015/03/02/geotiff/
     def __init__(self, fname, alpha=.2):
-        ds = gdal.Open(fname)
+        ds = gdal.Open(str(fname))
         data = ds.ReadAsArray()
         gt = ds.GetGeoTransform()
 

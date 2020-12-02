@@ -37,7 +37,7 @@ wdir = Path('./img2')
 
 # output
 odir = Path('.')
-oname = 'tseries_ch4_1min_conc_co_trio.mpeg'
+oname = 'tseries_ch4_1min_conc_co_trio.mp4'
 
 titles = ['Flare', 'CIP', 'Tank']
 
@@ -104,15 +104,12 @@ imshow_options = {
         }
 
 
-#bga = pu.background_adder( 'gamma3_res2.tif')
-
 
 plotter_options = [
         { 
             'imshow_options': imshow_options, 
             'title' : ttle,
             'colorbar_options': None, # not to show cbar for each plot
-#            'customize_after': bga,
             } for ttle in titles]
 figure_options = {
         'colorbar_options' : {},  # default common color bar 

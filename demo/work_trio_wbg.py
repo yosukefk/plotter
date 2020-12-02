@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
+import sys
+sys.path.append('..')
 
 import reader
-import plotter_multi
-import plotter_util as pu
+import plotter
+import plotter.plotter_util as pu
 
 
 import matplotlib as mpl
@@ -16,18 +18,21 @@ import shlex
 #import psutil
 
 reload(reader)
-reload(plotter_multi)
+reload(plotter)
 
 # save better resolution image 
 mpl.rcParams['savefig.dpi'] = 300
 
 # input directory/file names
-ddir = Path('../calpost')
+ddir = Path('../data')
 fnames = [
         'tseries_ch4_1min_conc_co_fl.dat',
         'tseries_ch4_1min_conc_co_cip.dat',
         'tseries_ch4_1min_conc_co_tank.dat',
         ]
+# resouce dir, aux data for plotting...
+resdir = Path('../resources')
+bgfile = resdir / 'gamma3_res2.tif'
 
 
 # intermediate
@@ -35,7 +40,7 @@ wdir = Path('./img3')
 
 # output
 odir = Path('.')
-oname = 'tseries_ch4_1min_conc_co_trio_wbg.mpeg'
+oname = 'tseries_ch4_1min_conc_co_trio_wbg.mp4'
 
 titles = ['Flare', 'CIP', 'Tank']
 
@@ -102,7 +107,7 @@ imshow_options = {
         }
 
 
-bga = pu.background_adder( 'gamma3_res2.tif')
+bga = pu.background_adder( bgfile )
 
 
 plotter_options = [
@@ -118,7 +123,7 @@ figure_options = {
         }
 
 # make a plot template
-p = plotter_multi.plotter(arrays = arrays, tstamps = tstamps, extent=extent,
+p = plotter.plotter_multi.plotter(arrays = arrays, tstamps = tstamps, extent=extent,
         plotter_options = plotter_options, figure_options = figure_options)
 
 # function to save one time frame
@@ -130,7 +135,8 @@ def saveone(i):
     p(oname, tidx=i, footnote=footnote)
 
 # save all frames in parallel
-nthreads = 68 # i overheard this # is good for stampede2
+#nthreads = 68 # i overheard this # is good for stampede2
+nthreads = 24 # ls5
 with Pool(nthreads) as pool:
     pool.map(saveone,range(len(tstamps)))
 

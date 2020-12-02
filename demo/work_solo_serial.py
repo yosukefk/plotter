@@ -27,7 +27,7 @@ odir = wdir
 
 # output
 odir = Path('.')
-oname = 'tseries_ch4_1min_conc_co_fl.mpeg'
+oname = 'tseries_ch4_1min_conc_co_fl.mp4'
 
 title = 'Flare'
 
