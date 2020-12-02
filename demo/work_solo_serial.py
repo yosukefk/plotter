@@ -113,7 +113,6 @@ for i,ts in enumerate(tstamps):
     saveone(i)
 
 # make mpeg file
-oname = 'solo.mp4'
 cmd = f'ffmpeg -i {wdir}/%04d.png -vframes 2880 -crf 3 -vcodec libx264 -pix_fmt yuv420p -f mp4 -y { odir / oname }'
 subprocess.run(shlex.split(cmd))
 

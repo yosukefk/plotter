@@ -1,4 +1,4 @@
-import plotter_core as pc
+from . import plotter_core as pc
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from importlib import reload

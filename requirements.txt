@@ -1,4 +1,5 @@
 cartopy
+gdal
 pandas
 scipy
 matplotlib

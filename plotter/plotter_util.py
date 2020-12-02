@@ -1,4 +1,9 @@
-import gdal
+try:
+    import gdal
+except ModuleNotFoundError:
+    from osgeo import gdal
+gdal.UseExceptions()
+
 class background_adder:
     #https://ocefpaf.github.io/python4oceanographers/blog/2015/03/02/geotiff/
     def __init__(self, fname, alpha=.2):
