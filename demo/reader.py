@@ -63,7 +63,7 @@ def reader(f, tslice=slice(None,None)):
         
 
 def tester():
-    ddir = Path('../calpost')
+    ddir = Path('../data')
     fname = 'tseries_ch4_1min_conc_co_fl.dat'
 
     with open(ddir /fname) as f:

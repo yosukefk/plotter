@@ -1,6 +1,11 @@
 import reader
-import gdal
-import osr
+try:
+    import gdal
+    import osr
+except ModuleNotFoundError:
+    from osgeo import gdal
+    from osgeo import osr
+gdal.UseExceptions()
 
 
 dat = reader.tester()
