@@ -94,5 +94,5 @@ class plotter_core:
             for fn in fnc:
                 fn(self)
         else:
-            raise ValueError
+            raise ValueError(f'fnc is not callable: {fnc}')
 

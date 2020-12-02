@@ -1,16 +1,22 @@
 import reader
-import plotter_solo as psolo
+import sys
+sys.path.append('..')
+from plotter import plotter_solo as psolo
 from cartopy.io.img_tiles import GoogleTiles
 import matplotlib as mpl
 import matplotlib.pylab as plt
-import gdal
+try:
+    import gdal
+except ModuleNotFoundError:
+    from osgeo import gdal
+gdal.UseExceptions()
 from importlib import reload
 reload(psolo)
 
 # save better resolution image 
 mpl.rcParams['savefig.dpi'] = 300
 
-fname = '../calpost/tseries_ch4_1min_conc_co_fl.dat'
+fname = '../data/tseries_ch4_1min_conc_co_fl.dat'
 with open(fname) as f:
     dat = reader.reader(f, slice(60*12, 60*12+1))
 
@@ -29,7 +35,7 @@ p = psolo.plotter(arr, dat['ts'], extent=ext)
 #p.ax.add_image(GoogleTiles(style='satellite'), 22)#, alpha=.1)
 
 #https://ocefpaf.github.io/python4oceanographers/blog/2015/03/02/geotiff/
-ds = gdal.Open('gamma3_res2.tif')
+ds = gdal.Open('../resources/gamma3_res2.tif')
 data = ds.ReadAsArray()
 gt = ds.GetGeoTransform()
 projection = p.ax.projection # i know they match
