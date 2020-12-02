@@ -19,11 +19,17 @@ reload(plotter)
 # save better resolution image 
 mpl.rcParams['savefig.dpi'] = 300
 
-# directory/file names
+# input directory/file names
 ddir = Path('../data')
 fname = 'tseries_ch4_1min_conc_co_fl.dat'
 wdir = Path('./img')
 odir = wdir
+
+# output
+odir = Path('.')
+oname = 'tseries_ch4_1min_conc_co_fl.mpeg'
+
+title = 'Flare'
 
 if not wdir.is_dir():
     wdir.mkdir()
@@ -83,7 +89,8 @@ plotter_options = {
         'imshow_options': {
             'cmap': cmap,
             'norm': norm,
-            }
+            },
+        'title': title,
         }
 
 # make a plot template

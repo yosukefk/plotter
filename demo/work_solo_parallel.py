@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
+import sys
+sys.path.append('..')
 
 import reader
-import plotter_solo
+import plotter
 
 
 import matplotlib as mpl
@@ -10,22 +12,23 @@ import matplotlib.colors as colors
 from pathlib import Path
 from importlib import reload
 from multiprocessing import Pool
-import subprocess
 import shlex
-#import psutil
+import subprocess
+
 
 reload(reader)
-reload(plotter_solo)
+reload(plotter)
 
 # save better resolution image 
 mpl.rcParams['savefig.dpi'] = 300
 
 # input directory/file names
-ddir = Path('../calpost')
+ddir = Path('../data')
 fname = 'tseries_ch4_1min_conc_co_fl.dat'
 
 # intermediate
 wdir = Path('./img')
+odir = wdir
 
 # output
 odir = Path('.')
@@ -96,7 +99,7 @@ plotter_options = {
         }
 
 # make a plot template
-p = plotter_solo.plotter(array = arr, tstamps = tstamps, extent=extent,
+p = plotter.plotter_solo.plotter(array = arr, tstamps = tstamps, extent=extent,
         plotter_options = plotter_options)
 
 # function to save one time frame
@@ -108,7 +111,8 @@ def saveone(i):
     p(oname, tidx=i, footnote=footnote)
 
 # save all frames in parallel
-with Pool(68) as pool:
+# 68 for stampede, 24 for ls5
+with Pool(24) as pool:
     pool.map(saveone,range(len(tstamps)))
 
 # make mpeg file
