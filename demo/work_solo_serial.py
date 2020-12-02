@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
+import sys
+sys.path.append('..')
 
 import reader
-import plotter_solo
+import plotter
 
 
 import matplotlib as mpl
@@ -9,16 +11,19 @@ import matplotlib.colors as colors
 
 from pathlib import Path
 from importlib import reload
+import shlex
+import subprocess
 reload(reader)
-reload(plotter_solo)
+reload(plotter)
 
 # save better resolution image 
 mpl.rcParams['savefig.dpi'] = 300
 
 # directory/file names
-ddir = Path('../calpost')
+ddir = Path('../data')
 fname = 'tseries_ch4_1min_conc_co_fl.dat'
 wdir = Path('./img')
+odir = wdir
 
 if not wdir.is_dir():
     wdir.mkdir()
@@ -82,7 +87,7 @@ plotter_options = {
         }
 
 # make a plot template
-p = plotter_solo.plotter(array = arr, tstamps = tstamps, extent=extent,
+p = plotter.plotter_solo.plotter(array = arr, tstamps = tstamps, extent=extent,
         plotter_options = plotter_options)
 
 # function to save one time frame
@@ -94,10 +99,14 @@ def saveone(i):
     p(oname, tidx=i, footnote=footnote)
 
 # go over each time step and save picture
+n = len(tstamps)
 for i,ts in enumerate(tstamps):
+    if i % 100 == 0:
+        print(f"{i} of {n}")
     saveone(i)
 
 # make mpeg file
+oname = 'solo.mp4'
 cmd = f'ffmpeg -i {wdir}/%04d.png -vframes 2880 -crf 3 -vcodec libx264 -pix_fmt yuv420p -f mp4 -y { odir / oname }'
 subprocess.run(shlex.split(cmd))
 
