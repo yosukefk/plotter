@@ -75,10 +75,18 @@ class Plotter:
                 self.fig.colorbar(
                         mappable=self.plotters[0].im,
                         ax=self.axes,
-                        shrink=.6,
+                        # shring=0.7 works well for pair plot, 0.6 is too large for trio plot, maybe 0.5?
+                        # wish there is a way to let cb to match height of
+                        # plots...?
+                        shrink=.7, 
                         **cbopt)
+
         if not suptitle is None:
-            self.fig.suptitle( suptitle )
+            if isinstance(suptitle, dict):
+                self.fig.suptitle(**suptitle)
+            else:
+                self.fig.suptitle( suptitle )
+
         if not titles is None:
             for ax,ttle in zip(self.axes, titles):
                 ax.set_title(ttle)

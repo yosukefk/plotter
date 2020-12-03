@@ -103,6 +103,20 @@ class plotter_core:
                             textcoords = 'offset points',
                             ha='center',va='top')
             else:
+                ### do the same as init?
+                ##kwds = self.contour_options
+                ##self.cnt = self.ax.contourf(arr, extent=self.extent, **kwds)
+
+                ## or this?
+                #self.cnt.changed()
+
+                # have to remove old one, and make new one...
+                # https://stackoverflow.com/questions/23250004/updating-contours-for-matplotlib-animation
+                for c in self.cnt.collections:
+                    c.remove()
+                kwds = self.contour_options
+                self.cnt = self.ax.contourf(arr, extent=self.extent, **kwds)
+
                 if footnote is not None:
                     self.footnote.set_text(footnote)
 
