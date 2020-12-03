@@ -15,7 +15,8 @@ class plotter_core:
         self.tstamps = tstamps
         self.extent = extent
 
-        self.imshow_options = plotter_options.get('imshow_options', {})
+        self.imshow_options = plotter_options.get('imshow_options', None)
+        self.contour_options = plotter_options.get('contour_options', None)
         self.colorbar_options = plotter_options.get('colorbar_options', {})
 
         self.footnote_options = plotter_options.get('footnote_options', {})
@@ -45,7 +46,9 @@ class plotter_core:
         if 'customize_once' in plotter_options:
             self.customize(plotter_options['customize_once'])
 
+        self.hasdata = False
         self.im = None
+        self.cnt = None
 
     def __call__(self, tidx = None, footnote='', title=None):
         if tidx is None: tidx = 0
@@ -79,9 +82,35 @@ class plotter_core:
                 if footnote is not None:
                     self.footnote.set_text(footnote)
 
-            # customizeration needed after updating data
-            if self.customize_after: 
-                self.customize(self.customize_after)
+        if self.contour_options is None:
+            pass
+        else:
+            if self.cnt is None:
+                kwds = self.contour_options
+                self.cnt = self.ax.contourf(arr, extent=self.extent, **kwds)
+
+                if self.colorbar_options is not None:
+                    kwds = self.colorbar_options
+                    self.cb = plt.colorbar(mappable=self.cnt, ax = self.ax,
+                            **kwds)
+
+                if footnote is not None:
+                    self.footnote = self.ax.annotate(footnote, 
+                            xy=(0.5, 0), # bottom center
+                            xytext=(0,-6), # drop 6 ponts below (works if there is no x axis label)
+                            #xytext=(0,-18), # drop 18 ponts below (works with x-small fontsize axis label)
+                            xycoords = 'axes fraction',
+                            textcoords = 'offset points',
+                            ha='center',va='top')
+            else:
+                if footnote is not None:
+                    self.footnote.set_text(footnote)
+
+
+        # customizeration needed after updating data
+        if self.customize_after: 
+            self.customize(self.customize_after)
+
 
 
     def customize(self, fnc):
