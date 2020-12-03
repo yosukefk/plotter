@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from importlib import reload
 import warnings
 reload(pc)
-class plotter:
+class Plotter:
     def __init__(self, arrays, tstamps, projection=None, extent=None,
             plotter_options=None, figure_options={}):
 

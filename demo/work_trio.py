@@ -2,9 +2,8 @@
 import sys
 sys.path.append('..')
 
-import reader
-import plotter
-import plotter.plotter_util as pu
+import calpost_reader as reader
+import plotter.plotter_multi as plotter_multi
 
 
 import matplotlib as mpl
@@ -18,7 +17,7 @@ import shlex
 #import psutil
 
 reload(reader)
-reload(plotter)
+reload(plotter_multi)
 
 # save better resolution image 
 mpl.rcParams['savefig.dpi'] = 300
@@ -55,7 +54,7 @@ else:
 data = []
 for fname in fnames:
     with open(ddir / fname) as f:
-        dat = reader.reader(f)
+        dat = reader.Reader(f)
     data.append(dat)
 
 # grab necessary info
@@ -116,7 +115,7 @@ figure_options = {
         }
 
 # make a plot template
-p = plotter.plotter_multi.plotter(arrays = arrays, tstamps = tstamps, extent=extent,
+p = plotter_multi.Plotter(arrays = arrays, tstamps = tstamps, extent=extent,
         plotter_options = plotter_options, figure_options = figure_options)
 
 # function to save one time frame

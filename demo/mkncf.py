@@ -1,7 +1,7 @@
 import cf
 import numpy as np
 
-import reader
+import calpost_reader as reader
 dat = reader.tester()
 
 v = cf.Field(

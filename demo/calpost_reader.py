@@ -7,7 +7,7 @@ import datetime
 import re
 import pytz
 
-def reader(f, tslice=slice(None,None)):
+def Reader(f, tslice=slice(None,None)):
     name = next(f)[31:]
     next(f)
     units = next(f)
@@ -67,5 +67,5 @@ def tester():
     fname = 'tseries_ch4_1min_conc_co_fl.dat'
 
     with open(ddir /fname) as f:
-        dat = reader(f)
+        dat = Reader(f)
     return dat

@@ -2,8 +2,8 @@
 import sys
 sys.path.append('..')
 
-import reader
-import plotter
+import calpost_reader as reader
+import plotter.plotter_solo as plotter_solo
 
 
 import matplotlib as mpl
@@ -14,7 +14,7 @@ from importlib import reload
 import shlex
 import subprocess
 reload(reader)
-reload(plotter)
+reload(plotter_solo)
 
 # save better resolution image 
 mpl.rcParams['savefig.dpi'] = 300
@@ -43,7 +43,7 @@ else:
 
 # read the data
 with open(ddir /fname) as f:
-    dat = reader.reader(f)
+    dat = reader.Reader(f)
 
 # grab necessary info
 arr = dat['v']
@@ -94,7 +94,7 @@ plotter_options = {
         }
 
 # make a plot template
-p = plotter.plotter_solo.plotter(array = arr, tstamps = tstamps, extent=extent,
+p = plotter_solo.Plotter(array = arr, tstamps = tstamps, extent=extent,
         plotter_options = plotter_options)
 
 # function to save one time frame

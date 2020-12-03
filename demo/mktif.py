@@ -1,4 +1,4 @@
-import reader
+import calpost_reader as reader
 try:
     import gdal
     import osr

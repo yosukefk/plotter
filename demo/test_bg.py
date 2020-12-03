@@ -1,4 +1,6 @@
-import reader
+#!/usr/bin/env python3
+
+import calpost_reader as reader
 import sys
 sys.path.append('..')
 from plotter import plotter_solo as psolo
@@ -18,7 +20,7 @@ mpl.rcParams['savefig.dpi'] = 300
 
 fname = '../data/tseries_ch4_1min_conc_co_fl.dat'
 with open(fname) as f:
-    dat = reader.reader(f, slice(60*12, 60*12+1))
+    dat = reader.Reader(f, slice(60*12, 60*12+1))
 
 g = dat['grid']
 ext = (g['x0'], g['x0'] + g['dx']*g['nx'],
@@ -28,7 +30,7 @@ print(ext)
 
 arr = dat['v'][:,::-1,:]
 
-p = psolo.plotter(arr, dat['ts'], extent=ext)
+p = psolo.Plotter(arr, dat['ts'], extent=ext)
 # the number is "zoom level"
 # i found max i can go is 22, but it still ugly
 #p.ax.add_image(GoogleTiles(), 22)#, alpha=.1)

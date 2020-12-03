@@ -2,7 +2,7 @@ from . import plotter_core as pc
 import matplotlib.pyplot as plt
 from importlib import reload
 reload(pc)
-class plotter:
+class Plotter:
     def __init__(self, array, tstamps, projection=None, extent=None,
             plotter_options={}):
         self.p = pc.plotter_core(array, tstamps, projection, extent, plotter_options)
