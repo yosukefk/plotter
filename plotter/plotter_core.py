@@ -16,16 +16,22 @@ class PlotterCore:
         :param plotter_options:
         """
 
+        if plotter_options is None: plotter_options = {}
+
         # i have to know the axes being used, even user wants default
         # so i grab default axes here and hold onto it
-        if plotter_options is None: plotter_options = {}
         self.fig = plotter_options.setdefault('fig', plt.figure())
         pos = plotter_options.get('pos', None)
+
         self.arr = array
         self.tstamps = tstamps
 
-        self.imshow_options = plotter_options.get('imshow_options', {})
+        self.imshow_options = plotter_options.get('imshow_options', None)
         self.contour_options = plotter_options.get('contour_options', None)
+        if all(_ is None for _ in [self.imshow_options, self.contour_options]):
+            # default to plot raster
+            self.imshow_options = {}
+
         self.colorbar_options = plotter_options.get('colorbar_options', {})
 
         self.footnote_options = plotter_options.get('footnote_options', {})
@@ -68,63 +74,11 @@ class PlotterCore:
         arr = self.arr[tidx]
         ts = self.tstamps[tidx]
 
-        if self.imshow_options is None:
-            pass
-        else:
-            if self.im is None:
-                kwds = self.imshow_options
-                self.im = self.ax.imshow(arr, extent=self.extent, transform=self.projection, **kwds)
-
-                if self.colorbar_options is not None:
-                    kwds = self.colorbar_options
-                    self.cb = plt.colorbar(mappable=self.im, ax=self.ax,
-                                           **kwds)
-
-                if footnote is not None:
-                    self.footnote = self.ax.annotate(footnote,
-                                                     xy=(0.5, 0),  # bottom center
-                                                     xytext=(0, -6),
-                                                     # drop 6 ponts below (works if there is no x axis label)
-                                                     # xytext=(0,-18), # drop 18 ponts below (works with x-small fontsize axis label)
-                                                     xycoords='axes fraction',
-                                                     textcoords='offset points',
-                                                     ha='center', va='top')
-
-            else:
+        if self.hasdata:
+            if self.imshow_options is not None:
                 self.im.set_data(arr)
 
-                if footnote is not None:
-                    self.footnote.set_text(footnote)
-
-        if self.contour_options is None:
-            pass
-        else:
-            if self.cnt is None:
-                kwds = self.contour_options
-                self.cnt = self.ax.contourf(arr, extent=self.extent, **kwds)
-
-                if self.colorbar_options is not None:
-                    kwds = self.colorbar_options
-                    self.cb = plt.colorbar(mappable=self.cnt, ax=self.ax,
-                                           **kwds)
-
-                if footnote is not None:
-                    self.footnote = self.ax.annotate(footnote,
-                                                     xy=(0.5, 0),  # bottom center
-                                                     xytext=(0, -6),
-                                                     # drop 6 ponts below (works if there is no x axis label)
-                                                     # xytext=(0,-18), # drop 18 ponts below (works with x-small fontsize axis label)
-                                                     xycoords='axes fraction',
-                                                     textcoords='offset points',
-                                                     ha='center', va='top')
-            else:
-                ### do the same as init?
-                ##kwds = self.contour_options
-                ##self.cnt = self.ax.contourf(arr, extent=self.extent, **kwds)
-
-                ## or this?
-                # self.cnt.changed()
-
+            if self.contour_options is not None:
                 # have to remove old one, and make new one...
                 # https://stackoverflow.com/questions/23250004/updating-contours-for-matplotlib-animation
                 for c in self.cnt.collections:
@@ -132,12 +86,46 @@ class PlotterCore:
                 kwds = self.contour_options
                 self.cnt = self.ax.contourf(arr, extent=self.extent, **kwds)
 
-                if footnote is not None:
-                    self.footnote.set_text(footnote)
+            if footnote is not None:
+                self.footnote.set_text(footnote)
+
+        else:
+            if self.imshow_options is not None:
+                kwds = self.imshow_options
+                self.im = self.ax.imshow(arr, extent=self.extent, transform=self.projection, **kwds)
+
+            if self.contour_options is not None:
+                kwds = self.contour_options
+                self.cnt = self.ax.contourf(arr, extent=self.extent, **kwds)
+
+            if self.colorbar_options is not None:
+                kwds = self.colorbar_options
+                if self.im:
+                    self.cb = plt.colorbar(mappable=self.im, ax=self.ax,
+                                           **kwds)
+                elif self.cnt:
+                    self.cb = plt.colorbar(mappable=self.cnt, ax=self.ax,
+                                           **kwds)
+                else:
+                    raise RuntimeError()
+
+            if footnote is not None:
+                self.footnote = self.ax.annotate(footnote,
+                                                 xy=(0.5, 0),  # bottom center
+                                                 xytext=(0, -6),
+                                                 # drop 6 ponts below (works if there is no x axis label)
+                                                 # xytext=(0,-18), # drop 18 ponts below (works with x-small fontsize axis label)
+                                                 xycoords='axes fraction',
+                                                 textcoords='offset points',
+                                                 ha='center', va='top')
+
+            self.hasdata = True
+
 
         # customizeration needed after updating data
         if self.customize_after:
             self.customize(self.customize_after)
+
 
     def customize(self, fnc):
         # apply fnc to self.ax
@@ -150,3 +138,5 @@ class PlotterCore:
                 fn(self)
         else:
             raise ValueError(f'fnc is not callable: {fnc}')
+
+

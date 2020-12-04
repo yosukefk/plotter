@@ -9,6 +9,7 @@ from importlib import reload
 reload(pc)
 
 
+
 class Plotter:
     def __init__(self, array, tstamps, projection=None, extent=None,
                  plotter_options={}):
@@ -25,6 +26,7 @@ class Plotter:
         self.p.customize(fnc, *args)
 
 
+
 def tester1():
     # show array
     import numpy as np
@@ -33,7 +35,7 @@ def tester1():
     print(arr)
     ext = [-464400, -906700, -461000, -902000]
     p = Plotter(arr, [datetime.date(2020,12,4)], extent=ext)
-    p('test.png')
+    p('test1.png')
 
 def tester2():
     # show raster
@@ -46,8 +48,9 @@ def tester2():
     print(arr.shape)
     ext = [r.transform[2], r.transform[2] + r.transform[0] * r.width,
            r.transform[5] + r.transform[4] * r.height, r.transform[5]]
+    print(ext)
     p = Plotter(arr, [datetime.date(2020,12,4)], extent=ext)
-    p('test.png')
+    p('test2.png')
 
 def tester3():
     # show raster with different projection
@@ -68,7 +71,7 @@ def tester3():
     plotter_options = {'extent': bext, 'projection':ccrs.epsg(3857)}
 
     p = Plotter(arr, [datetime.date(2020,12,4)], extent=ext, plotter_options=plotter_options)
-    p('test.png')
+    p('test3.png')
 
 def tester4():
     # show raster with different projection background
@@ -94,7 +97,37 @@ def tester4():
 
     p = Plotter(arr, [datetime.date(2020,12,4)], extent=ext, plotter_options=plotter_options)
     plt.savefig('ooo.tif')
-    p('test.png')
+    p('test4.png')
+
+def tester5():
+    # show raster with different projection background
+    import rasterio
+    import datetime
+    import cartopy.crs as ccrs
+    r = rasterio.open('test2.tif')
+    arr = r.read(1)
+    arr = arr.reshape(1, *arr.shape)
+
+    print(arr.shape)
+    ext = [r.transform[2], r.transform[2] + r.transform[0] * r.width,
+           r.transform[5] + r.transform[4] * r.height, r.transform[5]]
+
+    b = rasterio.open('../resources/naip_pmerc_larger.tif')
+    bext = [b.transform[2], b.transform[2] + b.transform[0] * b.width,
+           b.transform[5] + b.transform[4] * b.height, b.transform[5]]
+    plotter_options = {
+        'contour_options': {'alpha': .5},
+        'extent': bext, 'projection': ccrs.epsg(3857),
+        'customize_once': lambda p: p.ax.imshow(b.read()[:3, :, :].transpose((1, 2, 0)),
+                                                extent=bext, origin='upper')}
+
+    p = Plotter(arr, [datetime.date(2020,12,4)], extent=ext, plotter_options=plotter_options)
+    plt.savefig('ooo.tif')
+    p('test5.png')
 
 if __name__ == '__main__':
-    tester4()
+#    tester1()
+    tester2()
+#    tester3()
+#    tester4()
+    tester5()
