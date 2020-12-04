@@ -1,4 +1,9 @@
-from . import plotter_core as pc
+
+try:
+    from . import plotter_core as pc
+except ImportError:
+    import plotter_core as pc
+
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from importlib import reload
@@ -56,8 +61,8 @@ class Plotter:
             plotter_options[i]['pos'] = (1, np, i + 1)
 
         # create plots
-        self.plotters = [pc.plotter_core(arr, tstamps, projection, extent,
-                                         po) for arr, po in zip(arrays, plotter_options)]
+        self.plotters = [pc.PlotterCore(arr, tstamps, projection, extent,
+                                        po) for arr, po in zip(arrays, plotter_options)]
         self.axes = [p.ax for p in self.plotters]
 
     def __call__(self, oname, tidx=None, footnote='', suptitle=None, titles=None):

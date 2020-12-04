@@ -1,11 +1,21 @@
 import cartopy.crs as ccrs
 import matplotlib.pyplot as plt
-import numpy as np
+import warnings
 
 
-class plotter_core:
+class PlotterCore:
     def __init__(self, array, tstamps, projection=None, extent=None,
                  plotter_options=None):
+        """
+
+        :rtype: object
+        :param array: 3-d array of values, dimensions(t, y, x)
+        :param tstamps: 1-d array of datetime, dimensions(t)
+        :param projection:
+        :param extent:
+        :param plotter_options:
+        """
+
         # i have to know the axes being used, even user wants default
         # so i grab default axes here and hold onto it
         if plotter_options is None: plotter_options = {}
@@ -13,9 +23,8 @@ class plotter_core:
         pos = plotter_options.get('pos', None)
         self.arr = array
         self.tstamps = tstamps
-        self.extent = extent
 
-        self.imshow_options = plotter_options.get('imshow_options', None)
+        self.imshow_options = plotter_options.get('imshow_options', {})
         self.contour_options = plotter_options.get('contour_options', None)
         self.colorbar_options = plotter_options.get('colorbar_options', {})
 
@@ -24,18 +33,25 @@ class plotter_core:
         self.title = plotter_options.get('title', None)
         self.customize_after = plotter_options.get('customize_after', None)
 
+        # data's extent
+        self.extent = extent
         # assume TCEQ's lambert
         if projection is None:
-            projection = ccrs.LambertConformal(central_longitude=-97, central_latitude=40,
+            warnings.warn("Assume TCEQ's Lambert Conformal Proection")
+            self.projection = ccrs.LambertConformal(central_longitude=-97, central_latitude=40,
                                                standard_parallels=(33, 45), globe=ccrs.Globe(semimajor_axis=6370000,
                                                                                              semiminor_axis=6370000))
-            print(projection)
+
+        # plot's extent
+        plot_extent = plotter_options.get('extent', self.extent)
+        plot_projection = plotter_options.get('projection', self.projection)
 
         if pos:
-            self.ax = self.fig.add_subplot(*pos, projection=projection)
+            self.ax = self.fig.add_subplot(*pos, projection=plot_projection)
         else:
-            self.ax = self.fig.add_subplot(projection=projection)
-        self.ax.set_extent(self.extent, crs=projection)
+            self.ax = self.fig.add_subplot(projection=plot_projection)
+
+        self.ax.set_extent(plot_extent, crs=plot_projection)
         if self.title is not None:
             self.ax.set_title(self.title, loc='center')
 
@@ -57,7 +73,7 @@ class plotter_core:
         else:
             if self.im is None:
                 kwds = self.imshow_options
-                self.im = self.ax.imshow(arr, extent=self.extent, **kwds)
+                self.im = self.ax.imshow(arr, extent=self.extent, transform=self.projection, **kwds)
 
                 if self.colorbar_options is not None:
                     kwds = self.colorbar_options
