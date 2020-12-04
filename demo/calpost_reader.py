@@ -7,7 +7,8 @@ import datetime
 import re
 import pytz
 
-def Reader(f, tslice=slice(None,None)):
+
+def Reader(f, tslice=slice(None, None)):
     name = next(f)[31:]
     next(f)
     units = next(f)
@@ -46,26 +47,25 @@ def Reader(f, tslice=slice(None,None)):
 
     lst_v = []
     lst_ts = []
-    for i,line in islice(enumerate(f), tslice.start, tslice.stop):
+    for i, line in islice(enumerate(f), tslice.start, tslice.stop):
         ts = datetime.datetime.strptime(line[:16], ' %Y %j %H%M ')
         ts = ts.replace(tzinfo=pytz.utc).astimezone(pytz.timezone('Etc/GMT+6'))
-        
-        #print(ts)
+
+        # print(ts)
         lst_ts.append(ts)
 
         v = np.fromstring(line[16:], dtype=float, sep=' ').reshape(ny, nx)
-        #print(v)
+        # print(v)
         lst_v.append(v)
     ts = np.array(lst_ts)
     v = np.stack(lst_v, axis=0)
-    return {'name': name, 'units': units, 'ts': ts, 'grid': grid, 'y':y, 'x':x, 'v': v}
+    return {'name': name, 'units': units, 'ts': ts, 'grid': grid, 'y': y, 'x': x, 'v': v}
 
-        
 
 def tester():
     ddir = Path('../data')
     fname = 'tseries_ch4_1min_conc_co_fl.dat'
 
-    with open(ddir /fname) as f:
+    with open(ddir / fname) as f:
         dat = Reader(f)
     return dat

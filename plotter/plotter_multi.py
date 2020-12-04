@@ -3,10 +3,13 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 from importlib import reload
 import warnings
+
 reload(pc)
+
+
 class Plotter:
     def __init__(self, arrays, tstamps, projection=None, extent=None,
-            plotter_options=None, figure_options={}):
+                 plotter_options=None, figure_options={}):
 
         # assumptions:  
         #   tstamps, projection, extent are shared across plots
@@ -25,8 +28,8 @@ class Plotter:
             # if one set of options are provided, duplicate them
             warnings.warn('plotter options are duplicated for all plots')
             # TODO imshow options may needed to be cloned as well
-            plotter_options = [plotter_options] + [ plotter_options.copy()
-                    for _ in range(np-1)]
+            plotter_options = [plotter_options] + [plotter_options.copy()
+                                                   for _ in range(np - 1)]
         elif '__len__' in dir(plotter_options):
             # if multiple sets of options are provided, make sure that they are
             # pointing to two different object, since i have to manage them
@@ -39,11 +42,10 @@ class Plotter:
                 if 'imshow_options' in plotter_options[0]:
                     if id(plotter_options[0]['imshow_options']) == \
                             id(plotter_options[i].get('imshow_options',
-                                None)):
+                                                      None)):
                         warnings.warn(f'imshow options {i} is unlinked from first one')
                         plotter_options[i]['imshow_options'] = \
-                                plotter_options[i]['imshow_options'].copy()
-                        
+                            plotter_options[i]['imshow_options'].copy()
 
         # one figure to hold all plots
         self.fig = plt.figure()
@@ -51,13 +53,12 @@ class Plotter:
         # specifiy the subplot positions
         for i in range(np):
             plotter_options[i]['fig'] = self.fig
-            plotter_options[i]['pos'] = (1,np,i+1)
-        
+            plotter_options[i]['pos'] = (1, np, i + 1)
+
         # create plots
         self.plotters = [pc.plotter_core(arr, tstamps, projection, extent,
-            po) for arr,po in zip(arrays, plotter_options)]
+                                         po) for arr, po in zip(arrays, plotter_options)]
         self.axes = [p.ax for p in self.plotters]
-            
 
     def __call__(self, oname, tidx=None, footnote='', suptitle=None, titles=None):
 
@@ -69,26 +70,26 @@ class Plotter:
 
         # if it was blank, need some initalization
         if not haddata:
-            cbopt =  self.figure_options.get('colorbar_options', None)
+            cbopt = self.figure_options.get('colorbar_options', None)
             if cbopt is not None:
                 self.fig.subplots_adjust(wspace=.1)
                 self.fig.colorbar(
-                        mappable=self.plotters[0].im,
-                        ax=self.axes,
-                        # shring=0.7 works well for pair plot, 0.6 is too large for trio plot, maybe 0.5?
-                        # wish there is a way to let cb to match height of
-                        # plots...?
-                        shrink=.7, 
-                        **cbopt)
+                    mappable=self.plotters[0].im,
+                    ax=self.axes,
+                    # shring=0.7 works well for pair plot, 0.6 is too large for trio plot, maybe 0.5?
+                    # wish there is a way to let cb to match height of
+                    # plots...?
+                    shrink=.7,
+                    **cbopt)
 
         if not suptitle is None:
             if isinstance(suptitle, dict):
                 self.fig.suptitle(**suptitle)
             else:
-                self.fig.suptitle( suptitle )
+                self.fig.suptitle(suptitle)
 
         if not titles is None:
-            for ax,ttle in zip(self.axes, titles):
+            for ax, ttle in zip(self.axes, titles):
                 ax.set_title(ttle)
 
         self.fig.savefig(oname, bbox_inches='tight')
@@ -98,8 +99,9 @@ class Plotter:
         # things like showwin boundaries
         self.p.customize(fnc, *args)
 
+
 def tester():
     import reader
     dat = reader.tester()
     v = dat['v']
-    nt,ny,nx = v.shape
+    nt, ny, nx = v.shape

@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 import sys
+
 sys.path.append('..')
 
 import calpost_reader as reader
 import plotter.plotter_solo as plotter_solo
-
 
 import matplotlib as mpl
 import matplotlib.colors as colors
@@ -14,7 +14,6 @@ from importlib import reload
 from multiprocessing import Pool
 import shlex
 import subprocess
-
 
 reload(reader)
 reload(plotter_solo)
@@ -45,9 +44,8 @@ else:
         except OSError as e:
             print("Error: %s : %s" % (f, e.strerror))
 
-
 # read the data
-with open(ddir /fname) as f:
+with open(ddir / fname) as f:
     dat = reader.Reader(f)
 
 # grab necessary info
@@ -57,12 +55,12 @@ grid = dat['grid']
 
 # get horizontal extent 
 extent = [
-    grid['x0'], 
-    grid['x0'] + grid['nx']*grid['dx'], 
-    grid['y0'], 
-    grid['y0'] + grid['ny']*grid['dy'], 
-    ]
-extent = [_*1000 for _ in extent]
+    grid['x0'],
+    grid['x0'] + grid['nx'] * grid['dx'],
+    grid['y0'],
+    grid['y0'] + grid['ny'] * grid['dy'],
+]
+extent = [_ * 1000 for _ in extent]
 print(extent)
 
 # convert unit of array from g/m3 tp ppb
@@ -84,38 +82,39 @@ cmap = colors.ListedColormap([
     '#FFEE02',
     '#FAB979',
     '#EF6601',
-    '#FC0100',])
+    '#FC0100', ])
 cmap.set_under('#FFFFFF')
 ## Define a normalization from values -> colors
-bndry = [1,10,50,100,200,500,1000,2000]
+bndry = [1, 10, 50, 100, 200, 500, 1000, 2000]
 norm = colors.BoundaryNorm(bndry, len(bndry))
 
 plotter_options = {
-        'contour_options': {
-            'cmap': cmap,
-            'norm': norm,
-            },
-        'title': title,
-        }
+    'contour_options': {
+        'cmap': cmap,
+        'norm': norm,
+    },
+    'title': title,
+}
 
 # make a plot template
-p = plotter_solo.Plotter(array = arr, tstamps = tstamps, extent=extent,
-        plotter_options = plotter_options)
+p = plotter_solo.Plotter(array=arr, tstamps=tstamps, extent=extent,
+                         plotter_options=plotter_options)
+
 
 # function to save one time frame
 def saveone(i):
     ts = tstamps[i]
-    #oname = wdir / ts.strftime('img-%m%d%H%M.png')
+    # oname = wdir / ts.strftime('img-%m%d%H%M.png')
     oname = wdir / f'{i:04}.png'
     footnote = str(ts)
     p(oname, tidx=i, footnote=footnote)
 
+
 # save all frames in parallel
 # 68 for stampede, 24 for ls5
 with Pool(24) as pool:
-    pool.map(saveone,range(len(tstamps)))
+    pool.map(saveone, range(len(tstamps)))
 
 # make mpeg file
-cmd = f'ffmpeg -i {wdir}/%04d.png -vframes 2880 -crf 3 -vcodec libx264 -pix_fmt yuv420p -f mp4 -y { odir / oname }'
+cmd = f'ffmpeg -i {wdir}/%04d.png -vframes 2880 -crf 3 -vcodec libx264 -pix_fmt yuv420p -f mp4 -y {odir / oname}'
 subprocess.run(shlex.split(cmd))
-

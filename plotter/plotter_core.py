@@ -5,7 +5,7 @@ import numpy as np
 
 class plotter_core:
     def __init__(self, array, tstamps, projection=None, extent=None,
-            plotter_options = None):
+                 plotter_options=None):
         # i have to know the axes being used, even user wants default
         # so i grab default axes here and hold onto it
         if plotter_options is None: plotter_options = {}
@@ -27,20 +27,17 @@ class plotter_core:
         # assume TCEQ's lambert
         if projection is None:
             projection = ccrs.LambertConformal(central_longitude=-97, central_latitude=40,
-                    standard_parallels=(33,45), globe=ccrs.Globe(semimajor_axis=6370000,
-                        semiminor_axis=6370000))
+                                               standard_parallels=(33, 45), globe=ccrs.Globe(semimajor_axis=6370000,
+                                                                                             semiminor_axis=6370000))
             print(projection)
 
-
-
         if pos:
-            self.ax = self.fig.add_subplot(*pos, projection = projection)
+            self.ax = self.fig.add_subplot(*pos, projection=projection)
         else:
-            self.ax = self.fig.add_subplot( projection = projection)
+            self.ax = self.fig.add_subplot(projection=projection)
         self.ax.set_extent(self.extent, crs=projection)
         if self.title is not None:
             self.ax.set_title(self.title, loc='center')
-
 
         # other customizations
         if 'customize_once' in plotter_options:
@@ -50,7 +47,7 @@ class plotter_core:
         self.im = None
         self.cnt = None
 
-    def __call__(self, tidx = None, footnote='', title=None):
+    def __call__(self, tidx=None, footnote='', title=None):
         if tidx is None: tidx = 0
         arr = self.arr[tidx]
         ts = self.tstamps[tidx]
@@ -64,17 +61,18 @@ class plotter_core:
 
                 if self.colorbar_options is not None:
                     kwds = self.colorbar_options
-                    self.cb = plt.colorbar(mappable=self.im, ax = self.ax,
-                            **kwds)
+                    self.cb = plt.colorbar(mappable=self.im, ax=self.ax,
+                                           **kwds)
 
                 if footnote is not None:
-                    self.footnote = self.ax.annotate(footnote, 
-                            xy=(0.5, 0), # bottom center
-                            xytext=(0,-6), # drop 6 ponts below (works if there is no x axis label)
-                            #xytext=(0,-18), # drop 18 ponts below (works with x-small fontsize axis label)
-                            xycoords = 'axes fraction',
-                            textcoords = 'offset points',
-                            ha='center',va='top')
+                    self.footnote = self.ax.annotate(footnote,
+                                                     xy=(0.5, 0),  # bottom center
+                                                     xytext=(0, -6),
+                                                     # drop 6 ponts below (works if there is no x axis label)
+                                                     # xytext=(0,-18), # drop 18 ponts below (works with x-small fontsize axis label)
+                                                     xycoords='axes fraction',
+                                                     textcoords='offset points',
+                                                     ha='center', va='top')
 
             else:
                 self.im.set_data(arr)
@@ -91,24 +89,25 @@ class plotter_core:
 
                 if self.colorbar_options is not None:
                     kwds = self.colorbar_options
-                    self.cb = plt.colorbar(mappable=self.cnt, ax = self.ax,
-                            **kwds)
+                    self.cb = plt.colorbar(mappable=self.cnt, ax=self.ax,
+                                           **kwds)
 
                 if footnote is not None:
-                    self.footnote = self.ax.annotate(footnote, 
-                            xy=(0.5, 0), # bottom center
-                            xytext=(0,-6), # drop 6 ponts below (works if there is no x axis label)
-                            #xytext=(0,-18), # drop 18 ponts below (works with x-small fontsize axis label)
-                            xycoords = 'axes fraction',
-                            textcoords = 'offset points',
-                            ha='center',va='top')
+                    self.footnote = self.ax.annotate(footnote,
+                                                     xy=(0.5, 0),  # bottom center
+                                                     xytext=(0, -6),
+                                                     # drop 6 ponts below (works if there is no x axis label)
+                                                     # xytext=(0,-18), # drop 18 ponts below (works with x-small fontsize axis label)
+                                                     xycoords='axes fraction',
+                                                     textcoords='offset points',
+                                                     ha='center', va='top')
             else:
                 ### do the same as init?
                 ##kwds = self.contour_options
                 ##self.cnt = self.ax.contourf(arr, extent=self.extent, **kwds)
 
                 ## or this?
-                #self.cnt.changed()
+                # self.cnt.changed()
 
                 # have to remove old one, and make new one...
                 # https://stackoverflow.com/questions/23250004/updating-contours-for-matplotlib-animation
@@ -120,12 +119,9 @@ class plotter_core:
                 if footnote is not None:
                     self.footnote.set_text(footnote)
 
-
         # customizeration needed after updating data
-        if self.customize_after: 
+        if self.customize_after:
             self.customize(self.customize_after)
-
-
 
     def customize(self, fnc):
         # apply fnc to self.ax
@@ -138,4 +134,3 @@ class plotter_core:
                 fn(self)
         else:
             raise ValueError(f'fnc is not callable: {fnc}')
-
