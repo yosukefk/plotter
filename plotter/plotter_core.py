@@ -61,7 +61,9 @@ class PlotterCore:
         else:
             self.ax = self.fig.add_subplot(projection=plot_projection)
 
-        self.ax.set_extent(plot_extent, crs=plot_projection)
+        if not plot_extent is None:
+            self.ax.set_extent(plot_extent, crs=plot_projection)
+
         if self.title is not None:
             self.ax.set_title(self.title, loc='center')
 
@@ -96,6 +98,13 @@ class PlotterCore:
         else:
             if self.imshow_options is not None:
                 kwds = self.imshow_options
+                if self.extent is None:
+                    if self.x is None:
+                        pass
+                    else:
+                        # not super accurate, off by half pixel
+                        self.extent = [np.min(self.x), np.max(self.x), np.min(self.y), np.max(self.y)]
+
                 self.im = self.ax.imshow(arr, extent=self.extent, transform=self.projection, **kwds)
 
             if self.contour_options is not None:
@@ -109,8 +118,8 @@ class PlotterCore:
                         self.y = np.linspace(self.extent[3], self.extent[2], arr.shape[0], endpoint=False)
                         self.x = self.x + .5 * (self.x[1] - self.x[0])
                         self.y = self.y + .5 * (self.y[1] - self.y[0])
-                    print(self.x)
-                    print(self.y)
+                    # print(self.x)
+                    # print(self.y)
                 self.cnt = self.ax.contourf(self.x, self.y, arr, extent=self.extent, transform=self.projection, **kwds)
 
             if self.colorbar_options is not None:

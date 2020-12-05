@@ -1,7 +1,7 @@
 import cf
 import numpy as np
 
-import calpost_reader as reader
+from plotter import calpost_reader as reader
 
 dat = reader.tester()
 

@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
 
-import calpost_reader as reader
 import sys
 
 sys.path.append('..')
-from plotter import plotter_solo as psolo
-from cartopy.io.img_tiles import GoogleTiles
+from plotter import plotter_solo as psolo, calpost_reader as reader
 import matplotlib as mpl
 import matplotlib.pylab as plt
 

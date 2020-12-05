@@ -3,7 +3,7 @@ import sys
 
 sys.path.append('..')
 
-import calpost_reader as reader
+from plotter import calpost_reader as reader
 import plotter.plotter_solo as plotter_solo
 
 import matplotlib as mpl

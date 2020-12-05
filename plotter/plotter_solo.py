@@ -38,7 +38,7 @@ def tester_r1():
     p = Plotter(arr, [datetime.date(2020,12,4)], extent=ext)
     p('test_r1.png')
 
-def tester_r2():
+def tester_tr2():
     # show raster
     import rasterio
     import datetime
@@ -51,9 +51,9 @@ def tester_r2():
            r.transform[5] + r.transform[4] * r.height, r.transform[5]]
     print(ext)
     p = Plotter(arr, [datetime.date(2020,12,4)], extent=ext)
-    p('test_r2.png')
+    p('test_tr2.png')
 
-def tester_c2():
+def tester_tc2():
     # show contour
     import rasterio
     import datetime
@@ -66,9 +66,9 @@ def tester_c2():
            r.transform[5] + r.transform[4] * r.height, r.transform[5]]
     print(ext)
     p = Plotter(arr, [datetime.date(2020,12,4)], extent=ext, plotter_options={'contour_options':{}})
-    p('test_c2.png')
+    p('test_tc2.png')
 
-def tester_r3():
+def tester_tr3():
     # show raster with different projection
     import rasterio
     import datetime
@@ -87,9 +87,9 @@ def tester_r3():
     plotter_options = {'extent': bext, 'projection':ccrs.epsg(3857)}
 
     p = Plotter(arr, [datetime.date(2020,12,4)], extent=ext, plotter_options=plotter_options)
-    p('test_r3.png')
+    p('test_tr3.png')
 
-def tester_c3():
+def tester_tc3():
     # show contour with different projection
     import rasterio
     import datetime
@@ -108,9 +108,9 @@ def tester_c3():
     plotter_options = {'contour_options': {}, 'extent': bext, 'projection':ccrs.epsg(3857)}
 
     p = Plotter(arr, [datetime.date(2020,12,4)], extent=ext, plotter_options=plotter_options)
-    p('test_c3.png')
+    p('test_tc3.png')
 
-def tester_r4():
+def tester_tr4():
     # show raster with different projection background
     import rasterio
     import datetime
@@ -134,9 +134,9 @@ def tester_r4():
 
     p = Plotter(arr, [datetime.date(2020,12,4)], extent=ext, plotter_options=plotter_options)
     plt.savefig('ooo.tif')
-    p('test_r4.png')
+    p('test_tr4.png')
 
-def tester_c4():
+def tester_tc4():
     # show contour with different projection background
     import rasterio
     import datetime
@@ -162,14 +162,155 @@ def tester_c4():
                                                 extent=bext, origin='upper')}
 
     p = Plotter(arr, tstamps=[datetime.date(2020,12,4)], extent=ext, plotter_options=plotter_options)
-    plt.savefig('ooo.tif')
-    p('test_c4.png')
+    p('test_tc4.png')
+
+
+def tester_pr2a():
+    import calpost_reader as reader
+    with open('../data/tseries_ch4_1min_conc_co_fl.dat') as f:
+        dat = reader.Reader(f, slice(60 * 12, 60 * 12 + 10))
+
+    g = dat['grid']
+    ext = [g['x0'], g['x0'] + g['nx'] * g['dx'],
+           g['y0'], g['y0'] + g['ny'] * g['dy'],]
+    # distance in calpost is in km
+    ext = [_*1000 for _ in ext]
+
+    plotter_options = {
+        'imshow_options' : {
+            'origin': 'lower', # showing array as image require to specifie that grater y goes upward
+        }
+    }
+    p = Plotter(dat['v'], dat['ts'], extent=ext,
+                plotter_options=plotter_options)
+    p('test_pr2a.png')
+
+def tester_pr2b():
+    import calpost_reader as reader
+    with open('../data/tseries_ch4_1min_conc_co_fl.dat') as f:
+        dat = reader.Reader(f, slice(60 * 12, 60 * 12 + 10))
+
+    plotter_options = {
+        'imshow_options' : {
+            'origin': 'lower', # showing array as image require to specifie that grater y goes upward
+        }
+    }
+
+    # since calpost tells x,y coordinates of each point, it is easier just pass those coords
+    # dont forget that calpost has distance in km
+    x = dat['x'] * 1000
+    y = dat['y'] * 1000
+    p = Plotter(dat['v'], dat['ts'], x=x, y=y, plotter_options=plotter_options)
+    p('test_pr2b.png')
+
+def tester_pc2():
+    import calpost_reader as reader
+    with open('../data/tseries_ch4_1min_conc_co_fl.dat') as f:
+        dat = reader.Reader(f, slice(60 * 12, 60 * 12 + 10))
+
+    plotter_options = { 'contour_options' :{}}
+    x = dat['x'] * 1000
+    y = dat['y'] * 1000
+    p = Plotter(dat['v'], dat['ts'], x = x, y=y,
+                plotter_options=plotter_options)
+    p('test_pc2.png')
+
+def tester_pr3():
+    import calpost_reader as reader
+    import rasterio
+    import cartopy.crs as ccrs
+    with open('../data/tseries_ch4_1min_conc_co_fl.dat') as f:
+        dat = reader.Reader(f, slice(60 * 12, 60 * 12 + 10))
+
+    b = rasterio.open('../resources/naip_pmerc_larger.tif')
+    bext = [b.transform[2], b.transform[2] + b.transform[0] * b.width,
+           b.transform[5] + b.transform[4] * b.height, b.transform[5]]
+    plotter_options = {'extent': bext, 'projection':ccrs.epsg(3857),
+                       'imshow_options': {'origin': 'lower',  }
+                       }
+
+    x = dat['x'] * 1000
+    y = dat['y'] * 1000
+    p = Plotter(dat['v'], dat['ts'], x = x, y=y, plotter_options=plotter_options)
+    p('test_pr3.png')
+
+def tester_pc3():
+    import calpost_reader as reader
+    import rasterio
+    import cartopy.crs as ccrs
+    with open('../data/tseries_ch4_1min_conc_co_fl.dat') as f:
+        dat = reader.Reader(f, slice(60 * 12, 60 * 12 + 10))
+
+    b = rasterio.open('../resources/naip_pmerc_larger.tif')
+    bext = [b.transform[2], b.transform[2] + b.transform[0] * b.width,
+           b.transform[5] + b.transform[4] * b.height, b.transform[5]]
+    plotter_options = {'extent': bext, 'projection':ccrs.epsg(3857),
+                       'contour_options': {}}
+
+    x = dat['x'] * 1000
+    y = dat['y'] * 1000
+    p = Plotter(dat['v'], dat['ts'], x = x, y=y, plotter_options=plotter_options)
+    p('test_pc3.png')
+
+def tester_pr4():
+    # show raster with different projection background
+    import calpost_reader as reader
+    import rasterio
+    import cartopy.crs as ccrs
+    with open('../data/tseries_ch4_1min_conc_co_fl.dat') as f:
+        dat = reader.Reader(f, slice(60 * 12, 60 * 12 + 10))
+
+    b = rasterio.open('../resources/naip_pmerc_larger.tif')
+    bext = [b.transform[2], b.transform[2] + b.transform[0] * b.width,
+           b.transform[5] + b.transform[4] * b.height, b.transform[5]]
+    plotter_options = {
+        'imshow_options': {'origin': 'lower', 'alpha': .5},
+        'extent': bext, 'projection': ccrs.epsg(3857),
+        'customize_once': lambda p: p.ax.imshow(b.read()[:3, :, :].transpose((1, 2, 0)),
+                                                extent=bext, origin='upper')}
+
+    x = dat['x'] * 1000
+    y = dat['y'] * 1000
+    p = Plotter(dat['v'], dat['ts'], x=x, y=y, plotter_options=plotter_options)
+    p('test_pr4.png')
+
+def tester_pc4():
+    # show contour with different projection background
+    import calpost_reader as reader
+    import rasterio
+    import cartopy.crs as ccrs
+    with open('../data/tseries_ch4_1min_conc_co_fl.dat') as f:
+        dat = reader.Reader(f, slice(60 * 12, 60 * 12 + 10))
+
+    b = rasterio.open('../resources/naip_pmerc_larger.tif')
+    bext = [b.transform[2], b.transform[2] + b.transform[0] * b.width,
+           b.transform[5] + b.transform[4] * b.height, b.transform[5]]
+    plotter_options = {
+        'contour_options': {'alpha': .5},
+        'extent': bext, 'projection': ccrs.epsg(3857),
+        'customize_once': lambda p: p.ax.imshow(b.read()[:3, :, :].transpose((1, 2, 0)),
+                                                extent=bext, origin='upper')}
+
+    x = dat['x'] * 1000
+    y = dat['y'] * 1000
+    p = Plotter(dat['v'], dat['ts'], x = x, y=y, plotter_options=plotter_options)
+    p('test_pc4.png')
+
+
 
 if __name__ == '__main__':
-    tester_r1()
-    tester_r2()
-    tester_c2()
-    tester_r3()
-    tester_c3()
-    tester_r4()
-    tester_c4()
+    # tester_r1()
+    # tester_tr2() # this sometime fails, when done in series with others, weird...
+    # tester_tc2()
+    # tester_tr3()
+    # tester_tc3()
+    # tester_tr4()
+    # tester_tc4()
+    #
+    tester_pr2a()
+    tester_pr2b() # this sometime fails, when done in series with others, weird...
+    tester_pc2()
+    tester_pr3()
+    tester_pc3()
+    tester_pr4()
+    tester_pc4()

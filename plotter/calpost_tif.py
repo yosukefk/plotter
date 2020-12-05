@@ -1,4 +1,4 @@
-import calpost_reader as reader
+from plotter import calpost_reader as reader
 
 try:
     import gdal
