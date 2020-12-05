@@ -27,7 +27,7 @@ class Plotter:
 
 
 
-def tester1():
+def tester_r1():
     # show array
     import numpy as np
     import datetime
@@ -35,9 +35,9 @@ def tester1():
     print(arr)
     ext = [-464400, -906700, -461000, -902000]
     p = Plotter(arr, [datetime.date(2020,12,4)], extent=ext)
-    p('test1.png')
+    p('test_r1.png')
 
-def tester2():
+def tester_r2():
     # show raster
     import rasterio
     import datetime
@@ -50,9 +50,24 @@ def tester2():
            r.transform[5] + r.transform[4] * r.height, r.transform[5]]
     print(ext)
     p = Plotter(arr, [datetime.date(2020,12,4)], extent=ext)
-    p('test2.png')
+    p('test_r2.png')
 
-def tester3():
+def tester_c2():
+    # show contour
+    import rasterio
+    import datetime
+    r = rasterio.open('test2.tif')
+    arr = r.read(1)
+    arr = arr.reshape(1, *arr.shape)
+
+    print(arr.shape)
+    ext = [r.transform[2], r.transform[2] + r.transform[0] * r.width,
+           r.transform[5] + r.transform[4] * r.height, r.transform[5]]
+    print(ext)
+    p = Plotter(arr, [datetime.date(2020,12,4)], extent=ext, plotter_options={'contour_options':{}})
+    p('test_c2.png')
+
+def tester_r3():
     # show raster with different projection
     import rasterio
     import datetime
@@ -71,9 +86,9 @@ def tester3():
     plotter_options = {'extent': bext, 'projection':ccrs.epsg(3857)}
 
     p = Plotter(arr, [datetime.date(2020,12,4)], extent=ext, plotter_options=plotter_options)
-    p('test3.png')
+    p('test_r3.png')
 
-def tester4():
+def tester_r4():
     # show raster with different projection background
     import rasterio
     import datetime
@@ -97,9 +112,9 @@ def tester4():
 
     p = Plotter(arr, [datetime.date(2020,12,4)], extent=ext, plotter_options=plotter_options)
     plt.savefig('ooo.tif')
-    p('test4.png')
+    p('test_r4.png')
 
-def tester5():
+def tester_c4():
     # show raster with different projection background
     import rasterio
     import datetime
@@ -123,11 +138,12 @@ def tester5():
 
     p = Plotter(arr, [datetime.date(2020,12,4)], extent=ext, plotter_options=plotter_options)
     plt.savefig('ooo.tif')
-    p('test5.png')
+    p('test_c4.png')
 
 if __name__ == '__main__':
-#    tester1()
-    tester2()
-#    tester3()
-#    tester4()
-    tester5()
+#    tester_r1()
+    tester_r2()
+    tester_c2()
+#    tester_r3()
+#    tester_r4()
+    tester_c4()
