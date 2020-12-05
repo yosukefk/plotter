@@ -27,11 +27,15 @@ class PlotterCore:
         self.arr = array
         self.tstamps = tstamps
 
+        # if neither imshow or contour are specified, default to inshow
+        # user can inteitionally not plot by making both to None
+        if all(_ not in plotter_options.keys() for _ in ('imshow_options', 'contour_options')):
+            plotter_options['imshow_options'] = {}
         self.imshow_options = plotter_options.get('imshow_options', None)
         self.contour_options = plotter_options.get('contour_options', None)
-        if all(_ is None for _ in [self.imshow_options, self.contour_options]):
-            # default to plot raster
-            self.imshow_options = {}
+        # if all(_ is None for _ in [self.imshow_options, self.contour_options]):
+        #     # default to plot raster
+        #     self.imshow_options = {}
 
         self.colorbar_options = plotter_options.get('colorbar_options', {})
 
@@ -48,9 +52,10 @@ class PlotterCore:
         # assume TCEQ's lambert
         if projection is None:
             warnings.warn("Assume TCEQ's Lambert Conformal Proection")
-            self.projection = ccrs.LambertConformal(central_longitude=-97, central_latitude=40,
+            projection = ccrs.LambertConformal(central_longitude=-97, central_latitude=40,
                                                standard_parallels=(33, 45), globe=ccrs.Globe(semimajor_axis=6370000,
                                                                                              semiminor_axis=6370000))
+        self.projection = projection
 
         # plot's extent
         plot_extent = plotter_options.get('extent', self.extent)
@@ -131,7 +136,9 @@ class PlotterCore:
                     self.cb = plt.colorbar(mappable=self.cnt, ax=self.ax,
                                            **kwds)
                 else:
-                    raise RuntimeError()
+                    warnings.warn('No data to show, Colorbar turned off')
+                    pass
+                    #raise RuntimeError()
 
             if footnote is not None:
                 self.footnote = self.ax.annotate(footnote,

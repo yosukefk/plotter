@@ -313,22 +313,152 @@ def tester_pc4():
     p('test_pc4.png')
 
 
-def tester_s1():
+def tester_s1a():
     import cartopy.crs as ccrs
-    import cartopy.io.shapereader as cshp
-    import cartopy.feature as cfeat
+    import geopandas as gpd
     import numpy as np
     import datetime
 
-    pts = cfeat.ShapelyFeature(cshp.Reader(shpfile).geometries(), ccrs.PlateCarree())
+    # tried cartopy.io.shapereader.Reader, fiona.open but
+    # geopanda probably makes most sense
+    df = gpd.read_file(shpfile)
+
     arr = np.zeros(34 * 47).reshape(1, 47, 34, )
-    ext = [-464400, -906700, -461000, -902000]
+    ext = [-101.90, -101.86, 31.71, 31.75]
     plotter_options = {
-        'customize_once': lambda p: p.ax.add_feature(pts)
+        'imshow_options': None,
+        'contour_options': None,
+        'projection': ccrs.PlateCarree(),
+        'extent' : [-101.90, -101.86, 31.71, 31.75],
+        'customize_once': [
+            lambda p: p.ax.scatter(df.geometry.x, df.geometry.y, color='r', marker='o'),
+            # lambda p: p.ax.set_xticks(np.arange(-101.90, -101.86, 0.01), crs=ccrs.PlateCarree()),
+            lambda p: p.ax.gridlines(draw_labels=True),
+        ]
     }
-    p = Plotter(arr, [datetime.date(2020, 12, 4)], extent=ext,
+    p = Plotter(arr, [datetime.date(2020, 12, 4)], extent=ext, projection=ccrs.PlateCarree(),
                 plotter_options=plotter_options)
-    p('test_s1.png')
+    p('test_s1a.png')
+
+def tester_s1b():
+    import cartopy.crs as ccrs
+    import geopandas as gpd
+    import numpy as np
+    import datetime
+
+    # tried cartopy.io.shapereader.Reader, fiona.open but
+    # geopanda probably makes most sense
+    df = gpd.read_file(shpfile)
+
+    arr = np.zeros(34 * 47).reshape(1, 47, 34, )
+    ext = [-101.90, -101.86, 31.71, 31.75]
+    plotter_options = {
+        'imshow_options': None,
+        'contour_options': None,
+        'projection': ccrs.PlateCarree(),
+        'extent' : [-101.90, -101.86, 31.71, 31.75],
+        'customize_once': [
+            lambda p: df.plot(ax=p.ax, column='kls', categorical=True, legend=True),
+            # seems like i have to iterate over records and add label.  Also, position of label, leadline etc,
+            # i still need to search some tool for that, or manally adjust position which i dont want to...
+            lambda p: [p.ax.annotate(_.Site_Label, (_.geometry.x, _.geometry.y)) for _ in df.itertuples()
+                       if _.Site_Label in ('F1', 'op3_w1', 'S4')],
+            lambda p: p.ax.gridlines(draw_labels=True),
+        ]
+    }
+    p = Plotter(arr, [datetime.date(2020, 12, 4)], extent=ext, projection=ccrs.PlateCarree(),
+                plotter_options=plotter_options)
+    p('test_s1b.png')
+
+def tester_s2():
+    import calpost_reader as reader
+    import geopandas as gpd
+
+    df = gpd.read_file(shpfile)
+    df = df.to_crs('+proj=lcc +lat_1=33 +lat_2=45 +lat_0=40 +lon_0=-97 +x_0=0 +y_0=0 +a=6370000 +b=6370000 +units=m +no_defs')
+
+    with open('../data/tseries_ch4_1min_conc_co_fl.dat') as f:
+        dat = reader.Reader(f, slice(60 * 12, 60 * 12 + 10))
+
+    plotter_options = {
+        'contour_options': {},
+        'customize_once': [
+            lambda p: df.plot(ax=p.ax, column='kls', categorical=True, legend=True, zorder=10),
+            lambda p: [p.ax.annotate(_.Site_Label, (_.geometry.x, _.geometry.y)) for _ in df.itertuples()
+                       if _.Site_Label in ('F1', 'op3_w1', 'S4')],
+            lambda p: p.ax.gridlines(draw_labels=True),
+        ]
+    }
+    x = dat['x'] * 1000
+    y = dat['y'] * 1000
+    p = Plotter(dat['v'], dat['ts'], x=x, y=y,
+                plotter_options=plotter_options)
+    p('test_s2.png')
+
+def tester_s3():
+    import calpost_reader as reader
+    import rasterio
+    import cartopy.crs as ccrs
+    import geopandas as gpd
+
+    df = gpd.read_file(shpfile)
+    df = df.to_crs('EPSG:3857')
+
+    with open('../data/tseries_ch4_1min_conc_co_fl.dat') as f:
+        dat = reader.Reader(f, slice(60 * 12, 60 * 12 + 10))
+
+    b = rasterio.open(bgfile)
+    bext = [b.transform[2], b.transform[2] + b.transform[0] * b.width,
+            b.transform[5] + b.transform[4] * b.height, b.transform[5]]
+    plotter_options = {'extent': bext, 'projection': ccrs.epsg(3857),
+                       'contour_options': {},
+                       'customize_once': [
+                           lambda p: df.plot(ax=p.ax, column='kls', categorical=True, legend=True, zorder=10),
+                           lambda p: [p.ax.annotate(_.Site_Label, (_.geometry.x, _.geometry.y)) for _ in df.itertuples()
+                                      if _.Site_Label in ('F1', 'op3_w1', 'S4')],
+                           lambda p: p.ax.gridlines(draw_labels=True),
+                       ]
+                       }
+
+    x = dat['x'] * 1000
+    y = dat['y'] * 1000
+    p = Plotter(dat['v'], dat['ts'], x=x, y=y, plotter_options=plotter_options)
+    p('test_s3.png')
+
+
+def tester_s4():
+    # show contour with different projection background
+    import calpost_reader as reader
+    import rasterio
+    import cartopy.crs as ccrs
+    import geopandas as gpd
+
+    df = gpd.read_file(shpfile)
+    df = df.to_crs('EPSG:3857')
+
+    with open('../data/tseries_ch4_1min_conc_co_fl.dat') as f:
+        dat = reader.Reader(f, slice(60 * 12, 60 * 12 + 10))
+
+    b = rasterio.open(bgfile)
+    bext = [b.transform[2], b.transform[2] + b.transform[0] * b.width,
+            b.transform[5] + b.transform[4] * b.height, b.transform[5]]
+    plotter_options = {
+        'contour_options': {'alpha': .5},
+        'extent': bext, 'projection': ccrs.epsg(3857),
+        'customize_once': [
+            lambda p: p.ax.imshow(b.read()[:3, :, :].transpose((1, 2, 0)),
+                                                extent=bext, origin='upper'),
+            lambda p: df.plot(ax=p.ax, column='kls', categorical=True, legend=True, zorder=10),
+            lambda p: [p.ax.annotate(_.Site_Label, (_.geometry.x, _.geometry.y)) for _ in df.itertuples()
+                       if _.Site_Label in ('F1', 'op3_w1', 'S4')],
+            lambda p: p.ax.gridlines(draw_labels=True),
+        ]}
+
+    x = dat['x'] * 1000
+    y = dat['y'] * 1000
+    p = Plotter(dat['v'], dat['ts'], x=x, y=y, plotter_options=plotter_options)
+    p('test_s4.png')
+
 
 
 if __name__ == '__main__':
@@ -353,4 +483,8 @@ if __name__ == '__main__':
     # tester_pr4()
     # tester_pc4()
 
-    tester_s1()
+    # tester_s1a()
+    # tester_s1b()
+    # tester_s2()
+    # tester_s3()
+    tester_s4()
