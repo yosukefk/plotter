@@ -1,5 +1,6 @@
 rasterio
 cartopy
+geopandas
 scipy
 pyepsg
 #matplotlib

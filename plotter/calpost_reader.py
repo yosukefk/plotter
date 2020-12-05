@@ -32,7 +32,7 @@ def Reader(f, tslice=slice(None, None)):
 
     nx = max(ix)
     ny = max(iy)
-    print(nx, ny)
+    # print(nx, ny)
     assert len(x) == nx
     assert len(y) == ny
 
