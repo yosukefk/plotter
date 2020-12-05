@@ -64,6 +64,10 @@ class PlotterCore:
         if pos:
             self.ax = self.fig.add_subplot(*pos, projection=plot_projection)
         else:
+            # TODO fix this warning
+            # MatplotlibDeprecationWarning: Adding an axes using the same arguments as a previous axes currently reuses the earlier instance.
+            # In a future version, a new instance will always be created and returned.
+            # Meanwhile, this warning can be suppressed, and the future behavior ensured, by passing a unique label to each axes instance.
             self.ax = self.fig.add_subplot(projection=plot_projection)
 
         if not plot_extent is None:

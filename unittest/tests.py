@@ -6,6 +6,7 @@ from pathlib import Path
 dir0 = Path('expected')
 dir1 = Path('results')
 
+
 class MyTestCase(unittest.TestCase):
     def test_r1(self):
         ex.tester_r1()
@@ -56,7 +57,6 @@ class MyTestCase(unittest.TestCase):
             dir0 / 'test_tc4.png',
         ))
 
-
     def test_pr2a(self):
         ex.tester_pr2a()
         self.assertTrue(filecmp.cmp(
@@ -106,7 +106,6 @@ class MyTestCase(unittest.TestCase):
             dir0 / 'test_pc4.png',
         ))
 
-
     def test_s1a(self):
         ex.tester_s1a()
         self.assertTrue(filecmp.cmp(
@@ -141,7 +140,6 @@ class MyTestCase(unittest.TestCase):
             dir0 / 'test_s4.png',
             dir0 / 'test_s4.png',
         ))
-
 
 
 if __name__ == '__main__':

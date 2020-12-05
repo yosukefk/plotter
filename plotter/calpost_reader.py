@@ -12,7 +12,7 @@ def Reader(f, tslice=slice(None, None)):
     name = next(f)[31:]
     next(f)
     units = next(f)
-    m = re.search('\((.*)\)', units)
+    m = re.search(r'\((.*)\)', units)
     assert m
     units = m[1]
     for i in range(3):
@@ -67,5 +67,9 @@ def tester():
     fname = 'tseries_ch4_1min_conc_co_fl.dat'
 
     with open(ddir / fname) as f:
-        dat = Reader(f)
+        dat = Reader(f, slice(12*60, 12*60+10))
     return dat
+
+if __name__ == '__main__':
+    dat = tester()
+    print(dat)
