@@ -1,7 +1,11 @@
 import examples as ex
+import matplotlib as mpl
 import unittest
 import filecmp
 from pathlib import Path
+
+
+mpl.rcParams['savefig.dpi'] = 300
 
 dir0 = Path('expected')
 dir1 = Path('results')

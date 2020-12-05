@@ -12,6 +12,7 @@ outdir = Path('results')
 if not outdir.is_dir():
     outdir.mkdir()
 
+
 def tester_r1():
     # show array
     import numpy as np
@@ -69,6 +70,7 @@ def tester_tr3():
     ext = [r.transform[2], r.transform[2] + r.transform[0] * r.width,
            r.transform[5] + r.transform[4] * r.height, r.transform[5]]
 
+    # background
     b = rasterio.open(bgfile)
     bext = [b.transform[2], b.transform[2] + b.transform[0] * b.width,
             b.transform[5] + b.transform[4] * b.height, b.transform[5]]
@@ -91,6 +93,7 @@ def tester_tc3():
     ext = [r.transform[2], r.transform[2] + r.transform[0] * r.width,
            r.transform[5] + r.transform[4] * r.height, r.transform[5]]
 
+    # background
     b = rasterio.open(bgfile)
     bext = [b.transform[2], b.transform[2] + b.transform[0] * b.width,
             b.transform[5] + b.transform[4] * b.height, b.transform[5]]
@@ -114,6 +117,7 @@ def tester_tr4():
     ext = [r.transform[2], r.transform[2] + r.transform[0] * r.width,
            r.transform[5] + r.transform[4] * r.height, r.transform[5]]
 
+    # background
     b = rasterio.open(bgfile)
     bext = [b.transform[2], b.transform[2] + b.transform[0] * b.width,
             b.transform[5] + b.transform[4] * b.height, b.transform[5]]
@@ -142,6 +146,7 @@ def tester_tc4():
     ext = [r.transform[2], r.transform[2] + r.transform[0] * r.width,
            r.transform[5] + r.transform[4] * r.height, r.transform[5]]
 
+    # background
     b = rasterio.open(bgfile)
     bext = [b.transform[2], b.transform[2] + b.transform[0] * b.width,
             b.transform[5] + b.transform[4] * b.height, b.transform[5]]
@@ -215,6 +220,7 @@ def tester_pr3():
     with open('../data/tseries_ch4_1min_conc_co_fl.dat') as f:
         dat = reader.Reader(f, slice(60 * 12, 60 * 12 + 10))
 
+    # background
     b = rasterio.open(bgfile)
     bext = [b.transform[2], b.transform[2] + b.transform[0] * b.width,
             b.transform[5] + b.transform[4] * b.height, b.transform[5]]
@@ -235,6 +241,7 @@ def tester_pc3():
     with open('../data/tseries_ch4_1min_conc_co_fl.dat') as f:
         dat = reader.Reader(f, slice(60 * 12, 60 * 12 + 10))
 
+    # background
     b = rasterio.open(bgfile)
     bext = [b.transform[2], b.transform[2] + b.transform[0] * b.width,
             b.transform[5] + b.transform[4] * b.height, b.transform[5]]
@@ -255,6 +262,7 @@ def tester_pr4():
     with open('../data/tseries_ch4_1min_conc_co_fl.dat') as f:
         dat = reader.Reader(f, slice(60 * 12, 60 * 12 + 10))
 
+    # background
     b = rasterio.open(bgfile)
     bext = [b.transform[2], b.transform[2] + b.transform[0] * b.width,
             b.transform[5] + b.transform[4] * b.height, b.transform[5]]
@@ -278,6 +286,7 @@ def tester_pc4():
     with open('../data/tseries_ch4_1min_conc_co_fl.dat') as f:
         dat = reader.Reader(f, slice(60 * 12, 60 * 12 + 10))
 
+    # background
     b = rasterio.open(bgfile)
     bext = [b.transform[2], b.transform[2] + b.transform[0] * b.width,
             b.transform[5] + b.transform[4] * b.height, b.transform[5]]
@@ -356,6 +365,7 @@ def tester_s2():
     import calpost_reader as reader
     import geopandas as gpd
 
+    # source locations
     df = gpd.read_file(shpfile)
     df = df.to_crs(
         '+proj=lcc +lat_1=33 +lat_2=45 +lat_0=40 +lon_0=-97 +x_0=0 +y_0=0 +a=6370000 +b=6370000 +units=m +no_defs')
@@ -385,12 +395,14 @@ def tester_s3():
     import cartopy.crs as ccrs
     import geopandas as gpd
 
+    # source locations
     df = gpd.read_file(shpfile)
     df = df.to_crs('EPSG:3857')
 
     with open('../data/tseries_ch4_1min_conc_co_fl.dat') as f:
         dat = reader.Reader(f, slice(60 * 12, 60 * 12 + 10))
 
+    # background
     b = rasterio.open(bgfile)
     bext = [b.transform[2], b.transform[2] + b.transform[0] * b.width,
             b.transform[5] + b.transform[4] * b.height, b.transform[5]]
@@ -417,12 +429,14 @@ def tester_s4():
     import cartopy.crs as ccrs
     import geopandas as gpd
 
+    # source locations
     df = gpd.read_file(shpfile)
     df = df.to_crs('EPSG:3857')
 
     with open('../data/tseries_ch4_1min_conc_co_fl.dat') as f:
         dat = reader.Reader(f, slice(60 * 12, 60 * 12 + 10))
 
+    # background
     b = rasterio.open(bgfile)
     bext = [b.transform[2], b.transform[2] + b.transform[0] * b.width,
             b.transform[5] + b.transform[4] * b.height, b.transform[5]]
@@ -444,30 +458,117 @@ def tester_s4():
     p(outdir / 'test_s4.png')
 
 
+def tester_s5():
+    import calpost_reader as reader
+    import rasterio
+    import cartopy.crs as ccrs
+    import geopandas as gpd
+    import matplotlib.colors as colors
+    from shapely.geometry import Polygon
+    from adjustText import adjust_text
+    from plotter_util import lcc_tceq
+
+
+    # source locations
+    df = gpd.read_file(shpfile)
+    df = df.to_crs('EPSG:3857')
+
+    with open('../data/tseries_ch4_1min_conc_co_fl.dat') as f:
+        dat = reader.Reader(f, slice(60 * 12, 60 * 12 + 10))
+
+    g = dat['grid']
+    ext = [g['x0'], g['x0'] + g['nx'] * g['dx'],
+           g['y0'], g['y0'] + g['ny'] * g['dy'], ]
+    # distance in calpost is in km
+    ext = [_ * 1000 for _ in ext]
+
+    arr = dat['v']
+    # convert unit of array from g/m3 tp ppb
+    # mwt g/mol
+    # molar volume m3/mol
+    arr = arr / 16.043 * 0.024465403697038 * 1e9
+
+    # Mrinali/Gary's surfer color scale
+    cmap = colors.ListedColormap([
+        '#D6FAFE', '#02FEFF', '#C4FFC4', '#01FE02',
+        '#FFEE02', '#FAB979', '#EF6601', '#FC0100', ])
+    cmap.set_under('#FFFFFF')
+    ## Define a normalization from values -> colors
+    bndry = [1, 10, 50, 100, 200, 500, 1000, 2000]
+    norm = colors.BoundaryNorm(bndry, len(bndry))
+
+    # background
+    b = rasterio.open(bgfile)
+    bext = [b.transform[2], b.transform[2] + b.transform[0] * b.width,
+            b.transform[5] + b.transform[4] * b.height, b.transform[5]]
+    my_colors = {'flare': 'red', 'tank': 'blue', 'well': 'yellow'}
+    plotter_options = {
+        'contour_options': {
+            'levels': bndry,
+            'cmap': cmap,
+            'norm': norm,
+            'alpha': .5,
+        },
+        'extent': bext, 'projection': ccrs.epsg(3857),
+        'customize_once': [
+            # background
+            lambda p: p.ax.imshow(b.read()[:3, :, :].transpose((1, 2, 0)),
+                                  extent=bext, origin='upper'),
+            # emission points
+            lambda p: df.plot(ax=p.ax, column='kls', categorical=True, legend=False, zorder=10,
+                              markersize=2,
+                              # got red/blue/yellow from colorbrewer's Set1
+                              cmap=colors.ListedColormap(['#e41a1c', '#377eb8', '#ffff33'])),
+            # emission point annotations
+            lambda p: adjust_text(
+                # make list of annotation
+                list(
+                    # this part creates annotation for each point
+                    p.ax.annotate(_.Site_Label, (_.geometry.x, _.geometry.y), zorder=11, size=6)
+                    # goes across all points but filter by Site_Label
+                    for _ in df.itertuples() if _.Site_Label in ('F1', 'op3_w1', 'S4')
+                ),
+                # draw arrow from point to annotation
+                arrowprops={'arrowstyle': '-'}
+            ),
+            # modeled box
+            lambda p: p.ax.add_geometries(
+                [Polygon([(ext[x],ext[y]) for x,y in ((0,2), (0,3), (1,3), (1,2), (0,2))])],
+                crs=lcc_tceq, facecolor='none', edgecolor='white', lw=.6,
+            ),
+        ]}
+
+    x = dat['x'] * 1000
+    y = dat['y'] * 1000
+    p = Plotter(arr, dat['ts'], x=x, y=y, plotter_options=plotter_options)
+    p(outdir / 'test_s5.png')
+
+
 if __name__ == '__main__':
     # save better resolution image
     import matplotlib as mpl
 
     mpl.rcParams['savefig.dpi'] = 300
 
-    tester_r1()
-    tester_tr2() # this sometime fails, when done in series with others, weird...
-    tester_tc2()
-    tester_tr3()
-    tester_tc3()
-    tester_tr4()
-    tester_tc4()
-
-    tester_pr2a()
-    tester_pr2b()  # this sometime fails, when done in series with others, weird...
-    tester_pc2()
-    tester_pr3()
-    tester_pc3()
-    tester_pr4()
-    tester_pc4()
-
-    tester_s1a()
-    tester_s1b()
-    tester_s2()
-    tester_s3()
-    tester_s4()
+    # tester_r1()
+    # tester_tr2() # this sometime fails, when done in series with others, weird...
+    # tester_tc2()
+    # tester_tr3()
+    # tester_tc3()
+    # tester_tr4()
+    # tester_tc4()
+    #
+    # tester_pr2a()
+    # tester_pr2b()  # this sometime fails, when done in series with others, weird...
+    # tester_pc2()
+    # tester_pr3()
+    # tester_pc3()
+    # tester_pr4()
+    # tester_pc4()
+    #
+    # tester_s1a()
+    # tester_s1b()
+    # tester_s2()
+    # tester_s3()
+    # tester_s4()
+    tester_s5()

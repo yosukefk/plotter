@@ -131,6 +131,7 @@ class PlotterCore:
                     # print(self.y)
                 self.cnt = self.ax.contourf(self.x, self.y, arr, extent=self.extent, transform=self.projection, **kwds)
 
+
             if self.colorbar_options is not None:
                 kwds = self.colorbar_options
                 if self.im:

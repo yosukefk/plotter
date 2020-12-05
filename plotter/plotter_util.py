@@ -2,6 +2,7 @@ try:
     import gdal
 except ModuleNotFoundError:
     from osgeo import gdal
+import cartopy.crs as ccrs
 gdal.UseExceptions()
 
 
@@ -23,3 +24,7 @@ class background_adder:
 
     def refresh_background(self, p):
         p.background_bga.set_zorder(1)
+
+lcc_tceq = ccrs.LambertConformal(central_longitude=-97, central_latitude=40,
+                                               standard_parallels=(33, 45), globe=ccrs.Globe(semimajor_axis=6370000,
+                                                                                             semiminor_axis=6370000))

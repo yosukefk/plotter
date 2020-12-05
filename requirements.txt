@@ -5,3 +5,4 @@ scipy
 pyepsg
 #matplotlib
 #pandas
+adjusttext
