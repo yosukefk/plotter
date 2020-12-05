@@ -1,10 +1,11 @@
 import cartopy.crs as ccrs
 import matplotlib.pyplot as plt
+import numpy as np
 import warnings
 
 
 class PlotterCore:
-    def __init__(self, array, tstamps, projection=None, extent=None,
+    def __init__(self, array, tstamps, projection=None, extent=None, x=None, y=None,
                  plotter_options=None):
         """
 
@@ -41,6 +42,9 @@ class PlotterCore:
 
         # data's extent
         self.extent = extent
+        self.x = x
+        self.y = y
+
         # assume TCEQ's lambert
         if projection is None:
             warnings.warn("Assume TCEQ's Lambert Conformal Proection")
@@ -84,7 +88,7 @@ class PlotterCore:
                 for c in self.cnt.collections:
                     c.remove()
                 kwds = self.contour_options
-                self.cnt = self.ax.contourf(arr, extent=self.extent, **kwds)
+                self.cnt = self.ax.contourf(self.x, self.y, arr, extent=self.extent, **kwds)
 
             if footnote is not None:
                 self.footnote.set_text(footnote)
@@ -96,7 +100,18 @@ class PlotterCore:
 
             if self.contour_options is not None:
                 kwds = self.contour_options
-                self.cnt = self.ax.contourf(arr, extent=self.extent, **kwds)
+                if self.x is None:
+                    if self.extent is None:
+                        self.x = np.arange(arr.shape[1])
+                        self.y = np.arange(arr.shape[0])
+                    else:
+                        self.x = np.linspace(self.extent[0], self.extent[1], arr.shape[1], endpoint=False)
+                        self.y = np.linspace(self.extent[3], self.extent[2], arr.shape[0], endpoint=False)
+                        self.x = self.x + .5 * (self.x[1] - self.x[0])
+                        self.y = self.y + .5 * (self.y[1] - self.y[0])
+                    print(self.x)
+                    print(self.y)
+                self.cnt = self.ax.contourf(self.x, self.y, arr, extent=self.extent, transform=self.projection, **kwds)
 
             if self.colorbar_options is not None:
                 kwds = self.colorbar_options

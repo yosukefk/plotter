@@ -11,9 +11,10 @@ reload(pc)
 
 
 class Plotter:
-    def __init__(self, array, tstamps, projection=None, extent=None,
+    def __init__(self, array, tstamps, projection=None, extent=None, x=None, y=None,
                  plotter_options={}):
-        self.p = pc.PlotterCore(array, tstamps, projection, extent, plotter_options)
+        self.p = pc.PlotterCore(array, tstamps, projection=projection,
+                                extent=extent, x=x, y=y, plotter_options=plotter_options)
         self.ax = self.p.ax
 
     def __call__(self, oname, tidx=None, footnote=''):
@@ -88,6 +89,27 @@ def tester_r3():
     p = Plotter(arr, [datetime.date(2020,12,4)], extent=ext, plotter_options=plotter_options)
     p('test_r3.png')
 
+def tester_c3():
+    # show contour with different projection
+    import rasterio
+    import datetime
+    import cartopy.crs as ccrs
+    r = rasterio.open('test2.tif')
+    arr = r.read(1)
+    arr = arr.reshape(1, *arr.shape)
+
+    print(arr.shape)
+    ext = [r.transform[2], r.transform[2] + r.transform[0] * r.width,
+           r.transform[5] + r.transform[4] * r.height, r.transform[5]]
+
+    b = rasterio.open('../resources/naip_pmerc_larger.tif')
+    bext = [b.transform[2], b.transform[2] + b.transform[0] * b.width,
+           b.transform[5] + b.transform[4] * b.height, b.transform[5]]
+    plotter_options = {'contour_options': {}, 'extent': bext, 'projection':ccrs.epsg(3857)}
+
+    p = Plotter(arr, [datetime.date(2020,12,4)], extent=ext, plotter_options=plotter_options)
+    p('test_c3.png')
+
 def tester_r4():
     # show raster with different projection background
     import rasterio
@@ -115,10 +137,11 @@ def tester_r4():
     p('test_r4.png')
 
 def tester_c4():
-    # show raster with different projection background
+    # show contour with different projection background
     import rasterio
     import datetime
     import cartopy.crs as ccrs
+    import numpy as np
     r = rasterio.open('test2.tif')
     arr = r.read(1)
     arr = arr.reshape(1, *arr.shape)
@@ -126,6 +149,8 @@ def tester_c4():
     print(arr.shape)
     ext = [r.transform[2], r.transform[2] + r.transform[0] * r.width,
            r.transform[5] + r.transform[4] * r.height, r.transform[5]]
+    x = (np.arange(r.width) + .5) * r.transform[0] + r.transform[2]
+    y = (np.arange(r.height) + .5) * r.transform[4] + r.transform[5]
 
     b = rasterio.open('../resources/naip_pmerc_larger.tif')
     bext = [b.transform[2], b.transform[2] + b.transform[0] * b.width,
@@ -136,14 +161,15 @@ def tester_c4():
         'customize_once': lambda p: p.ax.imshow(b.read()[:3, :, :].transpose((1, 2, 0)),
                                                 extent=bext, origin='upper')}
 
-    p = Plotter(arr, [datetime.date(2020,12,4)], extent=ext, plotter_options=plotter_options)
+    p = Plotter(arr, tstamps=[datetime.date(2020,12,4)], extent=ext, plotter_options=plotter_options)
     plt.savefig('ooo.tif')
     p('test_c4.png')
 
 if __name__ == '__main__':
-#    tester_r1()
+    tester_r1()
     tester_r2()
     tester_c2()
-#    tester_r3()
-#    tester_r4()
+    tester_r3()
+    tester_c3()
+    tester_r4()
     tester_c4()
