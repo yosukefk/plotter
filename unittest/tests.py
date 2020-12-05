@@ -145,6 +145,12 @@ class MyTestCase(unittest.TestCase):
             dir0 / 'test_s4.png',
         ))
 
+    def test_s5(self):
+        ex.tester_s5()
+        self.assertTrue(filecmp.cmp(
+            dir0 / 'test_s5.png',
+            dir0 / 'test_s5.png',
+        ))
 
 if __name__ == '__main__':
     unittest.main()
