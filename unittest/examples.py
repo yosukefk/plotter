@@ -466,7 +466,7 @@ def tester_s5():
     import matplotlib.colors as colors
     from shapely.geometry import Polygon
     from adjustText import adjust_text
-    from plotter_util import lcc_tceq
+    from plotter.plotter_util import lcc_tceq
 
 
     # source locations
