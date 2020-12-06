@@ -23,6 +23,8 @@ def Reader(f, tslice=slice(None, None)):
     x = next(f)
     y = next(f)
 
+    # TODO read this, and find if discrete or grid
+#    typ = np.fromstring(typ[16:], sep=' ')
     ix = np.fromstring(ix[16:], dtype=int, sep=' ')
     iy = np.fromstring(iy[16:], dtype=int, sep=' ')
     x = np.fromstring(x[16:], dtype=float, sep=' ')
@@ -32,9 +34,19 @@ def Reader(f, tslice=slice(None, None)):
 
     nx = max(ix)
     ny = max(iy)
-    # print(nx, ny)
-    assert len(x) == nx
-    assert len(y) == ny
+    print(typ)
+    print(nx, ny, nx*ny)
+    print(len(x), len(y), len(x)*len(y))
+    print(nx == len(x)*len(y))
+    if len(x) == nx and len(y) == ny:
+        # this is good, gridded data
+        print('GRID')
+    elif len(x)*len(y) == nx:
+        print('DESC')
+        nx = len(x)
+        ny = len(y)
+    else:
+        raise RuntimeError('non gridded data...')
 
     for i in range(3):
         next(f)

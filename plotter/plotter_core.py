@@ -86,6 +86,7 @@ class PlotterCore:
         self.hasdata = False
         self.im = None
         self.cnt = None
+        self.mappable = None
 
     def __call__(self, tidx=None, footnote='', title=None):
         if tidx is None: tidx = 0
@@ -119,6 +120,7 @@ class PlotterCore:
                         self.extent = [np.min(self.x), np.max(self.x), np.min(self.y), np.max(self.y)]
 
                 self.im = self.ax.imshow(arr, extent=self.extent, transform=self.projection, **kwds)
+                self.mappable = self.im
 
             if self.contour_options is not None:
                 kwds = self.contour_options
@@ -134,15 +136,13 @@ class PlotterCore:
                     # print(self.x)
                     # print(self.y)
                 self.cnt = self.ax.contourf(self.x, self.y, arr, extent=self.extent, transform=self.projection, **kwds)
+                self.mappable = self.cnt
 
 
             if self.colorbar_options is not None:
                 kwds = self.colorbar_options
-                if self.im:
-                    self.cb = plt.colorbar(mappable=self.im, ax=self.ax,
-                                           **kwds)
-                elif self.cnt:
-                    self.cb = plt.colorbar(mappable=self.cnt, ax=self.ax,
+                if not self.mappable is None:
+                    self.cb = plt.colorbar(mappable=self.mappable, ax=self.ax,
                                            **kwds)
                 else:
                     warnings.warn('No data to show, Colorbar turned off',

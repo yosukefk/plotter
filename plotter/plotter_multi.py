@@ -13,7 +13,7 @@ reload(pc)
 
 
 class Plotter:
-    def __init__(self, arrays, tstamps, projection=None, extent=None,
+    def __init__(self, arrays, tstamps, projection=None, extent=None, x=None, y=None,
                  plotter_options=None, figure_options={}):
 
         # assumptions:  
@@ -61,14 +61,14 @@ class Plotter:
             plotter_options[i]['pos'] = (1, np, i + 1)
 
         # create plots
-        self.plotters = [pc.PlotterCore(arr, tstamps, projection, extent,
-                                        po) for arr, po in zip(arrays, plotter_options)]
+        self.plotters = [pc.PlotterCore(arr, tstamps, projection=projection, extent=extent,
+            x = x, y=y, plotter_options=po) for arr, po in zip(arrays, plotter_options)]
         self.axes = [p.ax for p in self.plotters]
 
     def __call__(self, oname, tidx=None, footnote='', suptitle=None, titles=None):
 
         # remember if plots were blank
-        haddata = self.plotters[0].im is not None
+        haddata = self.plotters[0].hasdata
 
         for p in self.plotters:
             p(tidx, footnote)
@@ -79,7 +79,7 @@ class Plotter:
             if cbopt is not None:
                 self.fig.subplots_adjust(wspace=.1)
                 self.fig.colorbar(
-                    mappable=self.plotters[0].im,
+                    mappable=self.plotters[0].mappable,
                     ax=self.axes,
                     # shring=0.7 works well for pair plot, 0.6 is too large for trio plot, maybe 0.5?
                     # wish there is a way to let cb to match height of
