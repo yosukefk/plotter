@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import examples as ex
 import matplotlib as mpl
 import unittest
@@ -79,11 +81,25 @@ class MyTestCase(unittest.TestCase):
             dir0 / 'test_pr2b.png',
         ))
 
+    def test_pr2b_v(self):
+        ex.tester_pr2b_v()
+        self.assertTrue(filecmp.cmp(
+            dir0 / 'test_pr2b.mp4',
+            dir0 / 'test_pr2b.mp4',
+        ))
+
     def test_pc2(self):
         ex.tester_pc2()
         self.assertTrue(filecmp.cmp(
             dir0 / 'test_pc2.png',
             dir0 / 'test_pc2.png',
+        ))
+
+    def test_pc2_v(self):
+        ex.tester_pc2_v()
+        self.assertTrue(filecmp.cmp(
+            dir0 / 'test_pc2.mp4',
+            dir0 / 'test_pc2.mp4',
         ))
 
     def test_pr3(self):
@@ -154,6 +170,10 @@ class MyTestCase(unittest.TestCase):
         self.assertTrue(filecmp.cmp(
             dir0 / 'test_s5.png',
             dir0 / 'test_s5.png',
+        ))
+        self.assertTrue(filecmp.cmp(
+            dir0 / 'test_s5.mp4',
+            dir0 / 'test_s5.mp4',
         ))
 
 if __name__ == '__main__':

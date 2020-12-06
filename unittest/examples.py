@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import sys
 
 sys.path.append('..')
@@ -199,6 +201,44 @@ def tester_pr2b():
     p = Plotter(dat['v'], dat['ts'], x=x, y=y, plotter_options=plotter_options)
     p(outdir / 'test_pr2b.png')
 
+def tester_pr2b_v():
+    from plotter import calpost_reader as reader
+    import tempfile
+    from pathlib import Path
+    import shlex
+    import subprocess
+    with open('../data/tseries_ch4_1min_conc_co_fl.dat') as f:
+        dat = reader.Reader(f, slice(60 * 12, 60 * 12 + 10))
+
+    plotter_options = {
+        'imshow_options': {
+            'origin': 'lower',  # showing array as image require to specifie that grater y goes upward
+        }
+    }
+
+    # since calpost tells x,y coordinates of each point, it is easier just pass those coords
+    # dont forget that calpost has distance in km
+    x = dat['x'] * 1000
+    y = dat['y'] * 1000
+    p = Plotter(dat['v'], dat['ts'], x=x, y=y, plotter_options=plotter_options)
+
+    tstamps = dat['ts']
+    with tempfile.TemporaryDirectory() as wdir:
+        workdir = Path(wdir)
+
+        # function to save one time frame
+        def saveone(i):
+            ts = tstamps[i]
+            pname = workdir / f'{i:04}.png'
+            footnote = str(ts)
+            p(pname, tidx=i, footnote=footnote)
+
+        n = len(tstamps)
+        for i, ts in enumerate(tstamps):
+            saveone(i)
+        # make mpeg file
+        cmd = f'ffmpeg -i {workdir}/%04d.png -vframes 2880 -crf 3 -vcodec libx264 -pix_fmt yuv420p -f mp4 -y {outdir / "test_pr2b.mp4"}'
+        subprocess.run(shlex.split(cmd))
 
 def tester_pc2():
     from plotter import calpost_reader as reader
@@ -212,6 +252,39 @@ def tester_pc2():
                 plotter_options=plotter_options)
     p(outdir / 'test_pc2.png')
 
+
+def tester_pc2_v():
+    from plotter import calpost_reader as reader
+    import tempfile
+    from pathlib import Path
+    import shlex
+    import subprocess
+    with open('../data/tseries_ch4_1min_conc_co_fl.dat') as f:
+        dat = reader.Reader(f, slice(60 * 12, 60 * 12 + 10))
+
+    plotter_options = {'contour_options': {}}
+    x = dat['x'] * 1000
+    y = dat['y'] * 1000
+    p = Plotter(dat['v'], dat['ts'], x=x, y=y,
+                plotter_options=plotter_options)
+
+    tstamps = dat['ts']
+    with tempfile.TemporaryDirectory() as wdir:
+        workdir = Path(wdir)
+
+        # function to save one time frame
+        def saveone(i):
+            ts = tstamps[i]
+            pname = workdir / f'{i:04}.png'
+            footnote = str(ts)
+            p(pname, tidx=i, footnote=footnote)
+
+        n = len(tstamps)
+        for i, ts in enumerate(tstamps):
+            saveone(i)
+        # make mpeg file
+        cmd = f'ffmpeg -i {workdir}/%04d.png -vframes 2880 -crf 3 -vcodec libx264 -pix_fmt yuv420p -f mp4 -y {outdir / "test_pc2.mp4"}'
+        subprocess.run(shlex.split(cmd))
 
 def tester_pr3():
     from plotter import calpost_reader as reader
@@ -468,6 +541,11 @@ def tester_s5():
     from shapely.geometry import Polygon
     from adjustText import adjust_text
 
+    import tempfile
+    from pathlib import Path
+    import shlex
+    import subprocess
+
 
     # source locations
     df = gpd.read_file(shpfile)
@@ -560,6 +638,24 @@ def tester_s5():
     # make a plot
     p(outdir / 'test_s5.png')
 
+    # make an animation
+    with tempfile.TemporaryDirectory() as wdir:
+        workdir = Path(wdir)
+
+        # function to save one time frame
+        def saveone(i):
+            ts = tstamps[i]
+            pname = workdir / f'{i:04}.png'
+            footnote = str(ts)
+            p(pname, tidx=i, footnote=footnote)
+
+        n = len(tstamps)
+        for i, ts in enumerate(tstamps):
+            saveone(i)
+        # make mpeg file
+        cmd = f'ffmpeg -i {workdir}/%04d.png -vframes 2880 -crf 3 -vcodec libx264 -pix_fmt yuv420p -f mp4 -y {outdir / "test_s5.mp4"}'
+        subprocess.run(shlex.split(cmd))
+
 
 if __name__ == '__main__':
     # save better resolution image
@@ -577,7 +673,9 @@ if __name__ == '__main__':
     #
     # tester_pr2a()
     # tester_pr2b()  # this sometime fails, when done in series with others, weird...
+    # tester_pr2b_v()
     # tester_pc2()
+    # tester_pc2_v()
     # tester_pr3()
     # tester_pc3()
     # tester_pr4()
