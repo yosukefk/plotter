@@ -460,29 +460,40 @@ def tester_s4():
 
 def tester_s5():
     from plotter import calpost_reader as reader
+    from plotter.plotter_util import lcc_tceq
     import rasterio
     import cartopy.crs as ccrs
     import geopandas as gpd
     import matplotlib.colors as colors
     from shapely.geometry import Polygon
     from adjustText import adjust_text
-    from plotter.plotter_util import lcc_tceq
 
 
     # source locations
     df = gpd.read_file(shpfile)
     df = df.to_crs('EPSG:3857')
 
+    title = 'Flare'
+    
+    # read the data
     with open('../data/tseries_ch4_1min_conc_co_fl.dat') as f:
         dat = reader.Reader(f, slice(60 * 12, 60 * 12 + 10))
 
-    g = dat['grid']
-    ext = [g['x0'], g['x0'] + g['nx'] * g['dx'],
-           g['y0'], g['y0'] + g['ny'] * g['dy'], ]
-    # distance in calpost is in km
-    ext = [_ * 1000 for _ in ext]
-
+    # grab necessary info
     arr = dat['v']
+    tstamps = dat['ts']
+    grid = dat['grid']
+    
+    extent = [
+        grid['x0'], grid['x0'] + grid['nx'] * grid['dx'],
+        grid['y0'], grid['y0'] + grid['ny'] * grid['dy'],
+    ]
+    
+    # distance in calpost is in km
+    extent = [_ * 1000 for _ in extent]
+    x = dat['x'] * 1000
+    y = dat['y'] * 1000
+
     # convert unit of array from g/m3 tp ppb
     # mwt g/mol
     # molar volume m3/mol
@@ -493,7 +504,7 @@ def tester_s5():
         '#D6FAFE', '#02FEFF', '#C4FFC4', '#01FE02',
         '#FFEE02', '#FAB979', '#EF6601', '#FC0100', ])
     cmap.set_under('#FFFFFF')
-    ## Define a normalization from values -> colors
+    # Define a normalization from values -> colors
     bndry = [1, 10, 50, 100, 200, 500, 1000, 2000]
     norm = colors.BoundaryNorm(bndry, len(bndry))
 
@@ -502,6 +513,7 @@ def tester_s5():
     bext = [b.transform[2], b.transform[2] + b.transform[0] * b.width,
             b.transform[5] + b.transform[4] * b.height, b.transform[5]]
     my_colors = {'flare': 'red', 'tank': 'blue', 'well': 'yellow'}
+
     plotter_options = {
         'contour_options': {
             'levels': bndry,
@@ -509,6 +521,7 @@ def tester_s5():
             'norm': norm,
             'alpha': .5,
         },
+        'title': title,
         'colorbar_options': {
             'label': r'$CH_4$ (ppbV)',
         },
@@ -527,22 +540,24 @@ def tester_s5():
                 # make list of annotation
                 list(
                     # this part creates annotation for each point
-                    # p.ax.annotate(_.Site_Label, (_.geometry.x, _.geometry.y), zorder=11, size=6)
                     p.ax.text(_.geometry.x, _.geometry.y, _.Site_Label, zorder=11, size=6)
                     # goes across all points but filter by Site_Label
                     for _ in df.itertuples() if _.Site_Label in ('F1', 'op3_w1', 'S4')
                 ),
+                # draw arrow from point to annotation
+                arrowprops={'arrowstyle': '-'}
             ),
             # modeled box
             lambda p: p.ax.add_geometries(
-                [Polygon([(ext[x],ext[y]) for x,y in ((0,2), (0,3), (1,3), (1,2), (0,2))])],
+                [Polygon([(extent[x],extent[y]) for x,y in ((0,2), (0,3), (1,3), (1,2), (0,2))])],
                 crs=lcc_tceq, facecolor='none', edgecolor='white', lw=.6,
             ),
         ]}
 
-    x = dat['x'] * 1000
-    y = dat['y'] * 1000
+    # make a plot template
     p = Plotter(arr, dat['ts'], x=x, y=y, plotter_options=plotter_options)
+
+    # make a plot
     p(outdir / 'test_s5.png')
 
 

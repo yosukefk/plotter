@@ -43,9 +43,6 @@ oname = 'tseries_ch4_1min_conc_co_fl.mp4'
 df = gpd.read_file(shpfile)
 df = df.to_crs('EPSG:3857')
 
-with open(ddir / fname) as f:
-    dat = reader.Reader(f, slice(60 * 12, 60 * 12 + 10))
-
 if not wdir.is_dir():
     wdir.mkdir()
 else:
@@ -67,14 +64,12 @@ tstamps = dat['ts']
 grid = dat['grid']
 
 extent = [
-    grid['x0'],
-    grid['x0'] + grid['nx'] * grid['dx'],
-    grid['y0'],
-    grid['y0'] + grid['ny'] * grid['dy'],
+    grid['x0'], grid['x0'] + grid['nx'] * grid['dx'],
+    grid['y0'], grid['y0'] + grid['ny'] * grid['dy'],
 ]
-extent = [_ * 1000 for _ in extent]
-print(extent)
 
+# distance in calpost is in km
+extent = [_ * 1000 for _ in extent]
 x = dat['x'] * 1000
 y = dat['y'] * 1000
 
@@ -106,6 +101,9 @@ plotter_options = {
         'alpha': .5,
     },
     'title': title,
+    'colorbar_options': {
+        'label': r'$CH_4$ (ppbV)',
+    },
     'extent': bext, 'projection': ccrs.epsg(3857),
     'customize_once': [
         # background
@@ -121,7 +119,7 @@ plotter_options = {
             # make list of annotation
             list(
                 # this part creates annotation for each point
-                p.ax.annotate(_.Site_Label, (_.geometry.x, _.geometry.y), zorder=11, size=6)
+                p.ax.text(_.geometry.x, _.geometry.y, _.Site_Label, zorder=11, size=6)
                 # goes across all points but filter by Site_Label
                 for _ in df.itertuples() if _.Site_Label in ('F1', 'op3_w1', 'S4')
             ),
