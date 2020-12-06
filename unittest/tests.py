@@ -3,6 +3,10 @@ import matplotlib as mpl
 import unittest
 import filecmp
 from pathlib import Path
+import warnings
+# TODO can i somehow supress warnings across board...?
+from plotter import PlotterWarning
+
 
 
 mpl.rcParams['savefig.dpi'] = 300

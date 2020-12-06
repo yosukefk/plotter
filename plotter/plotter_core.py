@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import warnings
 
+class PlotterWarning(UserWarning): pass
+
 
 class PlotterCore:
     def __init__(self, array, tstamps, projection=None, extent=None, x=None, y=None,
@@ -51,7 +53,8 @@ class PlotterCore:
 
         # assume TCEQ's lambert
         if projection is None:
-            warnings.warn("Assume TCEQ's Lambert Conformal Proection")
+            warnings.warn("Assume TCEQ's Lambert Conformal Proection",
+                    PlotterWarning)
             projection = ccrs.LambertConformal(central_longitude=-97, central_latitude=40,
                                                standard_parallels=(33, 45), globe=ccrs.Globe(semimajor_axis=6370000,
                                                                                              semiminor_axis=6370000))
@@ -141,7 +144,8 @@ class PlotterCore:
                     self.cb = plt.colorbar(mappable=self.cnt, ax=self.ax,
                                            **kwds)
                 else:
-                    warnings.warn('No data to show, Colorbar turned off')
+                    warnings.warn('No data to show, Colorbar turned off',
+                            PlotterWarning)
                     pass
                     #raise RuntimeError()
 
