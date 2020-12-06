@@ -102,7 +102,8 @@ class PlotterCore:
                 for c in self.cnt.collections:
                     c.remove()
                 kwds = self.contour_options
-                self.cnt = self.ax.contourf(self.x, self.y, arr, extent=self.extent, **kwds)
+                self.cnt = self.ax.contourf(self.x, self.y, arr,
+                        extent=self.extent, transform=self.projection, **kwds)
 
             if footnote is not None:
                 self.footnote.set_text(footnote)
