@@ -161,7 +161,7 @@ def tester_tc4():
 
 
 def tester_pr2a():
-    import calpost_reader as reader
+    from plotter import calpost_reader as reader
     with open('../data/tseries_ch4_1min_conc_co_fl.dat') as f:
         dat = reader.Reader(f, slice(60 * 12, 60 * 12 + 10))
 
@@ -182,7 +182,7 @@ def tester_pr2a():
 
 
 def tester_pr2b():
-    import calpost_reader as reader
+    from plotter import calpost_reader as reader
     with open('../data/tseries_ch4_1min_conc_co_fl.dat') as f:
         dat = reader.Reader(f, slice(60 * 12, 60 * 12 + 10))
 
@@ -201,7 +201,7 @@ def tester_pr2b():
 
 
 def tester_pc2():
-    import calpost_reader as reader
+    from plotter import calpost_reader as reader
     with open('../data/tseries_ch4_1min_conc_co_fl.dat') as f:
         dat = reader.Reader(f, slice(60 * 12, 60 * 12 + 10))
 
@@ -214,7 +214,7 @@ def tester_pc2():
 
 
 def tester_pr3():
-    import calpost_reader as reader
+    from plotter import calpost_reader as reader
     import rasterio
     import cartopy.crs as ccrs
     with open('../data/tseries_ch4_1min_conc_co_fl.dat') as f:
@@ -235,7 +235,7 @@ def tester_pr3():
 
 
 def tester_pc3():
-    import calpost_reader as reader
+    from plotter import calpost_reader as reader
     import rasterio
     import cartopy.crs as ccrs
     with open('../data/tseries_ch4_1min_conc_co_fl.dat') as f:
@@ -256,7 +256,7 @@ def tester_pc3():
 
 def tester_pr4():
     # show raster with different projection background
-    import calpost_reader as reader
+    from plotter import calpost_reader as reader
     import rasterio
     import cartopy.crs as ccrs
     with open('../data/tseries_ch4_1min_conc_co_fl.dat') as f:
@@ -280,7 +280,7 @@ def tester_pr4():
 
 def tester_pc4():
     # show contour with different projection background
-    import calpost_reader as reader
+    from plotter import calpost_reader as reader
     import rasterio
     import cartopy.crs as ccrs
     with open('../data/tseries_ch4_1min_conc_co_fl.dat') as f:
@@ -362,7 +362,7 @@ def tester_s1b():
 
 
 def tester_s2():
-    import calpost_reader as reader
+    from plotter import calpost_reader as reader
     import geopandas as gpd
 
     # source locations
@@ -390,7 +390,7 @@ def tester_s2():
 
 
 def tester_s3():
-    import calpost_reader as reader
+    from plotter import calpost_reader as reader
     import rasterio
     import cartopy.crs as ccrs
     import geopandas as gpd
@@ -424,7 +424,7 @@ def tester_s3():
 
 def tester_s4():
     # show contour with different projection background
-    import calpost_reader as reader
+    from plotter import calpost_reader as reader
     import rasterio
     import cartopy.crs as ccrs
     import geopandas as gpd
@@ -459,7 +459,7 @@ def tester_s4():
 
 
 def tester_s5():
-    import calpost_reader as reader
+    from plotter import calpost_reader as reader
     import rasterio
     import cartopy.crs as ccrs
     import geopandas as gpd
