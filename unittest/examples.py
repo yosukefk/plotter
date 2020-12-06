@@ -16,7 +16,7 @@ if not outdir.is_dir():
 
 
 def tester_r1():
-    # show array
+    """show numpy array"""
     import numpy as np
     import datetime
     np.random.seed(1)
@@ -28,7 +28,7 @@ def tester_r1():
 
 
 def tester_tr2():
-    # show raster
+    """show geotiff raster"""
     import rasterio
     import datetime
     r = rasterio.open(tiffile)
@@ -44,7 +44,7 @@ def tester_tr2():
 
 
 def tester_tc2():
-    # show contour
+    """show contour from geotiff"""
     import rasterio
     import datetime
     r = rasterio.open(tiffile)
@@ -60,7 +60,7 @@ def tester_tc2():
 
 
 def tester_tr3():
-    # show raster with different projection
+    """show geotiff raster in different projection"""
     import rasterio
     import datetime
     import cartopy.crs as ccrs
@@ -83,7 +83,7 @@ def tester_tr3():
 
 
 def tester_tc3():
-    # show contour with different projection
+    """show contour from geotiff in different projection"""
     import rasterio
     import datetime
     import cartopy.crs as ccrs
@@ -106,7 +106,7 @@ def tester_tc3():
 
 
 def tester_tr4():
-    # show raster with different projection background
+    """show geotiff raster with background in different projection"""
     import rasterio
     import cartopy.crs as ccrs
     import matplotlib.pylab as plt
@@ -135,7 +135,7 @@ def tester_tr4():
 
 
 def tester_tc4():
-    # show contour with different projection background
+    """show contour from geotiff with background in different projection"""
     import rasterio
     import datetime
     import cartopy.crs as ccrs
@@ -163,6 +163,7 @@ def tester_tc4():
 
 
 def tester_pr2a():
+    """show calpost raster"""
     from plotter import calpost_reader as reader
     with open('../data/tseries_ch4_1min_conc_co_fl.dat') as f:
         dat = reader.Reader(f, slice(60 * 12, 60 * 12 + 10))
@@ -184,6 +185,7 @@ def tester_pr2a():
 
 
 def tester_pr2b():
+    """show calpost raster"""
     from plotter import calpost_reader as reader
     with open('../data/tseries_ch4_1min_conc_co_fl.dat') as f:
         dat = reader.Reader(f, slice(60 * 12, 60 * 12 + 10))
@@ -202,6 +204,7 @@ def tester_pr2b():
     p(outdir / 'test_pr2b.png')
 
 def tester_pr2b_v():
+    """animate calpost raster"""
     from plotter import calpost_reader as reader
     import tempfile
     from pathlib import Path
@@ -241,6 +244,7 @@ def tester_pr2b_v():
         subprocess.run(shlex.split(cmd))
 
 def tester_pc2():
+    """show contour from calpost"""
     from plotter import calpost_reader as reader
     with open('../data/tseries_ch4_1min_conc_co_fl.dat') as f:
         dat = reader.Reader(f, slice(60 * 12, 60 * 12 + 10))
@@ -254,6 +258,7 @@ def tester_pc2():
 
 
 def tester_pc2_v():
+    """animate contour from calpost"""
     from plotter import calpost_reader as reader
     import tempfile
     from pathlib import Path
@@ -287,6 +292,7 @@ def tester_pc2_v():
         subprocess.run(shlex.split(cmd))
 
 def tester_pr3():
+    """show calpost raster in different projection"""
     from plotter import calpost_reader as reader
     import rasterio
     import cartopy.crs as ccrs
@@ -308,6 +314,7 @@ def tester_pr3():
 
 
 def tester_pc3():
+    """show contour from calpost in different projection"""
     from plotter import calpost_reader as reader
     import rasterio
     import cartopy.crs as ccrs
@@ -328,7 +335,7 @@ def tester_pc3():
 
 
 def tester_pr4():
-    # show raster with different projection background
+    """show calpost raster with background in different projection"""
     from plotter import calpost_reader as reader
     import rasterio
     import cartopy.crs as ccrs
@@ -352,7 +359,7 @@ def tester_pr4():
 
 
 def tester_pc4():
-    # show contour with different projection background
+    """show contour from calpost with background in different projection"""
     from plotter import calpost_reader as reader
     import rasterio
     import cartopy.crs as ccrs
@@ -376,6 +383,7 @@ def tester_pc4():
 
 
 def tester_s1a():
+    """show point shapefile"""
     import cartopy.crs as ccrs
     import geopandas as gpd
     import numpy as np
@@ -404,6 +412,7 @@ def tester_s1a():
 
 
 def tester_s1b():
+    """show point shapefile with annotation"""
     import cartopy.crs as ccrs
     import geopandas as gpd
     import numpy as np
@@ -435,6 +444,7 @@ def tester_s1b():
 
 
 def tester_s2():
+    """show contour from calpost plus annotated points"""
     from plotter import calpost_reader as reader
     import geopandas as gpd
 
@@ -463,6 +473,7 @@ def tester_s2():
 
 
 def tester_s3():
+    """show contour from calpost in different projection plus annotated points"""
     from plotter import calpost_reader as reader
     import rasterio
     import cartopy.crs as ccrs
@@ -496,7 +507,7 @@ def tester_s3():
 
 
 def tester_s4():
-    # show contour with different projection background
+    """show contour from calpost with background in different projection plus annotated points"""
     from plotter import calpost_reader as reader
     import rasterio
     import cartopy.crs as ccrs
@@ -532,6 +543,7 @@ def tester_s4():
 
 
 def tester_s5():
+    """show contour from calpost with all the bells and whistles"""
     from plotter import calpost_reader as reader
     from plotter.plotter_util import lcc_tceq
     import rasterio
@@ -547,13 +559,17 @@ def tester_s5():
     import subprocess
 
 
+    # background (extent is used as plot's extent)
+    b = rasterio.open(bgfile)
+    bext = [b.transform[2], b.transform[2] + b.transform[0] * b.width,
+            b.transform[5] + b.transform[4] * b.height, b.transform[5]]
+
     # source locations
     df = gpd.read_file(shpfile)
     df = df.to_crs('EPSG:3857')
 
-    title = 'Flare'
-    
     # read the data
+    title = 'Flare'
     with open('../data/tseries_ch4_1min_conc_co_fl.dat') as f:
         dat = reader.Reader(f, slice(60 * 12, 60 * 12 + 10))
 
@@ -561,7 +577,6 @@ def tester_s5():
     arr = dat['v']
     tstamps = dat['ts']
     grid = dat['grid']
-    
     extent = [
         grid['x0'], grid['x0'] + grid['nx'] * grid['dx'],
         grid['y0'], grid['y0'] + grid['ny'] * grid['dy'],
@@ -586,24 +601,18 @@ def tester_s5():
     bndry = [1, 10, 50, 100, 200, 500, 1000, 2000]
     norm = colors.BoundaryNorm(bndry, len(bndry))
 
-    # background
-    b = rasterio.open(bgfile)
-    bext = [b.transform[2], b.transform[2] + b.transform[0] * b.width,
-            b.transform[5] + b.transform[4] * b.height, b.transform[5]]
-    my_colors = {'flare': 'red', 'tank': 'blue', 'well': 'yellow'}
-
     plotter_options = {
+        'extent': bext, 'projection': ccrs.epsg(3857),
+        'title': title,
         'contour_options': {
             'levels': bndry,
             'cmap': cmap,
             'norm': norm,
             'alpha': .5,
         },
-        'title': title,
         'colorbar_options': {
             'label': r'$CH_4$ (ppbV)',
         },
-        'extent': bext, 'projection': ccrs.epsg(3857),
         'customize_once': [
             # background
             lambda p: p.ax.imshow(b.read()[:3, :, :].transpose((1, 2, 0)),

@@ -25,8 +25,6 @@ reload(plotter_solo)
 
 # save better resolution image 
 mpl.rcParams['savefig.dpi'] = 300
-bgfile = '../resources/naip_toy_pmerc_5.tif'
-shpfile = '../resources/emitters.shp'
 
 # input directory/file names
 ddir = Path('../data')
@@ -39,10 +37,7 @@ wdir = Path('./img')
 odir = Path('.')
 oname = 'tseries_ch4_1min_conc_co_fl.mp4'
 
-# source locations
-df = gpd.read_file(shpfile)
-df = df.to_crs('EPSG:3857')
-
+# prep workdir
 if not wdir.is_dir():
     wdir.mkdir()
 else:
@@ -52,9 +47,23 @@ else:
         except OSError as e:
             print("Error: %s : %s" % (f, e.strerror))
 
-title = 'Flare'
+# aux inputs
+bgfile = '../resources/naip_toy_pmerc_5.tif'
+shpfile = '../resources/emitters.shp'
+
+
+# background (extent is used as plot's extent)
+b = rasterio.open(bgfile)
+bext = [b.transform[2], b.transform[2] + b.transform[0] * b.width,
+        b.transform[5] + b.transform[4] * b.height, b.transform[5]]
+
+# source locations
+df = gpd.read_file(shpfile)
+df = df.to_crs('EPSG:3857')
 
 # read the data
+title = 'Flare'
+
 with open(ddir / fname) as f:
     dat = reader.Reader(f)
 
@@ -63,6 +72,7 @@ arr = dat['v']
 tstamps = dat['ts']
 grid = dat['grid']
 
+# get horizontal extent 
 extent = [
     grid['x0'], grid['x0'] + grid['nx'] * grid['dx'],
     grid['y0'], grid['y0'] + grid['ny'] * grid['dy'],
@@ -87,13 +97,9 @@ cmap.set_under('#FFFFFF')
 bndry = [1, 10, 50, 100, 200, 500, 1000, 2000]
 norm = colors.BoundaryNorm(bndry, len(bndry))
 
-# background
-b = rasterio.open(bgfile)
-bext = [b.transform[2], b.transform[2] + b.transform[0] * b.width,
-        b.transform[5] + b.transform[4] * b.height, b.transform[5]]
-my_colors = {'flare': 'red', 'tank': 'blue', 'well': 'yellow'}
-
 plotter_options = {
+    'extent': bext, 'projection': ccrs.epsg(3857),
+    'title': title,
     'contour_options': {
         'levels': bndry,
         'cmap': cmap,
@@ -103,11 +109,6 @@ plotter_options = {
     'colorbar_options': {
         'label': r'$CH_4$ (ppbV)',
     },
-    'title': title,
-    'colorbar_options': {
-        'label': r'$CH_4$ (ppbV)',
-    },
-    'extent': bext, 'projection': ccrs.epsg(3857),
     'customize_once': [
         # background
         lambda p: p.ax.imshow(b.read()[:3, :, :].transpose((1, 2, 0)),
@@ -151,7 +152,8 @@ def saveone(i):
 
 # save all frames in parallel
 # 68 for stampede, 24 for ls5
-with Pool(24) as pool:
+nthreads = 24  # ls5
+with Pool(nthreads) as pool:
     pool.map(saveone, range(len(tstamps)))
 
 # make mpeg file
