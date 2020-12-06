@@ -105,6 +105,9 @@ plotter_options = {
         'norm': norm,
         'alpha': .5,
     },
+    'colorbar_options': {
+        'label': r'$CH_4$ (ppbV)',
+    },
     'title': title,
     'extent': bext, 'projection': ccrs.epsg(3857),
     'customize_once': [
@@ -117,7 +120,9 @@ plotter_options = {
                           # got red/blue/yellow from colorbrewer's Set1
                           cmap=colors.ListedColormap(['#e41a1c', '#377eb8', '#ffff33'])),
         # emission point annotations
-        lambda p: adjust_text(
+        lambda p: 
+            # adjust_text() repels labels from each other
+            adjust_text(
             # make list of annotation
             list(
                 # this part creates annotation for each point
@@ -125,8 +130,6 @@ plotter_options = {
                 # goes across all points but filter by Site_Label
                 for _ in df.itertuples() if _.Site_Label in ('F1', 'op3_w1', 'S4')
             ),
-            # draw arrow from point to annotation
-            arrowprops={'arrowstyle': '-'}
         ),
         # modeled box
         lambda p: p.ax.add_geometries(
