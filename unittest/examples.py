@@ -509,6 +509,9 @@ def tester_s5():
             'norm': norm,
             'alpha': .5,
         },
+        'colorbar_options': {
+            'label': r'$CH_4$ (ppbV)',
+        },
         'extent': bext, 'projection': ccrs.epsg(3857),
         'customize_once': [
             # background
@@ -524,12 +527,11 @@ def tester_s5():
                 # make list of annotation
                 list(
                     # this part creates annotation for each point
-                    p.ax.annotate(_.Site_Label, (_.geometry.x, _.geometry.y), zorder=11, size=6)
+                    # p.ax.annotate(_.Site_Label, (_.geometry.x, _.geometry.y), zorder=11, size=6)
+                    p.ax.text(_.geometry.x, _.geometry.y, _.Site_Label, zorder=11, size=6)
                     # goes across all points but filter by Site_Label
                     for _ in df.itertuples() if _.Site_Label in ('F1', 'op3_w1', 'S4')
                 ),
-                # draw arrow from point to annotation
-                arrowprops={'arrowstyle': '-'}
             ),
             # modeled box
             lambda p: p.ax.add_geometries(
