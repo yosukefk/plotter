@@ -182,5 +182,5 @@ with Pool(nthreads) as pool:
     pool.map(saveone, range(len(tstamps)))
 
 # make mpeg file
-cmd = f'ffmpeg -i {wdir}/%04d.png -vf scale=1920:-2 -vframes 2880 -crf 3 -vcodec libx264 -pix_fmt yuv420p -f mp4 -y {odir / oname}'
+cmd = f'ffmpeg -i "{workdir / "%04d.png"}" -vf scale=1920:-2 -vframes 2880 -crf 3 -vcodec libx264 -pix_fmt yuv420p -f mp4 -y "{outdir / "test_pr2b.mp4"}"'
 subprocess.run(shlex.split(cmd))
