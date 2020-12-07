@@ -228,11 +228,13 @@ def tester_pr2b_v():
     tstamps = dat['ts']
     with tempfile.TemporaryDirectory() as wdir:
         workdir = Path(wdir)
+        print(workdir)
 
         # function to save one time frame
         def saveone(i):
             ts = tstamps[i]
             pname = workdir / f'{i:04}.png'
+            print(pname)
             footnote = str(ts)
             p(pname, tidx=i, footnote=footnote)
 
@@ -240,8 +242,10 @@ def tester_pr2b_v():
         for i, ts in enumerate(tstamps):
             saveone(i)
         # make mpeg file
-        cmd = f'ffmpeg -i {workdir}/%04d.png -vframes 2880 -crf 3 -vcodec libx264 -pix_fmt yuv420p -f mp4 -y {outdir / "test_pr2b.mp4"}'
-        subprocess.run(shlex.split(cmd))
+        cmd = f'ffmpeg -i "{workdir / "%04d.png"}" -vframes 2880 -crf 3 -vcodec libx264 -pix_fmt yuv420p -f mp4 -y "{outdir / "test_pr2b.mp4"}"'
+        print(cmd)
+        print(shlex.split(cmd))
+        subprocess.run(shlex.split(cmd), check=True)
 
 def tester_pc2():
     """show contour from calpost"""
@@ -288,7 +292,7 @@ def tester_pc2_v():
         for i, ts in enumerate(tstamps):
             saveone(i)
         # make mpeg file
-        cmd = f'ffmpeg -i {workdir}/%04d.png -vframes 2880 -crf 3 -vcodec libx264 -pix_fmt yuv420p -f mp4 -y {outdir / "test_pc2.mp4"}'
+        cmd = f'ffmpeg -i "{workdir / "%04d.png"}" -vframes 2880 -crf 3 -vcodec libx264 -pix_fmt yuv420p -f mp4 -y "{outdir / "test_pr2b.mp4"}"'
         subprocess.run(shlex.split(cmd))
 
 def tester_pr3():
@@ -662,7 +666,7 @@ def tester_s5():
         for i, ts in enumerate(tstamps):
             saveone(i)
         # make mpeg file
-        cmd = f'ffmpeg -i {workdir}/%04d.png -vframes 2880 -crf 3 -vcodec libx264 -pix_fmt yuv420p -f mp4 -y {outdir / "test_s5.mp4"}'
+        cmd = f'ffmpeg -i "{workdir / "%04d.png"}" -vframes 2880 -crf 3 -vcodec libx264 -pix_fmt yuv420p -f mp4 -y "{outdir / "test_pr2b.mp4"}"'
         subprocess.run(shlex.split(cmd))
 
 
