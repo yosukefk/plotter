@@ -19,6 +19,7 @@ from importlib import reload
 from multiprocessing import Pool
 import shlex
 import subprocess
+import textwrap
 
 reload(reader)
 reload(plotter_multi)
@@ -28,10 +29,11 @@ mpl.rcParams['savefig.dpi'] = 300
 
 # input directory/file names
 ddir = Path('../data')
+site = 'S4'
 fnames = [
         'tseries_ch4_1min_conc_toy_all.dat',
-        'tseries_ch4_1min_conc_un_co_s2.dat', # continuous upset
-        'tseries_ch4_1min_conc_un_pu_s2.dat', # pulsate upset
+        f'tseries_ch4_1min_conc_un_co_{site.lower()}.dat', # continuous upset
+        f'tseries_ch4_1min_conc_un_pu_{site.lower()}.dat', # pulsate upset
         ]
 
 # intermediate
@@ -39,7 +41,7 @@ wdir = Path('./img9')
 
 # output
 odir = Path('.')
-oname = 'tseries_ch4_1min_conc_co_all_un_s2.mp4'
+oname = f'tseries_ch4_1min_conc_co_all_un_{site.lower()}.mp4'
 
 
 # prep workdir
@@ -67,7 +69,8 @@ df = gpd.read_file(shpfile)
 df = df.to_crs('EPSG:3857')
 
 # read the data
-titles = ['Regular Sources', 'Unintended, Continous', 'Unintended, Pulsated']
+titles = ['Regular Sources', f'Unintended,\nContinous {site}',
+        f'Unintended,\nPulsated {site}']
 
 data = []
 for fname in fnames:
@@ -114,6 +117,7 @@ plotter_options = {
         'norm': norm,
         'alpha': .5,
     },
+    'title_options': {'fontsize': 'medium'},
     'colorbar_options': None,
     'customize_once': [
         # background
@@ -131,9 +135,10 @@ plotter_options = {
             # make list of annotation
             list(
                 # this part creates annotation for each point
-                p.ax.text(_.geometry.x, _.geometry.y, _.Site_Label, zorder=11, size=6)
+                p.ax.text(_.geometry.x, _.geometry.y, _.Site_Label,
+                    zorder=11, fontsize='xx-small')
                 # goes across all points but filter by Site_Label
-                for _ in df.itertuples() if _.Site_Label in ('F1', 'op3_w1', 'S4')
+                for _ in df.itertuples() if _.Site_Label in (f'{site}',)
             ),
         ),
         # modeled box
@@ -154,7 +159,7 @@ figure_options = {
     }
 
 # make a plot template
-mpl.rcParams.update({'font.size': 8})
+#mpl.rcParams.update({'font.size': 8})
 p = plotter_multi.Plotter(arrays=arrays, tstamps=tstamps, x=x, y=y,
                          plotter_options=plotter_options,
                          figure_options=figure_options)
