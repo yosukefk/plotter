@@ -6,3 +6,4 @@ pyepsg
 #matplotlib
 pandas
 adjusttext
+ffmpeg-python
