@@ -112,11 +112,12 @@ def tester_mt3():
     plotter_options = [{**plotter_options, 'title': _} for _ in titles]
     figure_options = {
             'colorbar_options': { 
-                'append_axes_options': {}
+#                'append_axes_options': {}
             }
             }
 
-    p = Plotter(arrays, dat['ts'], x=x, y=y, plotter_options=plotter_options)
+    p = Plotter(arrays, dat['ts'], x=x, y=y,
+            plotter_options=plotter_options, figure_options=figure_options)
     p(outdir / 'test_mt3.png')
 
 if __name__ == '__main__':
