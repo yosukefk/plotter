@@ -44,6 +44,8 @@ class PlotterCore:
         self.footnote_options = plotter_options.get('footnote_options', {})
 
         self.title = plotter_options.get('title', None)
+        self.title_options = plotter_options.get('title_options', None)
+
         self.customize_after = plotter_options.get('customize_after', None)
 
         # data's extent
@@ -76,8 +78,22 @@ class PlotterCore:
         if not plot_extent is None:
             self.ax.set_extent(plot_extent, crs=plot_projection)
 
+        # self.title overrides
+        if self.title is None:
+            if self.title_options is None:
+                pass
+            else:
+                self.title = self.title_options.get('label')
+        else:
+            if self.title_options is None:
+                self.title_options = {'label': self.title}
+            else:
+                self.title_options['label'] = self.title
+        
         if self.title is not None:
-            self.ax.set_title(self.title, loc='center')
+            ttlopt = {'loc': 'center'}
+            ttlopt.update(self.title_options)
+            self.ax.set_title(**ttlopt)
 
         # other customizations
         if 'customize_once' in plotter_options:
@@ -162,9 +178,15 @@ class PlotterCore:
 
             self.hasdata = True
 
+        if not title is None:
+            # update the title
+            self.ax.set_title(title)
+
 
         # customizeration needed after updating data
         if self.customize_after:
+            warnings.warn('set zorder was what you need?',
+                    DeprecateWarning)
             self.customize(self.customize_after)
 
 

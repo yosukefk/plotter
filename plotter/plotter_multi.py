@@ -22,25 +22,25 @@ class Plotter:
 
         self.figure_options = figure_options
 
-        np = len(arrays)
+        self.nplot = len(arrays)
 
         # make sure that plotter_options are unintentionally shared across
         # plots
         if plotter_options is None:
             # if none provided, preapre empty dict for each
-            plotter_options = [{} for _ in range(np)]
+            plotter_options = [{} for _ in range(self.nplot)]
         elif isinstance(plotter_options, dict):
             # if one set of options are provided, duplicate them
             warnings.warn('plotter options are duplicated for all plots')
             # TODO imshow options may needed to be cloned as well
             plotter_options = [plotter_options] + [plotter_options.copy()
-                                                   for _ in range(np - 1)]
+                                                   for _ in range(self.nplot - 1)]
         elif '__len__' in dir(plotter_options):
             # if multiple sets of options are provided, make sure that they are
             # pointing to two different object, since i have to manage them
             # independently
-            assert len(plotter_options) == np
-            for i in range(1, np):
+            assert len(plotter_options) == self.nplot
+            for i in range(1, self.nplot):
                 if id(plotter_options[0]) == id(plotter_options[i]):
                     warnings.warn(f'plotter options {i} is unlinked from first one')
                     plotter_options[i] = plotter_options[i].copy()
@@ -56,9 +56,9 @@ class Plotter:
         self.fig = plt.figure()
 
         # specifiy the subplot positions
-        for i in range(np):
+        for i in range(self.nplot):
             plotter_options[i]['fig'] = self.fig
-            plotter_options[i]['pos'] = (1, np, i + 1)
+            plotter_options[i]['pos'] = (1, self.nplot, i + 1)
 
         # create plots
         self.plotters = [pc.PlotterCore(arr, tstamps, projection=projection, extent=extent,
@@ -76,6 +76,12 @@ class Plotter:
         # if it was blank, need some initalization
         if not haddata:
             cbopt = self.figure_options.get('colorbar_options', None)
+            # ugly hardwired values...
+            # tried to use 
+            if self.nplot <= 2:
+                my_shrink = .7
+            if self.nplot >= 3:
+                my_shrink = .5
             if cbopt is not None:
                 self.fig.subplots_adjust(wspace=.1)
                 self.fig.colorbar(
@@ -87,7 +93,7 @@ class Plotter:
                     # wish there is a way to let cb to match height of
                     # plots...?
                     #shrink=.7,
-                    **cbopt)
+                    **{'shrink':my_shrink,**cbopt})
 
         if not suptitle is None:
             if isinstance(suptitle, dict):
