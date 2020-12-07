@@ -154,6 +154,7 @@ figure_options = {
     }
 
 # make a plot template
+mpl.rcParams.update({'font.size': 8})
 p = plotter_multi.Plotter(arrays=arrays, tstamps=tstamps, x=x, y=y,
                          plotter_options=plotter_options,
                          figure_options=figure_options)
