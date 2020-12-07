@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import examples as ex
+import examples_solo as ex
 import matplotlib as mpl
 import unittest
 import filecmp
