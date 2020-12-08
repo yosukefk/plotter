@@ -14,7 +14,7 @@ if not outdir.is_dir():
 
 
 def tester_bg1():
-    """show contour from calpost with background in different projection"""
+    """load background tif file and use it"""
     from plotter import calpost_reader as reader
     import rasterio
     import cartopy.crs as ccrs
@@ -38,7 +38,7 @@ def tester_bg1():
 
 
 def tester_bg2():
-    """show contour from calpost with background in different projection"""
+    """load background tif file and use extent without showing it"""
     from plotter import calpost_reader as reader
     import cartopy.crs as ccrs
     with open('../data/tseries_ch4_1min_conc_co_fl.dat') as f:
@@ -59,7 +59,7 @@ def tester_bg2():
     p(outdir / 'test_bg2.png')
 
 def tester_bg3():
-    """show contour from calpost with background in different projection"""
+    """specify extent, and use caropy.io.img_tiles.GootleTiles"""
     from plotter import calpost_reader as reader
     import cartopy.crs as ccrs
     import cartopy.io.img_tiles as cimgt
@@ -81,7 +81,7 @@ def tester_bg3():
     p(outdir / 'test_bg3.png')
 
 def tester_bg4():
-    """show contour from calpost with background in different projection"""
+    """specify extent, and use NAIP images with cartopy.io.ogc_clients.WMSRasterSource"""
     from plotter import calpost_reader as reader
     import cartopy.crs as ccrs
 #    import cartopy.io.ogc_clients as cogcc
@@ -93,9 +93,8 @@ def tester_bg4():
             'https://services.nationalmap.gov/arcgis/services/USGSNAIPImagery/ImageServer/WMSServer',
             layers='0'
         )
-        # TODO how can i save this...?
+        # TODO how can i save this...?, or should I save this?
 
-        pass
 
     # background
     bext = [-11344200.0, -11338900.0, 3724300.0, 3731100.0]
@@ -113,6 +112,8 @@ def tester_bg4():
     y = dat['y'] * 1000
     p = Plotter(dat['v'], dat['ts'], x=x, y=y, plotter_options=plotter_options)
     p(outdir / 'test_bg4.png')
+
+
 
 
 if __name__ == '__main__':

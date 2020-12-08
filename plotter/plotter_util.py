@@ -3,13 +3,16 @@ import cartopy.crs as ccrs
 import rasterio
 import warnings
 
+class PlotterWarning(UserWarning): pass
+
 # TCEQ's Lambert Conformal projection, define in caropy way
-lcc_tceq = ccrs.LambertConformal(central_longitude=-97, central_latitude=40,
+def LambertConformalTCEQ():
+    return ccrs.LambertConformal(central_longitude=-97, central_latitude=40,
                                  standard_parallels=(33, 45), globe=ccrs.Globe(semimajor_axis=6370000,
                                                                                semiminor_axis=6370000))
 
 # TODO maybe make this part of PlotterCore itself?
-class background_manager:
+class BackgroundManager:
     def __init__(self, bgfile=None, extent=None, crs=None):
         """
 
@@ -19,7 +22,11 @@ class background_manager:
         """
         if bgfile is None:
             # TODO i should grab extend of the data, i i konw...
-            pass
+            if any(crs is None, extent is None):
+                raise RuntimeError()
+            else:
+                self.crs = crs
+                self.extent = extent
         else:
             # use bgfile's extent
             self.b = rasterio.open(bgfile)
@@ -55,6 +62,12 @@ class background_manager:
         # TODO actually data may need to be warped.  so hold onto array to be used, instead of reading it here
         p.ax.imshow(self.b.read()[:3, :, :].transpose((1, 2, 0)),
                     extent=self.extent, origin='upper')
+
+        # or use wms server like below (i may want to cache img if that's not done by itself
+        img = p.ax.add_wms(
+                'https://services.nationalmap.gov/arcgis/services/USGSNAIPImagery/ImageServer/WMSServer',
+                layers='0'
+            )
 
 
 # Deprecated

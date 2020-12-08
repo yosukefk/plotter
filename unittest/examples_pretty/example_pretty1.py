@@ -24,12 +24,12 @@ import subprocess
 reload(reader)
 reload(plotter_multi)
 
-# save better resolution image 
+# save better resolution image
 mpl.rcParams['savefig.dpi'] = 300
 
 # input directory/file names
-ddir = Path('../data')
-site = 'S4'
+ddir = Path('../../data')
+site = 'S2'
 fnames = [
     'tseries_ch4_1min_conc_toy_all.dat',
     f'tseries_ch4_1min_conc_un_co_{site.lower()}.dat',  # continuous upset
@@ -40,8 +40,8 @@ fnames = [
 wdir = Path('./img9')
 
 # output
-odir = Path('.')
-oname = f'tseries_ch4_1min_conc_co_all_un_{site.lower()}.mp4'
+odir = Path('../results')
+oname = f'example_pretty1.mp4'
 
 # prep workdir
 if not wdir.is_dir():
@@ -54,27 +54,33 @@ else:
             print("Error: %s : %s" % (f, e.strerror))
 
 # aux inputs
-bgfile = '../resources/naip_toy_pmerc_5.tif'
-shpfile = '../resources/emitters.shp'
+bgfile = '../../resources/naip_toy_pmerc_5.tif'
+shpfile = '../../resources/emitters.shp'
 
 # background (extent is used as plot's extent)
 b = rasterio.open(bgfile)
 bext = [b.transform[2], b.transform[2] + b.transform[0] * b.width,
         b.transform[5] + b.transform[4] * b.height, b.transform[5]]
 
+# zoom
+bext = [
+    2. / 3. * bext[0] + 1. / 3. * bext[1], 1. / 3. * bext[0] + 2. / 3. * bext[1],
+    7. / 12. * bext[2] + 5. / 12. * bext[3], 3. / 12. * bext[2] + 9. / 12. * bext[3],
+]
+
 # source locations
 df = gpd.read_file(shpfile)
 df = df.to_crs('EPSG:3857')
 
 # read the data
-titles = ['Regular Sources', f'Unintended,\nContinuous {site}',
-          f'Unintended,\nPulsated {site}']
+titles = ['Regular Only', f'Regular +\nUnintended,\nContinous {site}',
+          f'Regular + \nUnintended,\nPulsated {site}']
 
 data = []
 for fname in fnames:
     print(ddir / fname, (ddir / fname).is_file())
     with open(ddir / fname) as f:
-        dat = reader.Reader(f)
+        dat = reader.Reader(f, tslice=slice(16 * 60, 16 * 60 + 10))
     data.append(dat)
 
 # grab necessary info
@@ -82,7 +88,7 @@ arrays = [dat['v'] for dat in data]
 tstamps = data[0]['ts']
 grid = data[0]['grid']
 
-# get horizontal extent 
+# get horizontal extent
 extent = [
     grid['x0'], grid['x0'] + grid['nx'] * grid['dx'],
     grid['y0'], grid['y0'] + grid['ny'] * grid['dy'],
@@ -97,12 +103,15 @@ y = dat['y'] * 1000
 # mwt g/mol
 # molar volume m3/mol
 arrays = [arr / 16.043 * 0.024465403697038 * 1e9 for arr in arrays]
+arrays[1] += arrays[0]
+arrays[2] += arrays[0]
 
 # Mrinali/Gary's surfer color scale
 cmap = colors.ListedColormap([
     '#D6FAFE', '#02FEFF', '#C4FFC4', '#01FE02',
     '#FFEE02', '#FAB979', '#EF6601', '#FC0100', ])
 cmap.set_under('#FFFFFF')
+cmap.set_over('#000000')
 # Define a normalization from values -> colors
 bndry = [1, 10, 50, 100, 200, 500, 1000, 2000]
 norm = colors.BoundaryNorm(bndry, len(bndry))
@@ -114,6 +123,7 @@ plotter_options = {
         'cmap': cmap,
         'norm': norm,
         'alpha': .5,
+        'extend': 'max',
     },
     'title_options': {'fontsize': 'medium'},
     'colorbar_options': None,
@@ -133,10 +143,10 @@ plotter_options = {
             # make list of annotation
             list(
                 # this part creates annotation for each point
-                p.ax.text(_.geometry.x, _.geometry.y, _.Site_Label,
-                          zorder=11, fontsize='xx-small')
+                p.ax.annotate(_.Site_Label, (_.geometry.x, _.geometry.y,),
+                              zorder=11, fontsize='xx-small')
                 # goes across all points but filter by Site_Label
-                for _ in df.itertuples() if _.Site_Label in (f'{site}',)
+                for _ in df.itertuples()  # if _.Site_Label in (f'{site}',)
             ),
         ),
         # modeled box
@@ -164,26 +174,30 @@ p = plotter_multi.Plotter(arrays=arrays, tstamps=tstamps, x=x, y=y,
 
 
 # function to save one time frame
-def saveone(i):
+def saveone(i, pname=None):
     ts = tstamps[i]
-    pname = wdir / f'{i:04}.png'
+    if pname is None:
+        pname = wdir / f'{i:04}.png'
     footnote = None
     suptitle = str(ts)
     p(pname, tidx=i, footnote=footnote,
       suptitle={'t': suptitle, 'y': .2, 'va': 'top'})
 
 
-if True:
-    # parallel processing
+run_parallel = False
+if run_parallel:
+    # for parallel processing
     # save all frames in parallel
     # 68 for stampede, 24 for ls5
     nthreads = 24  # ls5
     with Pool(nthreads) as pool:
         pool.map(saveone, range(len(tstamps)))
 else:
-    # serial processing
+    # for serial processing
     for i in range(len(tstamps)):
         saveone(i)
+# make single file (for QA)
+saveone(0, (odir / oname).with_suffix('.png'))
 
 # make mpeg file
 cmd = f'ffmpeg -i "{wdir / "%04d.png"}" -vf scale=1920:-2 -vframes 2880 -crf 3 -vcodec libx264 -pix_fmt yuv420p -f mp4 -y "{odir / oname}"'

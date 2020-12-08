@@ -7,7 +7,7 @@ import filecmp
 from pathlib import Path
 import warnings
 # TODO can i somehow supress warnings across board...?
-from plotter import PlotterWarning
+from plotter.plotter_util import PlotterWarning
 
 
 

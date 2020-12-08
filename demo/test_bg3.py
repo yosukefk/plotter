@@ -32,7 +32,7 @@ bga = pu.background_adder('../resources/gamma3_res2.tif')
 p = psolo.Plotter(arr, dat['ts'], extent=ext,
                   plotter_options={
                       'customize_once': bga.set_background,
-                      'customize_after': bga.refresh_background,
+                      #'customize_after': bga.refresh_background,
                   })
 
 p('r.png')

@@ -549,7 +549,7 @@ def tester_s4():
 def tester_s5():
     """show contour from calpost with all the bells and whistles"""
     from plotter import calpost_reader as reader
-    from plotter.plotter_util import lcc_tceq
+    from plotter.plotter_util import LambertConformalTCEQ
     import rasterio
     import cartopy.crs as ccrs
     import geopandas as gpd
@@ -641,7 +641,7 @@ def tester_s5():
             # modeled box
             lambda p: p.ax.add_geometries(
                 [Polygon([(extent[x],extent[y]) for x,y in ((0,2), (0,3), (1,3), (1,2), (0,2))])],
-                crs=lcc_tceq, facecolor='none', edgecolor='white', lw=.6,
+                crs=LambertConformalTCEQ(), facecolor='none', edgecolor='white', lw=.6,
             ),
         ]}
 

@@ -1,10 +1,11 @@
+import plotter_util as pu
 import cartopy.crs as ccrs
 import matplotlib.pyplot as plt
 import numpy as np
 import warnings
 
 
-class PlotterWarning(UserWarning): pass
+
 
 
 class PlotterCore:
@@ -13,11 +14,13 @@ class PlotterCore:
         """
 
         :rtype: object
-        :param array: 3-d array of values, dimensions(t, y, x)
+        :param array: 3-d array of data values, dimensions(t, y, x), or 2+ d array of data values, dimensions(t, ...)
         :param tstamps: 1-d array of datetime, dimensions(t)
-        :param projection:
-        :param extent:
-        :param plotter_options:
+        :param projection: projection of xy coordinate of data
+        :param extent: xy extent of data, with with coordinate of projection
+        :param x: x coordinate of data, with shape matching (...) part of array
+        :param y: y coordinate of data, with shape matching (...) part of array
+        :param plotter_options: all the arguments passed to plotter
         """
 
         if plotter_options is None: plotter_options = {}
@@ -30,15 +33,12 @@ class PlotterCore:
         self.arr = array
         self.tstamps = tstamps
 
-        # if neither imshow or contour are specified, default to inshow
+        # if neither imshow or contour are specified, default to use imshow
         # user can inteitionally not plot by making both to None
         if all(_ not in plotter_options.keys() for _ in ('imshow_options', 'contour_options')):
             plotter_options['imshow_options'] = {}
         self.imshow_options = plotter_options.get('imshow_options', None)
         self.contour_options = plotter_options.get('contour_options', None)
-        # if all(_ is None for _ in [self.imshow_options, self.contour_options]):
-        #     # default to plot raster
-        #     self.imshow_options = {}
 
         self.colorbar_options = plotter_options.get('colorbar_options', {})
 
@@ -47,6 +47,8 @@ class PlotterCore:
         self.title = plotter_options.get('title', None)
         self.title_options = plotter_options.get('title_options', None)
 
+        if 'custimize_after' in plotter_options:
+            warnings.warn('i dont think you need this', DeprecationWarning)
         self.customize_after = plotter_options.get('customize_after', None)
 
         # data's extent
@@ -54,13 +56,12 @@ class PlotterCore:
         self.x = x
         self.y = y
 
-        # assume TCEQ's lambert
+        # assume TCEQ's lambert for the data array
         if projection is None:
             warnings.warn("Assume TCEQ's Lambert Conformal Proection",
-                          PlotterWarning)
-            projection = ccrs.LambertConformal(central_longitude=-97, central_latitude=40,
-                                               standard_parallels=(33, 45), globe=ccrs.Globe(semimajor_axis=6370000,
-                                                                                             semiminor_axis=6370000))
+                          pu.PlotterWarning)
+            projection = pu.LambertConformalTCEQ()
+
         self.projection = projection
 
         # plot's extent
@@ -162,7 +163,7 @@ class PlotterCore:
                                            **kwds)
                 else:
                     warnings.warn('No data to show, Colorbar turned off',
-                                  PlotterWarning)
+                                  pu.PlotterWarning)
 
             if footnote is not None:
                 self.footnote = self.ax.annotate(footnote,
