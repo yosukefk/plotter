@@ -88,15 +88,25 @@ def tester_bg4():
     with open('../data/tseries_ch4_1min_conc_co_fl.dat') as f:
         dat = reader.Reader(f, slice(60 * 12, 60 * 12 + 10))
 
+    def my_add_naip(p):
+        img = p.ax.add_wms(
+            'https://services.nationalmap.gov/arcgis/services/USGSNAIPImagery/ImageServer/WMSServer',
+            layers='0'
+        )
+        # TODO how can i save this...?
+
+        pass
+
     # background
     bext = [-11344200.0, -11338900.0, 3724300.0, 3731100.0]
     plotter_options = {
         'contour_options': {'alpha': .2},
         'extent': bext, 'projection': ccrs.epsg(3857),
-        'customize_once': lambda p: p.ax.add_wms(
-            'https://services.nationalmap.gov/arcgis/services/USGSNAIPImagery/ImageServer/WMSServer',
-                       layers='0'
-        )
+        # 'customize_once': lambda p: p.ax.add_wms(
+        #     'https://services.nationalmap.gov/arcgis/services/USGSNAIPImagery/ImageServer/WMSServer',
+        #                layers='0'
+        # )
+        'customize_once': my_add_naip,
         }
 
     x = dat['x'] * 1000
