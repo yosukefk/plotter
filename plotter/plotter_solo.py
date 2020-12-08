@@ -11,7 +11,7 @@ reload(pc)
 
 class Plotter:
     def __init__(self, array, tstamps, projection=None, extent=None, x=None, y=None,
-                 plotter_options={}):
+                 plotter_options=None):
         self.p = pc.PlotterCore(array, tstamps, projection=projection,
                                 extent=extent, x=x, y=y, plotter_options=plotter_options)
         self.ax = self.p.ax
@@ -19,10 +19,3 @@ class Plotter:
     def __call__(self, oname, tidx=None, footnote=''):
         self.p(tidx, footnote)
         plt.savefig(oname)
-
-    def customize(self, fnc, *args):
-        # plotter_core has per axis customization accessed:
-        # things like showwin boundaries
-        self.p.customize(fnc, *args)
-
-

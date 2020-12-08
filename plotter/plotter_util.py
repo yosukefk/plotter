@@ -1,21 +1,14 @@
-try:
-    import gdal
-except ModuleNotFoundError:
-    from osgeo import gdal
 import cartopy.crs as ccrs
-gdal.UseExceptions()
+import rasterio
 
 
 class background_adder:
     # https://ocefpaf.github.io/python4oceanographers/blog/2015/03/02/geotiff/
     def __init__(self, fname, alpha=.2):
-        ds = gdal.Open(str(fname))
-        data = ds.ReadAsArray()
-        gt = ds.GetGeoTransform()
-
-        self.extent = (gt[0], gt[0] + ds.RasterXSize * gt[1],
-                       gt[3] + ds.RasterYSize * gt[5], gt[3])
-        self.data = data[:3, :, :].transpose((1, 2, 0))
+        ds = rasterio.open(str(fname))
+        self.data = ds.read()[:3, :, :].transpose((1, 2, 0))
+        self.extent = [ds.transform[2], ds.transform[2] + ds.transform[0] * ds.width,
+                ds.transform[5] + ds.transform[4] * ds.height, ds.transform[5]]
         self.alpha = alpha
 
     def set_background(self, p):

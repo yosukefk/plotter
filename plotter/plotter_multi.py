@@ -1,10 +1,8 @@
-
 try:
     from . import plotter_core as pc
 except ImportError:
     import plotter_core as pc
 
-import matplotlib as mpl
 import matplotlib.pyplot as plt
 from importlib import reload
 import warnings
@@ -14,12 +12,14 @@ reload(pc)
 
 class Plotter:
     def __init__(self, arrays, tstamps, projection=None, extent=None, x=None, y=None,
-                 plotter_options=None, figure_options={}):
+                 plotter_options=None, figure_options=None):
 
         # assumptions:  
         #   tstamps, projection, extent are shared across plots
         #   landscape orientation, all plots side by side
 
+        if figure_options is None:
+            figure_options = {}
         self.figure_options = figure_options
 
         self.nplot = len(arrays)
@@ -55,14 +55,14 @@ class Plotter:
         # one figure to hold all plots
         self.fig = plt.figure()
 
-        # specifiy the subplot positions
+        # specify the subplot positions
         for i in range(self.nplot):
             plotter_options[i]['fig'] = self.fig
             plotter_options[i]['pos'] = (1, self.nplot, i + 1)
 
         # create plots
         self.plotters = [pc.PlotterCore(arr, tstamps, projection=projection, extent=extent,
-            x = x, y=y, plotter_options=po) for arr, po in zip(arrays, plotter_options)]
+                                        x=x, y=y, plotter_options=po) for arr, po in zip(arrays, plotter_options)]
         self.axes = [p.ax for p in self.plotters]
 
     def __call__(self, oname, tidx=None, footnote='', suptitle=None, titles=None):
@@ -80,20 +80,20 @@ class Plotter:
             # tried to use 
             if self.nplot <= 2:
                 my_shrink = .7
-            if self.nplot >= 3:
+            elif self.nplot >= 3:
                 my_shrink = .5
             if cbopt is not None:
                 self.fig.subplots_adjust(wspace=.1)
                 self.fig.colorbar(
                     mappable=self.plotters[0].mappable,
                     ax=self.axes,
-                    use_gridspec = True,
-                    
+                    use_gridspec=True,
+
                     # shring=0.7 works well for pair plot, 0.6 is too large for trio plot, maybe 0.5?
                     # wish there is a way to let cb to match height of
                     # plots...?
-                    #shrink=.7,
-                    **{'shrink':my_shrink,**cbopt})
+                    # shrink=.7,
+                    **{'shrink': my_shrink, **cbopt})
 
         if not suptitle is None:
             if isinstance(suptitle, dict):
@@ -107,14 +107,3 @@ class Plotter:
 
         self.fig.savefig(oname, bbox_inches='tight')
 
-    def customize(self, fnc, *args):
-        # plotter_core has per axis customization accessed:
-        # things like showwin boundaries
-        self.p.customize(fnc, *args)
-
-
-def tester():
-    import reader
-    dat = reader.tester()
-    v = dat['v']
-    nt, ny, nx = v.shape

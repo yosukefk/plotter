@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import warnings
 
+
 class PlotterWarning(UserWarning): pass
 
 
@@ -56,7 +57,7 @@ class PlotterCore:
         # assume TCEQ's lambert
         if projection is None:
             warnings.warn("Assume TCEQ's Lambert Conformal Proection",
-                    PlotterWarning)
+                          PlotterWarning)
             projection = ccrs.LambertConformal(central_longitude=-97, central_latitude=40,
                                                standard_parallels=(33, 45), globe=ccrs.Globe(semimajor_axis=6370000,
                                                                                              semiminor_axis=6370000))
@@ -89,7 +90,7 @@ class PlotterCore:
                 self.title_options = {'label': self.title}
             else:
                 self.title_options['label'] = self.title
-        
+
         if self.title is not None:
             ttlopt = {'loc': 'center'}
             ttlopt.update(self.title_options)
@@ -120,7 +121,7 @@ class PlotterCore:
                     c.remove()
                 kwds = self.contour_options
                 self.cnt = self.ax.contourf(self.x, self.y, arr,
-                        extent=self.extent, transform=self.projection, **kwds)
+                                            extent=self.extent, transform=self.projection, **kwds)
 
             if footnote is not None:
                 self.footnote.set_text(footnote)
@@ -154,7 +155,6 @@ class PlotterCore:
                 self.cnt = self.ax.contourf(self.x, self.y, arr, extent=self.extent, transform=self.projection, **kwds)
                 self.mappable = self.cnt
 
-
             if self.colorbar_options is not None:
                 kwds = self.colorbar_options
                 if not self.mappable is None:
@@ -162,9 +162,7 @@ class PlotterCore:
                                            **kwds)
                 else:
                     warnings.warn('No data to show, Colorbar turned off',
-                            PlotterWarning)
-                    pass
-                    #raise RuntimeError()
+                                  PlotterWarning)
 
             if footnote is not None:
                 self.footnote = self.ax.annotate(footnote,
@@ -182,13 +180,11 @@ class PlotterCore:
             # update the title
             self.ax.set_title(title)
 
-
         # customizeration needed after updating data
         if self.customize_after:
             warnings.warn('set zorder was what you need?',
-                    DeprecateWarning)
+                          DeprecationWarning)
             self.customize(self.customize_after)
-
 
     def customize(self, fnc):
         # apply fnc to self.ax
@@ -201,5 +197,3 @@ class PlotterCore:
                 fn(self)
         else:
             raise ValueError(f'fnc is not callable: {fnc}')
-
-
