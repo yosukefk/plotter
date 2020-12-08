@@ -177,12 +177,18 @@ def saveone(i):
         suptitle={'t': suptitle, 'y':.2, 'va': 'top'})
 
 
-# save all frames in parallel
-# 68 for stampede, 24 for ls5
-nthreads = 24  # ls5
-with Pool(nthreads) as pool:
-    pool.map(saveone, range(len(tstamps)))
+if True:
+    # parallel processing
+    # save all frames in parallel
+    # 68 for stampede, 24 for ls5
+    nthreads = 24  # ls5
+    with Pool(nthreads) as pool:
+        pool.map(saveone, range(len(tstamps)))
+else:
+    # serial processing
+    for i in range(len(tstamps)):
+        saveone(i)
 
 # make mpeg file
-cmd = f'ffmpeg -i "{workdir / "%04d.png"}" -vf scale=1920:-2 -vframes 2880 -crf 3 -vcodec libx264 -pix_fmt yuv420p -f mp4 -y "{outdir / "test_pr2b.mp4"}"'
-subprocess.run(shlex.split(cmd))
+cmd = f'ffmpeg -i "{wdir / "%04d.png"}" -vf scale=1920:-2 -vframes 2880 -crf 3 -vcodec libx264 -pix_fmt yuv420p -f mp4 -y "{odir / oname}"'
+subprocess.run(shlex.split(cmd), check=True)
