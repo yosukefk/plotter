@@ -6,4 +6,7 @@ pyepsg
 #matplotlib
 pandas
 adjusttext
+# just to get ffmpeg executable
 ffmpeg-python
+# WMS service access
+owslib
