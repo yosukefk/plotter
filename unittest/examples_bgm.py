@@ -250,11 +250,32 @@ def tester_bgm10():
     p = Plotter(dat['v'], dat['ts'], x=x, y=y, plotter_options=plotter_options)
     p(outdir / 'test_bgm10.png')
 
+def tester_bgm11():
+    """only specify wms, use data's projection/extent"""
+    from plotter import calpost_reader as reader
+    import cartopy.crs as ccrs
+    with open('../data/tseries_ch4_1min_conc_co_fl.dat') as f:
+        dat = reader.Reader(f, slice(60 * 12, 60 * 12 + 10))
+
+    # background
+    plotter_options = {
+        'contour_options': {'alpha': .2},
+        'background_manager': BackgroundManager(wms_options = {
+            'wms': 'https://services.nationalmap.gov/arcgis/services/USGSNAIPImagery/ImageServer/WMSServer',
+            'layers':'0'},),
+        'customize_once': lambda p: p.ax.gridlines(draw_labels=True),
+    }
+
+    x = dat['x'] * 1000
+    y = dat['y'] * 1000
+    p = Plotter(dat['v'], dat['ts'], x=x, y=y, plotter_options=plotter_options)
+    p(outdir / 'test_bgm11.png')
+
 
 
 if __name__ == '__main__':
     # tester_bgm0()
-    # #tester_bgm1()
+    tester_bgm1()
     # tester_bgm2()
     # tester_bgm3()
     # tester_bgm4()
@@ -263,4 +284,5 @@ if __name__ == '__main__':
     # tester_bgm7()
     # tester_bgm8()
     # tester_bgm9()
-    tester_bgm10()
+    # tester_bgm10()
+    # tester_bgm11()

@@ -67,8 +67,7 @@ class PlotterCore:
         # background
         self.background_manager = plotter_options.get('background_manager', None)
 
-        if self.background_manager is None:
-
+        if self.background_manager is None or self.background_manager.projection is None:
             # plot's extent
             plot_extent = plotter_options.get('extent', self.extent)
             plot_projection = plotter_options.get('projection', self.projection)

@@ -22,8 +22,13 @@ class BackgroundManager:
         """
         if bgfile is None:
             if any((projection is None, extent is None)):
-                # NULL background!!!
-                raise RuntimeError('Null background!!')
+                if wms_options:
+                    # wms to add background, use data's projection/extent
+                    self.wms_options = wms_options
+                else:
+                    # NULL background!!!
+                    # raise RuntimeError('Null background!!')
+                    self.wms_options = None
                 self.projection = None
                 self.extent = None
                 self.img = None
@@ -123,11 +128,6 @@ class BackgroundManager:
         elif self.wms_options:
             p.ax.add_wms(**self.wms_options)
 
-        # # or use wms server like below (i may want to cache img if that's not done by itself
-        # img = p.ax.add_wms(
-        #         'https://services.nationalmap.gov/arcgis/services/USGSNAIPImagery/ImageServer/WMSServer',
-        #         layers='0'
-        #     )
 
 
 # Deprecated
