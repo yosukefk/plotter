@@ -41,6 +41,7 @@ class BackgroundManager:
             # https://github.com/SciTools/cartopy/issues/1477 which is still taking time...  So for now i do
             # quick-and-dirty job here
             # this is good source too https://github.com/djhoese/cartopy/blob/feature-from-proj/lib/cartopy/_proj4.py
+            # but he manually eddite crs.py to interpret from proj4 components and i dont think i can import his work easily.
             if source_projection is None:
                 crs_data = self.b.crs.data
                 if 'init' in crs_data and crs_data['init'].lower().startswith('epsg:'):
@@ -55,18 +56,24 @@ class BackgroundManager:
                                      'f': 'flattening',
                                      'rf': 'inverse_flattening',
                                      'towgs84': 'towgs84',
-                                     'nadgrids': 'nadgrids'}
+                                     'nadgrids': 'nadgrids',
+                                     'R': 'semimajor_axis',
+                                     }
                     projection_terms = {}
                     globe_terms = {}
                     for name, value in crs_data.items():
                         if name in _GLOBE_PARAMS:
+
                             globe_terms[name] = value
                         else:
                             projection_terms[name] = value
+                    # yk, without this, it defaults to wgs84...
+                    globe_terms.setdefault('ellps', None)
                     globe = ccrs.Globe(**{_GLOBE_PARAMS[name]: value for name, value in
                                           globe_terms.items()})
                     if crs_data['proj'] == 'lcc':
-
+                        # there seems to be more subtleteis , but this should suffice
+                        # https://github.com/djhoese/cartopy/blob/feature-from-proj/lib/cartopy/crs.py#L1144-L1172
                         self.source_projection = ccrs.LambertConformal(
                             central_longitude=crs_data['lon_0'],
                             central_latitude=crs_data['lat_0'],
