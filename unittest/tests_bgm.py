@@ -12,6 +12,7 @@ dir1 = Path('results')
 
 
 class TestBackground(unittest.TestCase):
+
     def test_bg1(self):
         bg.tester_bg1()
         self.assertTrue(filecmp.cmp(
@@ -43,90 +44,132 @@ class TestBackground(unittest.TestCase):
 
 class TestBackgroundManager(unittest.TestCase):
 
-    def test_bgm0(self):
-        bgm.tester_bgm0()
+    def test_bgm_n0(self):
+        bgm.tester_bgm_n0()
         self.assertTrue(filecmp.cmp(
-            dir0 / 'test_bgm0.png',
-            dir0 / 'test_bgm0.png',
+            dir0 / 'test_bgm_n0.png',
+            dir0 / 'test_bgm_n0.png',
         ))
 
-    def test_bgm1(self):
-        bgm.tester_bgm1()
+    def test_bgm_n1(self):
+        bgm.tester_bgm_n1()
         self.assertTrue(filecmp.cmp(
-            dir0 / 'test_bgm1.png',
-            dir0 / 'test_bgm1.png',
+            dir0 / 'test_bgm_n1.png',
+            dir0 / 'test_bgm_n1.png',
         ))
 
-    def test_bgm2(self):
-        bgm.tester_bgm2()
+    def test_bgm_n2(self):
+        bgm.tester_bgm_n2()
         self.assertTrue(filecmp.cmp(
-            dir0 / 'test_bgm2.png',
-            dir0 / 'test_bgm2.png',
+            dir0 / 'test_bgm_n2.png',
+            dir0 / 'test_bgm_n2.png',
         ))
 
-    def test_bgm3(self):
-        bgm.tester_bgm3()
+    def test_bgm_n3(self):
+        bgm.tester_bgm_n3()
         self.assertTrue(filecmp.cmp(
-            dir0 / 'test_bgm3.png',
-            dir0 / 'test_bgm3.png',
+            dir0 / 'test_bgm_n3.png',
+            dir0 / 'test_bgm_n3.png',
         ))
 
-    def test_bgm4(self):
-        bgm.tester_bgm4()
+    def test_bgm_n4(self):
+        bgm.tester_bgm_n4()
         self.assertTrue(filecmp.cmp(
-            dir0 / 'test_bgm4.png',
-            dir0 / 'test_bgm4.png',
+            dir0 / 'test_bgm_n4.png',
+            dir0 / 'test_bgm_n4.png',
         ))
 
-    def test_bgm5(self):
-        bgm.tester_bgm5()
+    def test_bgm_b1a(self):
+        bgm.tester_bgm_b1a()
         self.assertTrue(filecmp.cmp(
-            dir0 / 'test_bgm5.png',
-            dir0 / 'test_bgm5.png',
+            dir0 / 'test_bgm_b1a.png',
+            dir0 / 'test_bgm_b1a.png',
         ))
 
-    def test_bgm6(self):
-        bgm.tester_bgm6()
+    def test_bgm_b1b(self):
+        bgm.tester_bgm_b1b()
         self.assertTrue(filecmp.cmp(
-            dir0 / 'test_bgm6.png',
-            dir0 / 'test_bgm6.png',
+            dir0 / 'test_bgm_b1b.png',
+            dir0 / 'test_bgm_b1b.png',
         ))
 
-    def test_bgm7(self):
-        # bgm.tester_bgm7()
-        # self.assertTrue(filecmp.cmp(
-        #     dir0 / 'test_bgm7.png',
-        #     dir0 / 'test_bgm7.png',
-        # ))
-        self.assertRaises(
-            NotImplementedError,
-            bgm.tester_bgm7
-        )
-
-    def test_bgm8(self):
-        bgm.tester_bgm8()
+    def test_bgm_b1c(self):
+        bgm.tester_bgm_b1c()
         self.assertTrue(filecmp.cmp(
-            dir0 / 'test_bgm8.png',
-            dir0 / 'test_bgm8.png',
+            dir0 / 'test_bgm_b1c.png',
+            dir0 / 'test_bgm_b1c.png',
         ))
 
-    def test_bgm9(self):
-        bgm.tester_bgm9()
+    def test_bgm_b2a(self):
+        bgm.tester_bgm_b2a()
         self.assertTrue(filecmp.cmp(
-            dir0 / 'test_bgm9.png',
-            dir0 / 'test_bgm9.png',
+            dir0 / 'test_bgm_b2a.png',
+            dir0 / 'test_bgm_b2a.png',
         ))
 
-    def test_bgm10(self):
-        bgm.tester_bgm10()
+    def test_bgm_b2b(self):
+        bgm.tester_bgm_b2b()
         self.assertTrue(filecmp.cmp(
-            dir0 / 'test_bgm10.png',
-            dir0 / 'test_bgm10.png',
+            dir0 / 'test_bgm_b2b.png',
+            dir0 / 'test_bgm_b2b.png',
         ))
 
-    def test_bgm11(self):
-        bgm.tester_bgm11()
+    def test_bgm_b3(self):
+        bgm.tester_bgm_b3()
         self.assertTrue(filecmp.cmp(
-            dir0 / 'test_bgm11.png',
-            dir0 / 'test_bgm11.png',
+            dir0 / 'test_bgm_b3.png',
+            dir0 / 'test_bgm_b3.png',
+        ))
+
+    def test_bgm_b4a(self):
+        bgm.tester_bgm_b4a()
+        self.assertTrue(filecmp.cmp(
+            dir0 / 'test_bgm_b4a.png',
+            dir0 / 'test_bgm_b4a.png',
+        ))
+
+    def test_bgm_b4b(self):
+        bgm.tester_bgm_b4b()
+        self.assertTrue(filecmp.cmp(
+            dir0 / 'test_bgm_b4b.png',
+            dir0 / 'test_bgm_b4b.png',
+        ))
+
+    def test_bgm_w1(self):
+        bgm.tester_bgm_w1()
+        self.assertTrue(filecmp.cmp(
+            dir0 / 'test_bgm_w1.png',
+            dir0 / 'test_bgm_w1.png',
+        ))
+
+    def test_bgm_w2a(self):
+        bgm.tester_bgm_w2a()
+        self.assertTrue(filecmp.cmp(
+            dir0 / 'test_bgm_w2a.png',
+            dir0 / 'test_bgm_w2a.png',
+        ))
+
+    def test_bgm_w2b(self):
+        bgm.tester_bgm_w2b()
+        self.assertTrue(filecmp.cmp(
+            dir0 / 'test_bgm_w2b.png',
+            dir0 / 'test_bgm_w2b.png',
+        ))
+    def test_bgm_w2c(self):
+        bgm.tester_bgm_w2c()
+        self.assertTrue(filecmp.cmp(
+            dir0 / 'test_bgm_w2c.png',
+            dir0 / 'test_bgm_w2c.png',
+        ))
+    def test_bgm_w3(self):
+        bgm.tester_bgm_w3()
+        self.assertTrue(filecmp.cmp(
+            dir0 / 'test_bgm_w3.png',
+            dir0 / 'test_bgm_w3.png',
+        ))
+    def test_bgm_w4(self):
+        bgm.tester_bgm_w4()
+        self.assertTrue(filecmp.cmp(
+            dir0 / 'test_bgm_w4.png',
+            dir0 / 'test_bgm_w4.png',
         ))

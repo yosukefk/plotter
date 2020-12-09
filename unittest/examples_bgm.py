@@ -151,7 +151,7 @@ def tester_bgm_b1b():
     p = Plotter(dat['v'], dat['ts'], x=x, y=y, plotter_options=plotter_options)
     p(outdir / 'test_bgm_b1b.png')
 
-def tester_bgm_b1_lcc():
+def tester_bgm_b1c():
     """background file, TCEQ lcc"""
     from plotter import calpost_reader as reader
     import cartopy.crs as ccrs
@@ -168,7 +168,7 @@ def tester_bgm_b1_lcc():
     x = dat['x'] * 1000
     y = dat['y'] * 1000
     p = Plotter(dat['v'], dat['ts'], x=x, y=y, plotter_options=plotter_options)
-    p(outdir / 'test_bgm_b1_lcc.png')
+    p(outdir / 'test_bgm_b1c.png')
 
 
 def tester_bgm_b2a():
@@ -375,7 +375,7 @@ def tester_bgm_w2b():
     x = dat['x'] * 1000
     y = dat['y'] * 1000
     p = Plotter(dat['v'], dat['ts'], x=x, y=y, plotter_options=plotter_options)
-    p(outdir / 'test_bgm_wb.png')
+    p(outdir / 'test_bgm_w2b.png')
 
 def tester_bgm_w2c():
     """wms, specify projection/extent lcc"""
@@ -457,7 +457,7 @@ if __name__ == '__main__':
 
     tester_bgm_b1a()
     tester_bgm_b1b()
-    tester_bgm_b1_lcc()
+    tester_bgm_b1c()
     tester_bgm_b2a()
     tester_bgm_b2b()
     tester_bgm_b3()
