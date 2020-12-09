@@ -123,7 +123,8 @@ class BackgroundManager:
         kwds['heigh'] = height
         # with rasterio.open(tempfile.TemporaryFile(siffix='.tif')) as dst:
 
-        with rasterio.open('tmp.tif', 'w+', **kwds) as dst:
+        with tempfile.TemporaryFile('w+b') as fil,\
+                rasterio.open(fil, 'w+', **kwds) as dst:
             data = self.b.read()
 
             for i, band in enumerate(data, 1):

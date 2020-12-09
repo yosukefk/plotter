@@ -4,7 +4,7 @@ sys.path.append('..')
 
 from plotter import calpost_reader as reader
 import plotter.plotter_multi as plotter_multi
-from plotter.plotter_util import lcc_tceq
+from plotter.plotter_util import LambertConformalTCEQ
 
 import rasterio
 import cartopy.crs as ccrs
@@ -154,7 +154,7 @@ plotter_options = {
         # modeled box
         lambda p: p.ax.add_geometries(
             [Polygon([(extent[x],extent[y]) for x,y in ((0,2), (0,3), (1,3), (1,2), (0,2))])],
-            crs=lcc_tceq, facecolor='none', edgecolor='white', lw=.6,
+            crs=LambertConformalTCEQ(), facecolor='none', edgecolor='white', lw=.6,
         ),
     ]}
 
