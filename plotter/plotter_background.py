@@ -104,41 +104,43 @@ class BackgroundManager:
                     warnings.warn('are you sure', pu.PlotterWarning)
                     self.extent = extent
             else:
-                transform, width, height = calculate_default_transform(
-                    self.b.crs.data, projection.proj4_params, self.b.width, self.b.height, *(self.b.bounds)
-                )
-                kwds = self.b.meta
-                kwds['transform'] = transform
-                kwds['width'] = width
-                kwds['heigh'] = height
-                #with rasterio.open(tempfile.TemporaryFile(siffix='.tif')) as dst:
-
-                with rasterio.open('tmp.tif', 'w+', **kwds) as dst:
-                    data = self.b.read()
-
-                    for i, band in enumerate(data, 1):
-                        dest = np.zeros((height, width), band.dtype)
-                        reproject(
-                            band,
-                            dest,
-                            src_transform=self.b.transform,
-                            src_crs=self.b.crs.data,
-                            dst_transform=transform,
-                            dst_crs=projection.proj4_params,
-                            resampling=Resampling.nearest
-                        )
-                        dst.write(dest, indexes=i)
-
-                    self.img = dst.read()[:3, :, :].transpose((1, 2, 0))
-                    self.projection = projection
-                    self.extent = dst.bounds
-
+                self.warp(projection)
                 if extent is None:
                     pass
 
                 else:
                     # user specified both projection and extent
                     self.extent = extent
+
+    def warp(self, projection):
+        transform, width, height = calculate_default_transform(
+            self.b.crs.data, projection.proj4_params, self.b.width, self.b.height, *(self.b.bounds)
+        )
+        kwds = self.b.meta
+        kwds['transform'] = transform
+        kwds['width'] = width
+        kwds['heigh'] = height
+        # with rasterio.open(tempfile.TemporaryFile(siffix='.tif')) as dst:
+
+        with rasterio.open('tmp.tif', 'w+', **kwds) as dst:
+            data = self.b.read()
+
+            for i, band in enumerate(data, 1):
+                dest = np.zeros((height, width), band.dtype)
+                reproject(
+                    band,
+                    dest,
+                    src_transform=self.b.transform,
+                    src_crs=self.b.crs.data,
+                    dst_transform=transform,
+                    dst_crs=projection.proj4_params,
+                    resampling=Resampling.nearest
+                )
+                dst.write(dest, indexes=i)
+
+            self.img = dst.read()[:3, :, :].transpose((1, 2, 0))
+            self.projection = projection
+            self.extent = dst.bounds
 
     def add_background(self, p: pc.PlotterCore):
         """
