@@ -436,7 +436,7 @@ def tester_bgm_w4():
         'background_manager': BackgroundManager(wms_options = {
             'wms': 'https://services.nationalmap.gov/arcgis/services/USGSNAIPImagery/ImageServer/WMSServer',
             'layers':'0'},
-            extent=[-11344200.0, -11338900.0, 3724300.0, 3731100.0]),
+            extent=[-465000.0, -460000.0, -902000.0, -907000.0]), #lcc, the data's projection
         'customize_once': lambda p: p.ax.gridlines(draw_labels=True),
     }
 
