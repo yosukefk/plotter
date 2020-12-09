@@ -1,133 +1,16 @@
-import plotter_core as pc
 import cartopy.crs as ccrs
 import rasterio
 import warnings
 
+
 class PlotterWarning(UserWarning): pass
+
 
 # TCEQ's Lambert Conformal projection, define in caropy way
 def LambertConformalTCEQ():
     return ccrs.LambertConformal(central_longitude=-97, central_latitude=40,
                                  standard_parallels=(33, 45), globe=ccrs.Globe(semimajor_axis=6370000,
                                                                                semiminor_axis=6370000))
-
-# TODO maybe make this part of PlotterCore itself?
-class BackgroundManager:
-    def __init__(self, bgfile=None, source_projection=None, extent=None, projection=None, wms_options=None):
-        """
-
-        :param bgfile: Geotiff file to use as background
-        :param extent: extent of background
-        :param projection: projection to be used for the plot
-        """
-        if bgfile is None:
-            if any((projection is None, extent is None)):
-                if wms_options:
-                    # wms to add background, use data's projection/extent
-                    self.wms_options = wms_options
-                else:
-                    # NULL background!!!
-                    # raise RuntimeError('Null background!!')
-                    self.wms_options = None
-                self.projection = None
-                self.extent = None
-                self.img = None
-            else:
-                self.projection = projection
-                self.extent = extent
-                self.img = None
-                self.wms_options = wms_options
-        else:
-            # use bgfile's extent
-            self.b = rasterio.open(bgfile)
-
-            # try interpret projection of raster...  this should be supported by cartopy,
-            # something like this https://github.com/SciTools/cartopy/pull/1023, which kind of superceded by
-            # https://github.com/SciTools/cartopy/issues/1477 which is still taking time...  So for now i do
-            # quick-and-dirty job here
-            # this is good source too https://github.com/djhoese/cartopy/blob/feature-from-proj/lib/cartopy/_proj4.py
-            # but he manually eddite crs.py to interpret from proj4 components and i dont think i can import his work easily.
-            if source_projection is None:
-                crs_data = self.b.crs.data
-                if 'init' in crs_data and crs_data['init'].lower().startswith('epsg:'):
-                    # if epsg is specified, assume it is going to work.
-                    epsg = int(crs_data['init'][5:])
-                    self.source_projection = ccrs.epsg(epsg)
-                elif 'proj' in crs_data:
-                    _GLOBE_PARAMS = {'datum': 'datum',
-                                     'ellps': 'ellipse',
-                                     'a': 'semimajor_axis',
-                                     'b': 'semiminor_axis',
-                                     'f': 'flattening',
-                                     'rf': 'inverse_flattening',
-                                     'towgs84': 'towgs84',
-                                     'nadgrids': 'nadgrids',
-                                     'R': 'semimajor_axis',
-                                     }
-                    projection_terms = {}
-                    globe_terms = {}
-                    for name, value in crs_data.items():
-                        if name in _GLOBE_PARAMS:
-
-                            globe_terms[name] = value
-                        else:
-                            projection_terms[name] = value
-                    # yk, without this, it defaults to wgs84...
-                    globe_terms.setdefault('ellps', None)
-                    globe = ccrs.Globe(**{_GLOBE_PARAMS[name]: value for name, value in
-                                          globe_terms.items()})
-                    if crs_data['proj'] == 'lcc':
-                        # there seems to be more subtleteis , but this should suffice
-                        # https://github.com/djhoese/cartopy/blob/feature-from-proj/lib/cartopy/crs.py#L1144-L1172
-                        self.source_projection = ccrs.LambertConformal(
-                            central_longitude=crs_data['lon_0'],
-                            central_latitude=crs_data['lat_0'],
-                            false_easting=crs_data['x_0'],
-                            false_northing=crs_data['y_0'],
-                            standard_parallels=[crs_data['lat_1'], crs_data['lat_2']],
-                            globe=globe)
-                    else:
-                        raise NotImplementedError(f"proj4 projection '{crs_data['proj']}'")
-                else:
-                    raise RuntimeError("cant tell projection of raster, use 'source_projection' to specify")
-            else:
-                self.source_projection = source_projection
-
-            if projection is None:
-                self.projection = self.source_projection
-                self.img = self.b.read()[:3, :, :].transpose((1, 2, 0))
-                if extent is None:
-                    # use raster's extent
-                    self.extent = [self.b.transform[2], self.b.transform[2] + self.b.transform[0] * self.b.width,
-                                   self.b.transform[5] + self.b.transform[4] * self.b.height, self.b.transform[5]]
-
-                else:
-                    # user specified extent but not projection.  has to trust what they are doing...
-                    warnings.warn('are you sure', pc.PlotterWarning)
-                    self.extent = extent
-            else:
-                # TODO warp raster data HERE!!
-                self.b = self.b  # warp somehow
-                raise NotImplementedError('i may do it next')
-
-                if extent is None:
-                    # TODO come up with extent approximates the area covered by warped raster
-                    raise NotImplementedError('be more specific!')
-
-                else:
-                    # user specified both projection and extent
-                    self.extent = extent
-
-    def add_background(self, p: pc.PlotterCore):
-        """
-
-        :param p:
-        """
-        if self.img:
-            p.ax.imshow(self.img, extent=self.extent, origin='upper')
-        elif self.wms_options:
-            p.ax.add_wms(**self.wms_options)
-
 
 
 # Deprecated

@@ -12,7 +12,6 @@ if not outdir.is_dir():
     outdir.mkdir()
 
 
-
 def tester_bg1():
     """load background tif file and use it"""
     from plotter import calpost_reader as reader
@@ -51,12 +50,13 @@ def tester_bg2():
         'extent': bext, 'projection': ccrs.epsg(3857),
         # 'customize_once': lambda p: p.ax.imshow(b.read()[:3, :, :].transpose((1, 2, 0)),
         #                                         extent=bext, origin='upper')
-        }
+    }
 
     x = dat['x'] * 1000
     y = dat['y'] * 1000
     p = Plotter(dat['v'], dat['ts'], x=x, y=y, plotter_options=plotter_options)
     p(outdir / 'test_bg2.png')
+
 
 def tester_bg3():
     """specify extent, and use caropy.io.img_tiles.GootleTiles"""
@@ -73,18 +73,19 @@ def tester_bg3():
         'extent': bext, 'projection': ccrs.epsg(3857),
         # GoogleMap, we may need license
         'customize_once': lambda p: p.ax.add_image(cimgt.GoogleTiles(style='satellite'), 15)
-        }
+    }
 
     x = dat['x'] * 1000
     y = dat['y'] * 1000
     p = Plotter(dat['v'], dat['ts'], x=x, y=y, plotter_options=plotter_options)
     p(outdir / 'test_bg3.png')
 
+
 def tester_bg4():
     """specify extent, and use NAIP images with cartopy.io.ogc_clients.WMSRasterSource"""
     from plotter import calpost_reader as reader
     import cartopy.crs as ccrs
-#    import cartopy.io.ogc_clients as cogcc
+    #    import cartopy.io.ogc_clients as cogcc
     with open('../data/tseries_ch4_1min_conc_co_fl.dat') as f:
         dat = reader.Reader(f, slice(60 * 12, 60 * 12 + 10))
 
@@ -94,7 +95,6 @@ def tester_bg4():
             layers='0'
         )
         # TODO how can i save this...?, or should I save this?
-
 
     # background
     bext = [-11344200.0, -11338900.0, 3724300.0, 3731100.0]
@@ -106,14 +106,12 @@ def tester_bg4():
         #                layers='0'
         # )
         'customize_once': my_add_naip,
-        }
+    }
 
     x = dat['x'] * 1000
     y = dat['y'] * 1000
     p = Plotter(dat['v'], dat['ts'], x=x, y=y, plotter_options=plotter_options)
     p(outdir / 'test_bg4.png')
-
-
 
 
 if __name__ == '__main__':
