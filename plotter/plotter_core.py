@@ -66,16 +66,15 @@ class PlotterCore:
 
         # background
         self.background_manager = plotter_options.get('background_manager', None)
-
-        # if self.background_manager is None or self.background_manager.projection is None:
+        # plot's extent/project grab from background_manager or arguments or from the data
         if self.background_manager is None:
-            # plot's extent
             plot_extent = plotter_options.get('extent', self.extent)
             plot_projection = plotter_options.get('projection', self.projection)
         else:
             plot_extent = self.background_manager.extent if self.background_manager.extent else self.extent
             plot_projection = self.background_manager.projection if self.background_manager.projection else self.projection
 
+        # create plots (GeoAxes)
         if pos:
             self.ax = self.fig.add_subplot(*pos, projection=plot_projection)
         else:
