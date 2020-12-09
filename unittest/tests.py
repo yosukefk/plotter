@@ -17,7 +17,7 @@ dir0 = Path('expected')
 dir1 = Path('results')
 
 
-class MyTestCase(unittest.TestCase):
+class TestPlotter(unittest.TestCase):
     def test_r1(self):
         ex.tester_r1()
         self.assertTrue(filecmp.cmp(

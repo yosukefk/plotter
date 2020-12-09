@@ -117,7 +117,7 @@ def tester_bg4():
 
 
 if __name__ == '__main__':
-    # tester_bg1()
-    # tester_bg2()
-    # tester_bg3()
+    tester_bg1()
+    tester_bg2()
+    tester_bg3()
     tester_bg4()

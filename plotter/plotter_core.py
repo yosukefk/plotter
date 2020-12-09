@@ -56,17 +56,25 @@ class PlotterCore:
         self.x = x
         self.y = y
 
+        # data's projection
         # assume TCEQ's lambert for the data array
         if projection is None:
             warnings.warn("Assume TCEQ's Lambert Conformal Proection",
                           pu.PlotterWarning)
             projection = pu.LambertConformalTCEQ()
-
         self.projection = projection
 
-        # plot's extent
-        plot_extent = plotter_options.get('extent', self.extent)
-        plot_projection = plotter_options.get('projection', self.projection)
+        # background
+        self.background_manager = plotter_options.get('background_manager', None)
+
+        if self.background_manager is None:
+
+            # plot's extent
+            plot_extent = plotter_options.get('extent', self.extent)
+            plot_projection = plotter_options.get('projection', self.projection)
+        else:
+            plot_extent = self.background_manager.extent
+            plot_projection = self.background_manager.projection
 
         if pos:
             self.ax = self.fig.add_subplot(*pos, projection=plot_projection)
@@ -79,6 +87,9 @@ class PlotterCore:
 
         if not plot_extent is None:
             self.ax.set_extent(plot_extent, crs=plot_projection)
+
+        if not self.background_manager is None:
+            self.background_manager.add_background(self)
 
         # self.title overrides
         if self.title is None:
