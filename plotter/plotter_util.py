@@ -13,7 +13,7 @@ def LambertConformalTCEQ():
 
 # TODO maybe make this part of PlotterCore itself?
 class BackgroundManager:
-    def __init__(self, bgfile=None, source_projection=None, extent=None, projection=None):
+    def __init__(self, bgfile=None, source_projection=None, extent=None, projection=None, wms_options=None):
         """
 
         :param bgfile: Geotiff file to use as background
@@ -31,10 +31,10 @@ class BackgroundManager:
                 self.projection = projection
                 self.extent = extent
                 self.img = None
+                self.wms_options = wms_options
         else:
             # use bgfile's extent
             self.b = rasterio.open(bgfile)
-            self.img = self.b.read()[:3, :, :].transpose((1, 2, 0))
 
             # try interpret projection of raster...  this should be supported by cartopy,
             # something like this https://github.com/SciTools/cartopy/pull/1023, which kind of superceded by
@@ -87,8 +87,10 @@ class BackgroundManager:
                     raise RuntimeError("cant tell projection of raster, use 'source_projection' to specify")
             else:
                 self.source_projection = source_projection
+
             if projection is None:
                 self.projection = self.source_projection
+                self.img = self.b.read()[:3, :, :].transpose((1, 2, 0))
                 if extent is None:
                     # use raster's extent
                     self.extent = [self.b.transform[2], self.b.transform[2] + self.b.transform[0] * self.b.width,
@@ -101,6 +103,7 @@ class BackgroundManager:
             else:
                 # TODO warp raster data HERE!!
                 self.b = self.b  # warp somehow
+                raise NotImplementedError('i may do it next')
 
                 if extent is None:
                     # TODO come up with extent approximates the area covered by warped raster
@@ -115,10 +118,10 @@ class BackgroundManager:
 
         :param p:
         """
-        if self.img is None:
-            pass
-        else:
+        if self.img:
             p.ax.imshow(self.img, extent=self.extent, origin='upper')
+        elif self.wms_options:
+            p.ax.add_wms(**self.wms_options)
 
         # # or use wms server like below (i may want to cache img if that's not done by itself
         # img = p.ax.add_wms(
