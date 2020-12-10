@@ -3,3 +3,4 @@
 *.mp4
 .*.sw?
 *.pyc
+!unittest/expected/*.png
