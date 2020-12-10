@@ -65,7 +65,11 @@ class BackgroundManager:
         if 'init' in crs_data and crs_data['init'].lower().startswith('epsg:'):
             # if epsg is specified, assume it is going to work.
             epsg = int(crs_data['init'][5:])
-            source_projection =  ccrs.epsg(epsg)
+            if epsg == 3857:
+                source_projection = ccrs.Mercator.GOOGLE
+            else:
+                # this goes to internet to get info, so avoid it if possible
+                source_projection =  ccrs.epsg(epsg)
 
         elif 'proj' in crs_data:
 

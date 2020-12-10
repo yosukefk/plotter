@@ -61,7 +61,7 @@ title = 'Unintented Pulsated S2'
 with open(ddir / fname) as f:
     #dat = hysplit_reader.Reader(f)
     x = np.arange(34)*0.1 -464.35
-    y = np.arange(47)*0.1 -996.65
+    y = np.arange(47)*0.1 -906.65
     dat = hysplit_reader.Reader(f, x=x, y=y)
 
 # grab necessary info
@@ -130,7 +130,7 @@ plotter_options = {
                 # this part creates annotation for each point
                 p.ax.annotate(_.Site_Label, (_.geometry.x, _.geometry.y,),
                     zorder=11, 
-                    fontsize=4
+                    fontsize='xx-small',
                     )
                 # goes across all points but filter by Site_Label
                 for _ in df_shp.itertuples()
