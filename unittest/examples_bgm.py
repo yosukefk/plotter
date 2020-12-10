@@ -448,6 +448,14 @@ def tester_bgm_w4():
 
 if __name__ == '__main__':
 
+# n: no bgfile
+# b: with bgfile
+# w: with wms
+#
+# 1: doesnt specify projection or extent
+# 2: specify both
+# 3: specify only projection
+# 4: specify only extent
 
     tester_bgm_n0()
     tester_bgm_n1()
