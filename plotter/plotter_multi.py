@@ -96,10 +96,9 @@ class Plotter:
                     **{'shrink': my_shrink, **cbopt})
 
         if not suptitle is None:
-            if isinstance(suptitle, dict):
-                self.fig.suptitle(**suptitle)
-            else:
-                self.fig.suptitle(suptitle)
+            if not isinstance(suptitle, dict):
+                suptitle = {'t': suptitle}
+            self.fig.suptitle(**suptitle)
 
         if not titles is None:
             for ax, ttle in zip(self.axes, titles):
