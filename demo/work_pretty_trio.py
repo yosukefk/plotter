@@ -164,10 +164,10 @@ def saveone(i, pname=None):
 
     ts = tstamps[i]
     footnote = str(ts)
+    p(pname, tidx=i, footnote=footnote)
 
-    p(pname, tidx=i, 
-            footnote=footnote)
-
+# make single image file (for QA)
+saveone(16*60, (odir / oname).with_suffix('.png'))
 
 run_parallel = True
 if run_parallel:
