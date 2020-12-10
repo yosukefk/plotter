@@ -156,16 +156,20 @@ plotter_options = {
         # https://matplotlib.org/api/_as_gen/matplotlib.axes.Axes.annotate.html#matplotlib.axes.Axes.annotate
         # I also used adjust_text() repels labels from each other (not as fancy as GIS program would do)
         # https://adjusttext.readthedocs.io/en/latest/
+        # lim=30 tells that give it up after 30 itereations (default 500)
         lambda p:
         adjust_text(
             # make list of annotation
             list(
                 # this part creates annotation for each point
                 p.ax.annotate(_.Site_Label, (_.geometry.x, _.geometry.y,),
-                              zorder=11, fontsize='xx-small')
+                              zorder=11,
+                              fontsize=4,
+                              # fontsize=4,
+                              )
                 # goes across all points but filter by Site_Label
-                for _ in df_shp.itertuples()  # if _.Site_Label in (f'{site}',)
-            ),
+                for _ in df_shp.itertuples()), # if _.Site_Label.startswith(('F', 'S'))),
+            lim=30
         ),
 
         # showing modeling extent
@@ -209,16 +213,11 @@ def saveone(i, pname=None):
     if pname is None: pname = wdir / f'{i:04}.png'
 
     ts = tstamps[i]
-    # turn off footnote for each of plot
-    footnote = None
-    # instead , set subtitle using the timestamp
-    # https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html?highlight=suptitle#matplotlib.figure.Figure.suptitle
-    suptitle = str(ts)
+    footnote = str(ts)
 
     # calling plotter with png file name, with time index, saves an image
     p(pname, tidx=i,
-      footnote=footnote,
-      suptitle={'t': suptitle, 'y': .2, 'va': 'top'})
+      footnote=footnote)
 
 
 # make single image file (for QA)

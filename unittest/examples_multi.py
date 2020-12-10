@@ -5,6 +5,7 @@ sys.path.append('..')
 
 from plotter.plotter_multi import Plotter
 from pathlib import Path
+import matplotlib as mpl
 
 bgfile = '../resources/naip_toy_pmerc_5.tif'
 shpfile = '../resources/emitters.shp'
@@ -156,6 +157,8 @@ def tester_mt2():
     p = Plotter(arrays, dat['ts'], x=x, y=y,
             plotter_options=plotter_options, figure_options=figure_options)
     p(outdir / 'test_mt2.png')
+    mpl.rcParams.update({'font.size': 10})
+
 
 def tester_mt3():
     from plotter import calpost_reader as reader
@@ -183,6 +186,7 @@ def tester_mt3():
     p = Plotter(arrays, dat['ts'], x=x, y=y,
             plotter_options=plotter_options, figure_options=figure_options)
     p(outdir / 'test_mt3.png', footnotes=[dat['ts'][0]]*3)
+    mpl.rcParams.update({'font.size': 10})
 
 def tester_mt4():
     from plotter import calpost_reader as reader
@@ -210,6 +214,7 @@ def tester_mt4():
     p = Plotter(arrays, dat['ts'], x=x, y=y,
             plotter_options=plotter_options, figure_options=figure_options)
     p(outdir / 'test_mt4.png', footnote=dat['ts'][0])
+    mpl.rcParams.update({'font.size': 10})
 
 if __name__ == '__main__':
     # save better resolution image
