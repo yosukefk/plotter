@@ -65,37 +65,54 @@ class Plotter:
                                         x=x, y=y, plotter_options=po) for arr, po in zip(arrays, plotter_options)]
         self.axes = [p.ax for p in self.plotters]
 
-    def __call__(self, oname, tidx=None, footnote='', suptitle=None, titles=None):
+    def __call__(self, oname, tidx=None, footnote='', suptitle=None, titles=None, footnotes=''):
 
         # remember if plots were blank
         haddata = self.plotters[0].hasdata
 
-        for p in self.plotters:
-            p(tidx, footnote)
+        if isinstance(footnotes, str) or              len(footnotes) != len(self.plotters):
+            footnotes = [footnotes] * len(self.plotters)
+
+        for p,fn in zip(self.plotters, footnotes):
+
+            p(tidx, footnote=fn)
 
         # if it was blank, need some initalization
         if not haddata:
             cbopt = self.figure_options.get('colorbar_options', None)
-            # ugly hardwired values...
-            # tried to use 
-            if self.nplot <= 2:
-                my_shrink = .7
-            elif self.nplot >= 3:
-                my_shrink = .5
             if cbopt is not None:
                 self.fig.subplots_adjust(wspace=.1)
+
+                # ugly hardwired values...
+                # tried to use
+                if self.nplot <= 2:
+                    my_shrink = .7
+                elif self.nplot >= 3:
+                    my_shrink = .5
+
                 self.fig.colorbar(
                     mappable=self.plotters[0].mappable,
                     ax=self.axes,
                     use_gridspec=True,
-
-                    # shring=0.7 works well for pair plot, 0.6 is too large for trio plot, maybe 0.5?
-                    # wish there is a way to let cb to match height of
-                    # plots...?
-                    # shrink=.7,
                     **{'shrink': my_shrink, **cbopt})
 
+            if footnote is not None:
+                # no clue why, but y=0.2 puts text nicely below the plots, for pair case...
+                if self.nplot <= 2:
+                    my_ypos = .2
+                elif self.nplot >=3:
+                    my_ypos = .3
+                self.footnote = self.fig.text(0.5, my_ypos, footnote,
+                                                 ha='center', va='top')
+        else:
+            if footnote is not None:
+                self.footnote.set_text(footnote)
+
+
+
+
         if not suptitle is None:
+            warnings.warn('i dont like suptitle after all', DeprecationWarning)
             if not isinstance(suptitle, dict):
                 suptitle = {'t': suptitle}
             self.fig.suptitle(**suptitle)
