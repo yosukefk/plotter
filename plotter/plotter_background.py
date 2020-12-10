@@ -1,5 +1,5 @@
-import plotter_core as pc
-import plotter_util as pu
+from . import plotter_core as pc
+from . import plotter_util as pu
 import cartopy.crs as ccrs
 import rasterio
 from rasterio.warp import reproject, calculate_default_transform, Resampling

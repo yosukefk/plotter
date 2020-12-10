@@ -1,4 +1,4 @@
-import plotter_util as pu
+from . import plotter_util as pu
 import cartopy.crs as ccrs
 import matplotlib.pyplot as plt
 import numpy as np
