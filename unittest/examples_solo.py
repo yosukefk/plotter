@@ -292,7 +292,7 @@ def tester_pc2_v():
         for i, ts in enumerate(tstamps):
             saveone(i)
         # make mpeg file
-        cmd = f'ffmpeg -i "{workdir / "%04d.png"}" -vframes 2880 -crf 3 -vcodec libx264 -pix_fmt yuv420p -f mp4 -y "{outdir / "test_pr2b.mp4"}"'
+        cmd = f'ffmpeg -i "{workdir / "%04d.png"}" -vframes 2880 -crf 3 -vcodec libx264 -pix_fmt yuv420p -f mp4 -y "{outdir / "test_pc2b.mp4"}"'
         subprocess.run(shlex.split(cmd))
 
 def tester_pr3():
