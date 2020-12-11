@@ -11,10 +11,11 @@ import warnings
 # TODO maybe make this part of PlotterCore itself?
 class BackgroundManager:
     def __init__(self, bgfile=None, source_projection=None, extent=None, projection=None, wms_options=None):
-        """
+        """Manage plot's projection/extent/background
 
         :param bgfile: Geotiff file to use as background
-        :param extent: extent of background
+        :param source_projection: projection of bgfile, in case cartopy don't understand it
+        :param extent: extent of background (x0, x1, y0, y1)
         :param projection: projection to be used for the plot
         :param wms_options: arguments to GeoAxes.add_wms()
         """
@@ -117,7 +118,11 @@ class BackgroundManager:
 
         return source_projection
 
-    def warp(self, projection):
+    def warp(self, projection: ccrs.Projection):
+        """reproject bacground raster
+
+        :param projection: ccrs.Projection
+        """
         transform, width, height = calculate_default_transform(
             self.b.crs.data, projection.proj4_params, self.b.width, self.b.height, *(self.b.bounds)
         )
