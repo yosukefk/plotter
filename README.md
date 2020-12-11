@@ -11,7 +11,7 @@ Instead of official python, it is highly recommended to use Anaconda Python + co
 
 Grab code from git repo
 
-`git clone ssh:XXX@ls5.tacc.utexas.edu:/work/00576/yosuke/src/git/plotter'`
+`git clone https://github.com/yosukefk/plotter.git`
 
 Grab required pacages
 
