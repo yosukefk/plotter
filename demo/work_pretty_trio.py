@@ -67,6 +67,7 @@ df_shp = df_shp.to_crs('EPSG:3857')
 titles = ['Regular Sources', f'Unintended,\nContinuous {site}',
           f'Unintended,\nPulsated {site}']
 
+# read the data
 data = []
 for fname in fnames:
     with open(ddir / fname) as f:
@@ -135,7 +136,7 @@ plotter_options = {
                     fontsize=4,
                     )
                 # goes across all points but filter by Site_Label
-                for _ in df_shp.itertuples() #if _.Site_Label in (f'{site}',)
+                for _ in df_shp.itertuples() if _.Site_Label.startswith(('S', 'F'))
             ),
         ),
         # modeled box

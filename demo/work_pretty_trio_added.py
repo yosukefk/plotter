@@ -18,14 +18,19 @@ from pathlib import Path
 from multiprocessing import Pool
 import shlex
 import subprocess
+import sys
 
 # save better resolution image 
 mpl.rcParams['savefig.dpi'] = 300
 
 # input directory/file names
 ddir = Path('../data')
+
 # input file names
-site = 'S2'
+if len(sys.argv) >= 1:
+    site = sys.argv[1].upper()
+else:
+    site = 'S2'
 fnames = [
         'tseries_ch4_1min_conc_toy_all.dat',
         f'tseries_ch4_1min_conc_un_co_{site.lower()}.dat', # continuous upset
@@ -132,10 +137,10 @@ plotter_options = {
                 # this part creates annotation for each point
                 p.ax.annotate(_.Site_Label, (_.geometry.x, _.geometry.y,),
                     zorder=11, 
-                    fontsize=4
+                    fontsize=4,
                     )
                 # goes across all points but filter by Site_Label
-                for _ in df_shp.itertuples() #if _.Site_Label in (f'{site}',)
+                for _ in df_shp.itertuples() if _.Site_Label.startswith(('S', 'F'))
             ),
         ),
         # modeled box

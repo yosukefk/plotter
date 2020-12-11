@@ -14,11 +14,11 @@ import matplotlib.colors as colors
 from shapely.geometry import Polygon
 from adjustText import adjust_text
 
-import rasterio
 from pathlib import Path
 from multiprocessing import Pool
 import shlex
 import subprocess
+import sys
 
 # save better resolution image 
 mpl.rcParams['savefig.dpi'] = 300
@@ -42,7 +42,7 @@ wdir = Path('./img9')
 
 # output
 odir = Path('.')
-oname = f'tseries_ch4_1min_conc_co_all_un_{site.lower()}_added_zoom.mp4'
+oname = f'tseries_ch4_1min_conc_co_all_un_{site.lower()}_added_nopt.mp4'
 
 # prep workdir
 if not wdir.is_dir():
@@ -58,16 +58,6 @@ else:
 bgfile = '../resources/naip_toy_pmerc_5.tif'
 shpfile = '../resources/emitters.shp'
 
-
-# zoom TODO need hard coded #
-b = rasterio.open(bgfile)
-bext = [b.transform[2], b.transform[2] + b.transform[0] * b.width,
-        b.transform[5] + b.transform[4] * b.height, b.transform[5]]
-
-bext = [
-    2./3.* bext[0] + 1./3. * bext[1], 1./3.* bext[0] + 2./3. * bext[1], 
-    7./12.* bext[2] + 5./12. * bext[3], 3./12.* bext[2] + 9./12. * bext[3], 
-]
 
 # source locations
 df_shp = gpd.read_file(shpfile)
@@ -120,8 +110,7 @@ bndry = [1, 10, 50, 100, 200, 500, 1000, 2000]
 norm = colors.BoundaryNorm(bndry, len(bndry))
 
 plotter_options = {
-    'background_manager': BackgroundManager(bgfile=bgfile,
-        extent=bext),
+    'background_manager': BackgroundManager(bgfile=bgfile,),
     'contour_options': {
         'levels': bndry,
         'cmap': cmap,
@@ -132,28 +121,6 @@ plotter_options = {
     'title_options': {'fontsize': 'medium'},
     'colorbar_options': None,
     'customize_once': [
-        # emission points
-        lambda p: df_shp.plot(ax=p.ax, column='kls', categorical=True, legend=False, zorder=10,
-                          markersize=2,
-                          # got red/blue/yellow from colorbrewer's Set1
-                          cmap=colors.ListedColormap(['#e41a1c', '#377eb8', '#ffff33'])
-                          ),
-
-        # emission point annotations
-        lambda p: 
-            # adjust_text() repels labels from each other
-            adjust_text(
-            # make list of annotation
-            list(
-                # this part creates annotation for each point
-                p.ax.annotate(_.Site_Label, (_.geometry.x, _.geometry.y,),
-                    zorder=11, 
-                    fontsize=4,
-                    )
-                # goes across all points but filter by Site_Label
-                for _ in df_shp.itertuples() #if _.Site_Label in (f'{site}',)
-            ),
-        ),
         # modeled box
         lambda p: p.ax.add_geometries(
             [Polygon([(extent[x], extent[y]) for x, y in ((0, 2), (0, 3), (1, 3), (1, 2), (0, 2))])],
