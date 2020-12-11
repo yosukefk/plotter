@@ -4,10 +4,11 @@ import sys
 sys.path.append('..')
 
 from plotter import calpost_reader
-import plotter.plotter_multi as plotter_multi
+import plotter.plotter_solo as plotter_solo
 from plotter.plotter_util import LambertConformalTCEQ
 from plotter.plotter_background import BackgroundManager
 
+import cartopy.crs as ccrs
 import geopandas as gpd
 import matplotlib as mpl
 import matplotlib.colors as colors
@@ -18,31 +19,21 @@ from pathlib import Path
 from multiprocessing import Pool
 import shlex
 import subprocess
-import sys
 
 # save better resolution image 
 mpl.rcParams['savefig.dpi'] = 300
 
 # input directory/file names
 ddir = Path('../data')
-
-# input file names
-if len(sys.argv) >= 1:
-    site = sys.argv[1].upper()
-else:
-    site = 'S2'
-fnames = [
-        'tseries_ch4_1min_conc_toy_all.dat',
-        f'tseries_ch4_1min_conc_un_co_{site.lower()}.dat', # continuous upset
-        f'tseries_ch4_1min_conc_un_pu_{site.lower()}.dat', # pulsate upset
-        ]
+# input file name
+fname = 'tseries_ch4_1min_conc_toy_all.dat'
 
 # intermediate
-wdir = Path('./img9')
+wdir = Path('./img')
 
 # output
 odir = Path('.')
-oname = f'tseries_ch4_1min_conc_co_all_un_{site.lower()}.mp4'
+oname = 'tseries_ch4_1min_conc_toy_all_nobg.mp4'
 
 # prep workdir
 if not wdir.is_dir():
@@ -63,20 +54,16 @@ shpfile = '../resources/emitters.shp'
 df_shp = gpd.read_file(shpfile)
 df_shp = df_shp.to_crs('EPSG:3857')
 
-# title to use for each input
-titles = ['Regular Sources', f'Unintended,\nContinuous {site}',
-          f'Unintended,\nPulsated {site}']
+# title to use
+title = 'Regular Sources'
 
-data = []
-for fname in fnames:
-    with open(ddir / fname) as f:
-        dat = calpost_reader.Reader(f)
-    data.append(dat)
+with open(ddir / fname) as f:
+    dat = calpost_reader.Reader(f)
 
 # grab necessary info
-arrays = [dat['v'] for dat in data]
-tstamps = data[0]['ts']
-grid = data[0]['grid']
+arr = dat['v']
+tstamps = dat['ts']
+grid = dat['grid']
 
 # get horizontal extent 
 extent = [
@@ -92,7 +79,7 @@ y = dat['y'] * 1000
 # convert unit of array from g/m3 tp ppb
 # mwt g/mol
 # molar volume m3/mol
-arrays = [arr / 16.043 * 0.024465403697038 * 1e9 for arr in arrays]
+arr = arr / 16.043 * 0.024465403697038 * 1e9
 
 # Mrinali/Gary's surfer color scale
 cmap = colors.ListedColormap([
@@ -104,8 +91,16 @@ cmap.set_over('#000000')
 bndry = [1, 10, 50, 100, 200, 500, 1000, 2000]
 norm = colors.BoundaryNorm(bndry, len(bndry))
 
+def add_gridlines(ax, attrs):
+    gl = ax.gridlines()
+    for k,v in attrs.items():
+        setattr(gl, k, v)
+
 plotter_options = {
-    'background_manager': BackgroundManager(bgfile=bgfile,),
+        # no background, just use google map's projection with large extent
+    'background_manager': BackgroundManager(projection=ccrs.Mercator.GOOGLE,
+        extent=[-11344200., -11338900., 3724300., 3731100.]),
+    'title': title,
     'contour_options': {
         'levels': bndry,
         'cmap': cmap,
@@ -113,8 +108,9 @@ plotter_options = {
         'alpha': .5,
         'extend': 'max',
     },
-    'title_options': {'fontsize': 'medium'},
-    'colorbar_options': None,
+    'colorbar_options': {
+        'label': r'$CH_4$ (ppbV)',
+    },
     'customize_once': [
         # emission points
         lambda p: df_shp.plot(ax=p.ax, column='kls', categorical=True, legend=False, zorder=10,
@@ -132,35 +128,27 @@ plotter_options = {
                 # this part creates annotation for each point
                 p.ax.annotate(_.Site_Label, (_.geometry.x, _.geometry.y,),
                     zorder=11, 
-                    fontsize=4,
+                    fontsize='xx-small',
                     )
                 # goes across all points but filter by Site_Label
-                for _ in df_shp.itertuples() #if _.Site_Label in (f'{site}',)
+                for _ in df_shp.itertuples()
             ),
         ),
         # modeled box
         lambda p: p.ax.add_geometries(
             [Polygon([(extent[x], extent[y]) for x, y in ((0, 2), (0, 3), (1, 3), (1, 2), (0, 2))])],
-            crs=LambertConformalTCEQ(), facecolor='none', edgecolor='white', lw=.6,
+            crs=LambertConformalTCEQ(), facecolor='none', edgecolor='black', lw=.6,
         ),
+        # grid lines
+        lambda p: add_gridlines(p.ax, {'bottom_labels': False,
+            'right_labels':False})
 
     ]}
 
-# clone the options and let each has own title
-plotter_options = [{**plotter_options, 'title': title} for title in titles]
-
-# colorbar goes to entire figure
-figure_options = {
-    'colorbar_options': {
-        'label': r'$CH_4$ (ppbV)',
-        }
-    }
-
 # make a plot template
-p = plotter_multi.Plotter(arrays=arrays, tstamps=tstamps, 
+p = plotter_solo.Plotter(array=arr, tstamps=tstamps, 
                          x=x, y=y, projection=LambertConformalTCEQ(),
-                         plotter_options=plotter_options,
-                         figure_options=figure_options)
+                         plotter_options=plotter_options)
 
 
 # function to save one time frame
@@ -188,5 +176,5 @@ else:
         saveone(i)
 
 # make mpeg file
-cmd = f'ffmpeg -i "{wdir / "%04d.png"}" -vf scale=1920:-2 -vframes 2880 -crf 3 -vcodec libx264 -pix_fmt yuv420p -f mp4 -y "{odir / oname}"'
+cmd = f'ffmpeg -i "{wdir / "%04d.png"}" -vframes 2880 -crf 3 -vcodec libx264 -pix_fmt yuv420p -f mp4 -y "{odir / oname}"'
 subprocess.run(shlex.split(cmd), check=True)

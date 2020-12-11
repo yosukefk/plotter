@@ -120,7 +120,7 @@ plotter_options = {
                 # this part creates annotation for each point
                 p.ax.annotate(_.Site_Label, (_.geometry.x, _.geometry.y,),
                     zorder=11, 
-                    fontsize=4
+                    fontsize='xx-small',
                     )
                 # goes across all points but filter by Site_Label
                 for _ in df_shp.itertuples()
