@@ -7,6 +7,7 @@ from plotter import calpost_reader
 import plotter.plotter_multi as plotter_multi
 from plotter.plotter_util import LambertConformalTCEQ
 from plotter.plotter_background import BackgroundManager
+import cartopy.crs as ccrs
 
 import geopandas as gpd
 import matplotlib as mpl
@@ -27,7 +28,7 @@ mpl.rcParams['savefig.dpi'] = 300
 ddir = Path('../data')
 
 # input file names
-if len(sys.argv) >= 1:
+if len(sys.argv) > 1:
     site = sys.argv[1].upper()
 else:
     site = 'S2'
@@ -123,26 +124,20 @@ plotter_options = {
                           # got red/blue/yellow from colorbrewer's Set1
                           cmap=colors.ListedColormap(['#e41a1c', '#377eb8', '#ffff33'])
                           ),
-
-        # emission point annotations
-        lambda p: 
-            # adjust_text() repels labels from each other
-            adjust_text(
-            # make list of annotation
-            list(
-                # this part creates annotation for each point
-                p.ax.annotate(_.Site_Label, (_.geometry.x, _.geometry.y,),
-                    zorder=11, 
-                    fontsize=4,
-                    )
-                # goes across all points but filter by Site_Label
-                for _ in df_shp.itertuples() if _.Site_Label.startswith(('S', 'F'))
-            ),
+        # Shannon's "original" box
+        lambda p: p.ax.add_geometries(
+            [Polygon([(-101.8834373, 31.71350603),
+                      (-101.8664281, 31.71727773),
+                      (-101.8748762, 31.75052556),
+                      (-101.8942724, 31.74599821),
+                      (-101.8834373, 31.71350603),
+                      ])],
+            crs=ccrs.PlateCarree(), facecolor='none', edgecolor='white', lw=.6,
         ),
         # modeled box
         lambda p: p.ax.add_geometries(
             [Polygon([(extent[x], extent[y]) for x, y in ((0, 2), (0, 3), (1, 3), (1, 2), (0, 2))])],
-            crs=LambertConformalTCEQ(), facecolor='none', edgecolor='white', lw=.6,
+            crs=LambertConformalTCEQ(), facecolor='none', edgecolor='white', lw=.6, ls='--',
         ),
 
     ]}
@@ -174,20 +169,20 @@ def saveone(i, pname=None):
 
 # make single image file (for QA)
 saveone(16*60, (odir / oname).with_suffix('.png'))
-
-run_parallel = True
-if run_parallel:
-    # parallel processing
-    # save all frames in parallel
-    # 68 for stampede, 24 for ls5
-    nthreads = 24  # ls5
-    with Pool(nthreads) as pool:
-        pool.map(saveone, range(len(tstamps)))
-else:
-    # serial processing
-    for i in range(len(tstamps)):
-        saveone(i)
-
-# make mpeg file
-cmd = f'ffmpeg -i "{wdir / "%04d.png"}" -vf scale=1920:-2 -vframes 2880 -crf 3 -vcodec libx264 -pix_fmt yuv420p -f mp4 -y "{odir / oname}"'
-subprocess.run(shlex.split(cmd), check=True)
+###
+### run_parallel = True
+### if run_parallel:
+###     # parallel processing
+###     # save all frames in parallel
+###     # 68 for stampede, 24 for ls5
+###     nthreads = 24  # ls5
+###     with Pool(nthreads) as pool:
+###         pool.map(saveone, range(len(tstamps)))
+### else:
+###     # serial processing
+###     for i in range(len(tstamps)):
+###         saveone(i)
+###
+### # make mpeg file
+### cmd = f'ffmpeg -i "{wdir / "%04d.png"}" -vf scale=1920:-2 -vframes 2880 -crf 3 -vcodec libx264 -pix_fmt yuv420p -f mp4 -y "{odir / oname}"'
+### subprocess.run(shlex.split(cmd), check=True)
