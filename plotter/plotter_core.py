@@ -42,7 +42,7 @@ class PlotterCore:
 
         self.colorbar_options = plotter_options.get('colorbar_options', {})
 
-        self.footnote_options = plotter_options.get('footnote_options', {})
+        self.footnote_options = plotter_options.get('footnote_options', None)
 
         self.title = plotter_options.get('title', None)
         self.title_options = plotter_options.get('title_options', None)
@@ -108,7 +108,11 @@ class PlotterCore:
             self.ax.set_title(**ttlopt)
 
         # other customizations
+        if 'plot_customizers' in plotter_options:
+            self.customize(plotter_options['plot_customizers'])
         if 'customize_once' in plotter_options:
+            warnings.warn("'customize_once' renamed to 'plot_customizer'",
+                          DeprecationWarning)
             self.customize(plotter_options['customize_once'])
 
         self.hasdata = False
@@ -175,15 +179,27 @@ class PlotterCore:
                     warnings.warn('No data to show, Colorbar turned off',
                                   pu.PlotterWarning)
 
-            if footnote is not None:
-                self.footnote = self.ax.annotate(footnote,
-                                                 xy=(0.5, 0),  # bottom center
-                                                 xytext=(0, -6),
-                                                 # drop 6 ponts below (works if there is no x axis label)
-                                                 # xytext=(0,-18), # drop 18 ponts below (works with x-small fontsize axis label)
-                                                 xycoords='axes fraction',
-                                                 textcoords='offset points',
-                                                 ha='center', va='top')
+            if footnote is not None or self.footnote_options:
+                # default set of options
+                my_footnote_options = { 
+                        'xy': (0.5, 0),  # bottom center 
+                        'xytext': (0, -6), # drop 6 ponts below (works if there is no x axis label)
+                        #'xytext': (0,-18), # drop 18 ponts below (works with x-small fontsize axis label)
+                        'xycoords': 'axes fraction', 
+                        'textcoords': 'offset points', 
+                        'ha': 'center', 'va':'top'}
+
+                if self.footnote_options:
+
+                    # user overrides options
+                    my_footnote_options.update(self.footnote_options)
+                    if footnote is not None:
+                        my_footnote_options['text'] = footnote
+                    
+
+                    self.footnote = self.ax.annotate(footnote,
+                            **my_footnote_options)
+
 
             self.hasdata = True
 

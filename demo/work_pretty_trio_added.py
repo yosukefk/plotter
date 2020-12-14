@@ -65,8 +65,10 @@ df_shp = gpd.read_file(shpfile)
 df_shp = df_shp.to_crs('EPSG:3857')
 
 # title to use for each input
-titles = ['Regular Only', f'Regular +\nUnintended,\nContinous {site}',
-        f'Regular + \nUnintended,\nPulsated {site}']
+titles = ['routine emissions', 
+        f'routine +\nunintended continous\n emissions from {site}',
+        f'routine +\nunintended pulse\n emissions from {site}',
+        ]
 
 # read the data
 data = []
@@ -110,6 +112,7 @@ cmap.set_over('#000000')
 bndry = [1, 10, 50, 100, 200, 500, 1000, 2000]
 norm = colors.BoundaryNorm(bndry, len(bndry))
 
+
 plotter_options = {
     'background_manager': BackgroundManager(bgfile=bgfile,),
     'contour_options': {
@@ -119,15 +122,38 @@ plotter_options = {
         'alpha': .5,
         'extend': 'max',
     },
-    'title_options': {'fontsize': 'medium'},
+    # TODO instead of setting fontsize evrywhere, change across everywhere like this
+    # https://stackoverflow.com/questions/3899980/how-to-change-the-font-size-on-a-matplotlib-plot
+    'title_options': {'fontsize': 'small'},
     'colorbar_options': None,
-    'customize_once': [
+    'plot_customizers': [
         # emission points
-        lambda p: df_shp.plot(ax=p.ax, column='kls', categorical=True, legend=False, zorder=10,
+        lambda p: df_shp.plot(ax=p.ax, column='kls', categorical=True,
+            legend=False, zorder=10,
                           markersize=2,
                           # got red/blue/yellow from colorbrewer's Set1
                           cmap=colors.ListedColormap(['#e41a1c', '#377eb8', '#ffff33'])
                           ),
+        #lambda p: p.ax.scatter(df_shp.geometry.x, df_shp.geometry.y,
+        #    c=df_shp['kls'].apply(lambda x: {'flare':'#e41a1c',
+        #        'tank':'#377eb8', 'well':'#ffff33'}[x]),
+        #    zorder=10, #markersize=2,
+        #                  ),
+        # emission point annotations
+        lambda p: 
+            # adjust_text() repels labels from each other
+            adjust_text(
+            # make list of annotation
+            list(
+                # this part creates annotation for each point
+                p.ax.annotate(_.Site_Label, (_.geometry.x, _.geometry.y,),
+                    zorder=11, 
+                    fontsize=4,
+                    )
+                # goes across all points but filter by Site_Label
+                for _ in df_shp.itertuples() if _.Site_Label in ('S2',)
+            ),
+        ),
         # Shannon's "original" box
         lambda p: p.ax.add_geometries(
             [Polygon([(-101.8834373, 31.71350603),
@@ -149,18 +175,38 @@ plotter_options = {
 # clone the options and let each has own title
 plotter_options = [{**plotter_options, 'title': title} for title in titles]
 
+def legend_manager(fig): 
+    ax = fig.get_axes()
+    #print(ax)
+    #print(dir(ax[0]))
+    ll = fig.get_axes()[0].get_legend_handles_labels()
+    #print(ll)
+    fig.legend(*ll, loc='lower right')
+
+
 # colorbar goes to entire figure
 figure_options = {
     'colorbar_options': {
-        'label': r'$CH_4$ (ppbV)',
-        }
+        'label':  r'$CH_4$ (ppbV)',
+        'colorbar_customizers': [
+            lambda cb: cb.ax.tick_params(labelsize = 8),
+            lambda cb: cb.set_label( r'$CH_4$ (ppbV)', fontsize='small')
+            ]
+        },
+    'footnote_options': {'fontsize': 'small'}, 
+    'figure_customizers': [
+        # neither worked...
+        #lambda fig: fig.legend(*fig.get_axes()[0].get_legend_handles_labels())
+        #legend_manager,
+        ]
     }
 
 # make a plot template
-p = plotter_multi.Plotter(arrays=arrays, tstamps=tstamps, 
+pp = plotter_multi.Plotter(arrays=arrays, tstamps=tstamps, 
                          x=x, y=y, projection=LambertConformalTCEQ(),
                          plotter_options=plotter_options,
                          figure_options=figure_options)
+
 
 
 # function to save one time frame
@@ -168,25 +214,26 @@ def saveone(i, pname=None):
     if pname is None: pname = wdir / f'{i:04}.png'
 
     ts = tstamps[i]
-    footnote = str(ts)
-    p(pname, tidx=i, footnote=footnote)
+    footnote = str(ts).replace(':00-06:00', ' (UTC-06:00)')
+    pp(pname, tidx=i, footnote=footnote)
 
 # make single image file (for QA)
 saveone(16*60, (odir / oname).with_suffix('.png'))
-### 
-### run_parallel = True
-### if run_parallel:
-###     # parallel processing
-###     # save all frames in parallel
-###     # 68 for stampede, 24 for ls5
-###     nthreads = 24  # ls5
-###     with Pool(nthreads) as pool:
-###         pool.map(saveone, range(len(tstamps)))
-### else:
-###     # serial processing
-###     for i in range(len(tstamps)):
-###         saveone(i)
-### 
-### # make mpeg file
-### cmd = f'ffmpeg -i "{wdir / "%04d.png"}" -vf scale=1920:-2 -vframes 2880 -crf 3 -vcodec libx264 -pix_fmt yuv420p -f mp4 -y "{odir / oname}"'
-### subprocess.run(shlex.split(cmd), check=True)
+
+
+run_parallel = True
+if run_parallel:
+    # parallel processing
+    # save all frames in parallel
+    # 68 for stampede, 24 for ls5
+    nthreads = 24  # ls5
+    with Pool(nthreads) as pool:
+        pool.map(saveone, range(len(tstamps)))
+else:
+    # serial processing
+    for i in range(len(tstamps)):
+        saveone(i)
+
+# make mpeg file
+cmd = f'ffmpeg -i "{wdir / "%04d.png"}" -vf scale=1920:-2 -vframes 2880 -crf 3 -vcodec libx264 -pix_fmt yuv420p -f mp4 -y "{odir / oname}"'
+subprocess.run(shlex.split(cmd), check=True)
