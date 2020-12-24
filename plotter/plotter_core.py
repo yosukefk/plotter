@@ -197,8 +197,8 @@ class PlotterCore:
                         my_footnote_options['text'] = footnote
                     
 
-                    self.footnote = self.ax.annotate(footnote,
-                            **my_footnote_options)
+                self.footnote = self.ax.annotate(footnote,
+                        **my_footnote_options)
 
 
             self.hasdata = True
