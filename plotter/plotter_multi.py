@@ -1,7 +1,9 @@
 try:
     from . import plotter_core as pc
+    from . import plotter_util as pu
 except ImportError:
     import plotter_core as pc
+    import plotter_util as pu
 
 import matplotlib.pyplot as plt
 from importlib import reload
@@ -31,7 +33,8 @@ class Plotter:
             plotter_options = [{} for _ in range(self.nplot)]
         elif isinstance(plotter_options, dict):
             # if one set of options are provided, duplicate them
-            warnings.warn('plotter options are duplicated for all plots')
+            warnings.warn('plotter options are duplicated for all plots',
+                    category=pu.PlotterWarning)
             # TODO imshow options may needed to be cloned as well
             plotter_options = [plotter_options] + [plotter_options.copy()
                                                    for _ in range(self.nplot - 1)]
@@ -42,13 +45,15 @@ class Plotter:
             assert len(plotter_options) == self.nplot
             for i in range(1, self.nplot):
                 if id(plotter_options[0]) == id(plotter_options[i]):
-                    warnings.warn(f'plotter options {i} is unlinked from first one')
+                    warnings.warn(f'plotter options {i} is unlinked from first one',
+                                category=pu.PlotterWarning)
                     plotter_options[i] = plotter_options[i].copy()
                 if 'imshow_options' in plotter_options[0]:
                     if id(plotter_options[0]['imshow_options']) == \
                             id(plotter_options[i].get('imshow_options',
                                                       None)):
-                        warnings.warn(f'imshow options {i} is unlinked from first one')
+                        warnings.warn(f'imshow options {i} is unlinked from first one', 
+                                category=pu.PlotterWarning)
                         plotter_options[i]['imshow_options'] = \
                             plotter_options[i]['imshow_options'].copy()
 

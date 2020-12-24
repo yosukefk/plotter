@@ -203,7 +203,7 @@ def tester_pr2b():
     p = Plotter(dat['v'], dat['ts'], x=x, y=y, plotter_options=plotter_options)
     p(outdir / 'test_pr2b.png')
 
-def tester_pr2b_v():
+def tester_pr2b_v(quiet=False):
     """animate calpost raster"""
     from plotter import calpost_reader as reader
     import tempfile
@@ -228,13 +228,13 @@ def tester_pr2b_v():
     tstamps = dat['ts']
     with tempfile.TemporaryDirectory() as wdir:
         workdir = Path(wdir)
-        print(workdir)
+        #print(workdir)
 
         # function to save one time frame
         def saveone(i):
             ts = tstamps[i]
             pname = workdir / f'{i:04}.png'
-            print(pname)
+            #print(pname)
             footnote = str(ts)
             p(pname, tidx=i, footnote=footnote)
 
@@ -242,9 +242,13 @@ def tester_pr2b_v():
         for i, ts in enumerate(tstamps):
             saveone(i)
         # make mpeg file
-        cmd = f'ffmpeg -i "{workdir / "%04d.png"}" -vframes 2880 -crf 3 -vcodec libx264 -pix_fmt yuv420p -f mp4 -y "{outdir / "test_pr2b.mp4"}"'
-        print(cmd)
-        print(shlex.split(cmd))
+        if quiet:
+            loglevel = '-loglevel error'
+        else:
+            loglevel = ''
+        cmd = f'ffmpeg {loglevel} -i "{workdir / "%04d.png"}" -vframes 2880 -crf 3 -vcodec libx264 -pix_fmt yuv420p -f mp4 -y "{outdir / "test_pr2b.mp4"}"'
+        #print(cmd)
+        #print(shlex.split(cmd))
         subprocess.run(shlex.split(cmd), check=True)
 
 def tester_pc2():
@@ -261,7 +265,7 @@ def tester_pc2():
     p(outdir / 'test_pc2.png')
 
 
-def tester_pc2_v():
+def tester_pc2_v(quiet=False):
     """animate contour from calpost"""
     from plotter import calpost_reader as reader
     import tempfile
@@ -292,7 +296,11 @@ def tester_pc2_v():
         for i, ts in enumerate(tstamps):
             saveone(i)
         # make mpeg file
-        cmd = f'ffmpeg -i "{workdir / "%04d.png"}" -vframes 2880 -crf 3 -vcodec libx264 -pix_fmt yuv420p -f mp4 -y "{outdir / "test_pc2b.mp4"}"'
+        if quiet:
+            loglevel = '-loglevel error'
+        else:
+            loglevel = ''
+        cmd = f'ffmpeg {loglevel} -i "{workdir / "%04d.png"}" -vframes 2880 -crf 3 -vcodec libx264 -pix_fmt yuv420p -f mp4 -y "{outdir / "test_pc2b.mp4"}"'
         subprocess.run(shlex.split(cmd))
 
 def tester_pr3():
@@ -546,7 +554,7 @@ def tester_s4():
     p(outdir / 'test_s4.png')
 
 
-def tester_s5():
+def tester_s5(quiet=True):
     """show contour from calpost with all the bells and whistles"""
     from plotter import calpost_reader as reader
     from plotter.plotter_util import LambertConformalTCEQ
@@ -666,7 +674,11 @@ def tester_s5():
         for i, ts in enumerate(tstamps):
             saveone(i)
         # make mpeg file
-        cmd = f'ffmpeg -i "{workdir / "%04d.png"}" -vframes 2880 -crf 3 -vcodec libx264 -pix_fmt yuv420p -f mp4 -y "{outdir / "test_pr2b.mp4"}"'
+        if quiet:
+            loglevel = '-loglevel error'
+        else:
+            loglevel = ''
+        cmd = f'ffmpeg {loglevel} -i "{workdir / "%04d.png"}" -vframes 2880 -crf 3 -vcodec libx264 -pix_fmt yuv420p -f mp4 -y "{outdir / "test_pr2b.mp4"}"'
         subprocess.run(shlex.split(cmd))
 
 
@@ -686,7 +698,8 @@ if __name__ == '__main__':
     #
     # tester_pr2a()
     # tester_pr2b()  # this sometime fails, when done in series with others, weird...
-    # tester_pr2b_v()
+    #tester_pr2b_v()
+    tester_pr2b_v(quiet=True)
     # tester_pc2()
     # tester_pc2_v()
     # tester_pr3()
@@ -699,4 +712,4 @@ if __name__ == '__main__':
     # tester_s2()
     # tester_s3()
     # tester_s4()
-    tester_s5()
+    # tester_s5()

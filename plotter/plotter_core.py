@@ -27,6 +27,8 @@ class PlotterCore:
 
         # i have to know the axes being used, even user wants default
         # so i grab default axes here and hold onto it
+        # TODO this seems to creats open figure and unless i close this
+        # somehow it hangs there wasting memory.  what should I do?
         self.fig = plotter_options.setdefault('fig', plt.figure())
         pos = plotter_options.get('pos', None)
 
