@@ -70,21 +70,35 @@ class Plotter:
                                         x=x, y=y, plotter_options=po) for arr, po in zip(arrays, plotter_options)]
         self.axes = [p.ax for p in self.plotters]
 
-    def __call__(self, oname, tidx=None, footnote='', suptitle=None, titles=None, footnotes=''):
+        figure_customizers = figure_options.pop('figure_customizers', None)
+
+        if figure_customizers:
+            for fc in figure_customizers:
+                fc(self.fig)
+
+    # TODO rename footnotes to subplot_footnote or something like that...
+    def __call__(self, oname, tidx=None, footnote='', suptitle=None,
+            titles=None):#, footnotes=''):
 
         # remember if plots were blank
         haddata = self.plotters[0].hasdata
 
-        if isinstance(footnotes, str) or              len(footnotes) != len(self.plotters):
-            footnotes = [footnotes] * len(self.plotters)
+        #if isinstance(footnotes, str) or len(footnotes) != len(self.plotters):
+        #    footnotes = [footnotes] * len(self.plotters)
 
-        for p,fn in zip(self.plotters, footnotes):
+        #print(footnotes)
+        #    if footnotes:
+        #for p,fn in zip(self.plotters, footnotes):
 
-            p(tidx, footnote=fn)
+        #    p(tidx, footnote=fn)
+        for p in self.plotters:
+
+            p(tidx, footnote=None)
 
         # if it was blank, need some initalization
         if not haddata:
             cbopt = self.figure_options.get('colorbar_options', None)
+            fnopt = self.figure_options.get('footnote_options', None)
             if cbopt is not None:
                 self.fig.subplots_adjust(wspace=.1)
 
@@ -95,20 +109,39 @@ class Plotter:
                 elif self.nplot >= 3:
                     my_shrink = .5
 
-                self.fig.colorbar(
+                # TODO do this on plotter_core too
+                cb_customizers = cbopt.pop('colorbar_customizers', None)
+
+                cb = self.fig.colorbar(
                     mappable=self.plotters[0].mappable,
                     ax=self.axes,
                     use_gridspec=True,
                     **{'shrink': my_shrink, **cbopt})
+                for cbc in cb_customizers:
+                    cbc(cb)
 
-            if footnote is not None:
+
+            if footnote is not None or fnopt is not None:
                 # no clue why, but y=0.2 puts text nicely below the plots, for pair case...
                 if self.nplot <= 2:
                     my_ypos = .2
                 elif self.nplot >=3:
                     my_ypos = .3
-                self.footnote = self.fig.text(0.5, my_ypos, footnote,
-                                                 ha='center', va='top')
+
+
+                # default options
+                my_footnote_options = {
+                        'x': 0.5, 
+                        'y': my_ypos,
+                        's': '',
+                        'ha': 'center',
+                        'va': 'top',
+                        }
+                if footnote is not None:
+                    my_footnote_options['s'] = footnote
+                if fnopt is not None:
+                    my_footnote_options.update(fnopt)
+                self.footnote = self.fig.text(**my_footnote_options)
         else:
             if footnote is not None:
                 self.footnote.set_text(footnote)
