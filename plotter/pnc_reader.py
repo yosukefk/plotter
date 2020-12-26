@@ -28,15 +28,13 @@ def Reader(f, vname=None, tslice=slice(None, None)):
 
     if vname is None:
         for vn in iter(f.variables.keys()):
-            if vn in ('O3', 'MDA8O3', 'PM25', 'A24PM25'):
+            if vn in ('O3', 'MDA8O3', 'MDA1O3', 'PM25', 'A24PM25'):
                 vname = vn
                 break
 
     o = {}
     o['name'] = vname
     v= f.variables[vname]
-    print(v)
-    print(f)
 
     v = v.squeeze()
     v = v[..., -1::-1, :]
@@ -62,7 +60,7 @@ def Reader(f, vname=None, tslice=slice(None, None)):
 
     o['projection'] = proj
     o['extent'] = ext
-    o['v'] = v
+    o['v'] = np.ma.masked_invalid(v)
     return o
 
 
