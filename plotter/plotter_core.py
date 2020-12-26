@@ -29,7 +29,9 @@ class PlotterCore:
         # so i grab default axes here and hold onto it
         # TODO this seems to creats open figure and unless i close this
         # somehow it hangs there wasting memory.  what should I do?
-        self.fig = plotter_options.setdefault('fig', plt.figure())
+        # shouldnt this be get instad of setdefault?
+        #self.fig = plotter_options.setdefault('fig', plt.figure())
+        self.fig = plotter_options.get('fig', plt.figure())
         pos = plotter_options.get('pos', None)
 
         self.arr = array
