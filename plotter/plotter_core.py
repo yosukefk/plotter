@@ -6,44 +6,37 @@ import warnings
 
 
 class FootnoteManager:
-    #class quiet_dict(dict):
-    #    """dict that returns key itself when missing"""
-    #    def __missing__(self, key):
-    #        return key
 
     def __init__(self, plotter, footnote=None, footnote_options={}):
 
-
         self.plotter = plotter
         if footnote is None:
-            self.footnote_template = footnote_options.get('text', 
-                        "{tstamp}\nMin({imn}, {jmn}) = {vmn:.1f}, Max({imx}, {jmx}) = {vmx:.1f}", 
-                        )
+            self.footnote_template = footnote_options.get('text',
+                                                          "{tstamp}\nMin({imn}, {jmn}) = {vmn:.1f}, Max({imx}, {jmx}) = {vmx:.1f}",
+                                                          )
         else:
             self.footnote_template = footnote
 
         keys_to_extract = ('format_minmax', 'format_tstamp')
-        self.footnote_options = {k:v for k,v in footnote_options.items() if
-                k in keys_to_extract}
-
+        self.footnote_options = {k: v for k, v in footnote_options.items() if
+                                 k in keys_to_extract}
 
         # builtin options
-        myopts = dict( 
-                text=footnote, 
-                xy=(0.5, 0),  # bottom center 
-                xytext=(0, -6),
-                # drop 6 ponts below (works if there is no x axis label)
-                # xytext=(0,-18), # drop 18 ponts below (works with x-small fontsize axis label)
-                xycoords='axes fraction',
-                textcoords='offset points',
-                ha='center', va='top',
-                )
-        myopts.update({k:v for k,v in footnote_options.items() if k not in
-            keys_to_extract})
+        myopts = dict(
+            text=footnote,
+            xy=(0.5, 0),  # bottom center
+            xytext=(0, -6),
+            # drop 6 ponts below (works if there is no x axis label)
+            # xytext=(0,-18), # drop 18 ponts below (works with x-small fontsize axis label)
+            xycoords='axes fraction',
+            textcoords='offset points',
+            ha='center', va='top',
+        )
+        myopts.update({k: v for k, v in footnote_options.items() if k not in
+                       keys_to_extract})
 
         self.footnote = self.plotter.ax.annotate(**myopts)
         self()
-#        myopts['text'] = self._update_text()
 
     def __call__(self, footnote=None):
         # either rewrite footnote altogether, or update using the template
@@ -57,18 +50,17 @@ class FootnoteManager:
         i0 = self.plotter.i0
         j0 = self.plotter.j0
         # find timestamp and min/max
-        jmn,imn = np.unravel_index(arr.argmin(), arr.shape)
-        jmx,imx = np.unravel_index(arr.argmax(), arr.shape)
-        vmn = arr[jmn,imn]
-        vmx = arr[jmx,imx]
-        imn+=i0
-        imx+=i0
-        jmn+=j0
-        jmx+=j0
-        #vmn,vmx = [fnf.format(_) for _ in (vmn, vmx)]
+        jmn, imn = np.unravel_index(arr.argmin(), arr.shape)
+        jmx, imx = np.unravel_index(arr.argmax(), arr.shape)
+        vmn = arr[jmn, imn]
+        vmx = arr[jmx, imx]
+        imn += i0
+        imx += i0
+        jmn += j0
+        jmx += j0
+        # vmn,vmx = [fnf.format(_) for _ in (vmn, vmx)]
         current_text = self.footnote_template.format(**locals())
         return current_text
-
 
 
 class PlotterCore:
@@ -93,7 +85,7 @@ class PlotterCore:
         # TODO this seems to creats open figure and unless i close this
         # somehow it hangs there wasting memory.  what should I do?
         # shouldnt this be get instad of setdefault?
-        #self.fig = plotter_options.setdefault('fig', plt.figure())
+        # self.fig = plotter_options.setdefault('fig', plt.figure())
         self.fig = plotter_options.get('fig', plt.figure())
         pos = plotter_options.get('pos', None)
 
@@ -102,13 +94,13 @@ class PlotterCore:
 
         self.subdomain = plotter_options.get('subdomain', None)
         if self.subdomain is None:
-            self.jslice=slice(None)
-            self.ijlice=slice(None)
+            self.jslice = slice(None)
+            self.ijlice = slice(None)
             self.i0 = 1
             self.j0 = 1
         else:
-            self.jslice = slice((self.subdomain[1]-1), self.subdomain[3])
-            self.islice = slice((self.subdomain[0]-1),self.subdomain[2])
+            self.jslice = slice((self.subdomain[1] - 1), self.subdomain[3])
+            self.islice = slice((self.subdomain[0] - 1), self.subdomain[2])
             self.i0 = self.subdomain[0]
             self.j0 = self.subdomain[1]
 
@@ -197,16 +189,15 @@ class PlotterCore:
         self.cnt = None
         self.mappable = None
 
-
     def __call__(self, tidx=None, footnote=None, title=None):
         if tidx is None: tidx = 0
         # get 2d array to plot
         if self.subdomain is None:
-            idx = [tidx, slice(None),  slice(None)]
-            i0,j0 = 1, 1
+            idx = [tidx, slice(None), slice(None)]
+            i0, j0 = 1, 1
         else:
-            idx = [tidx, slice( (self.subdomain[1]-1), self.subdomain[3]), 
-                    slice((self.subdomain[0]-1),self.subdomain[2])]
+            idx = [tidx, slice((self.subdomain[1] - 1), self.subdomain[3]),
+                   slice((self.subdomain[0] - 1), self.subdomain[2])]
             i0, j0 = self.subdomain[:2]
 
         arr = self.arr[tuple(idx)]
@@ -271,10 +262,9 @@ class PlotterCore:
 
             # None => default?  or '' => nothing?
             if self.footnote is not '':
-                self.footnote_manager = FootnoteManager(self, self.footnote, 
-                        self.footnote_options)
-                #self.footnote_manager(footnote)
-                
+                self.footnote_manager = FootnoteManager(self, self.footnote,
+                                                        self.footnote_options)
+                # self.footnote_manager(footnote)
 
                 # self.footnote = self.ax.annotate(footnote,
                 #                                  xy=(0.5, 0),  # bottom center
