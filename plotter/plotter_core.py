@@ -5,6 +5,69 @@ import numpy as np
 import warnings
 
 
+class FootnoteManager:
+    #class quiet_dict(dict):
+    #    """dict that returns key itself when missing"""
+    #    def __missing__(self, key):
+    #        return key
+
+    def __init__(self, plotter, footnote=None, footnote_options={}):
+
+
+        self.plotter = plotter
+        if footnote is None:
+            self.footnote_template = footnote_options.get('text', 
+                        "{tstamp}\nMin({imn}, {jmn}) = {vmn:.1f}, Max({imx}, {jmx}) = {vmx:.1f}", 
+                        )
+        else:
+            self.footnote_template = footnote
+
+        keys_to_extract = ('format_minmax', 'format_tstamp')
+        self.footnote_options = {k:v for k,v in footnote_options.items() if
+                k in keys_to_extract}
+
+
+        # builtin options
+        myopts = dict( 
+                text=footnote, 
+                xy=(0.5, 0),  # bottom center 
+                xytext=(0, -6),
+                # drop 6 ponts below (works if there is no x axis label)
+                # xytext=(0,-18), # drop 18 ponts below (works with x-small fontsize axis label)
+                xycoords='axes fraction',
+                textcoords='offset points',
+                ha='center', va='top',
+                )
+        myopts.update({k:v for k,v in footnote_options.items() if k not in
+            keys_to_extract})
+
+        self.footnote = self.plotter.ax.annotate(**myopts)
+        self()
+#        myopts['text'] = self._update_text()
+
+    def __call__(self, footnote=None):
+        # either rewrite footnote altogether, or update using the template
+        if footnote is None:
+            footnote = self._update_text()
+        self.footnote.set_text(footnote)
+
+    def _update_text(self):
+        arr = self.plotter.current_arr
+        tstamp = self.plotter.current_tstamp
+        i0 = self.plotter.i0
+        j0 = self.plotter.j0
+        # find timestamp and min/max
+        jmn,imn = np.unravel_index(arr.argmin(), arr.shape)
+        jmx,imx = np.unravel_index(arr.argmax(), arr.shape)
+        vmn = arr[jmn,imn]
+        vmx = arr[jmx,imx]
+        imn+=i0
+        imx+=i0
+        jmn+=j0
+        jmx+=j0
+        #vmn,vmx = [fnf.format(_) for _ in (vmn, vmx)]
+        current_text = self.footnote_template.format(**locals())
+        return current_text
 
 
 
@@ -37,6 +100,18 @@ class PlotterCore:
         self.arr = array
         self.tstamps = tstamps
 
+        self.subdomain = plotter_options.get('subdomain', None)
+        if self.subdomain is None:
+            self.jslice=slice(None)
+            self.ijlice=slice(None)
+            self.i0 = 1
+            self.j0 = 1
+        else:
+            self.jslice = slice((self.subdomain[1]-1), self.subdomain[3])
+            self.islice = slice((self.subdomain[0]-1),self.subdomain[2])
+            self.i0 = self.subdomain[0]
+            self.j0 = self.subdomain[1]
+
         # if neither imshow or contour are specified, default to use imshow
         # user can inteitionally not plot by making both to None
         if all(_ not in plotter_options.keys() for _ in ('imshow_options', 'contour_options')):
@@ -46,7 +121,9 @@ class PlotterCore:
 
         self.colorbar_options = plotter_options.get('colorbar_options', {})
 
+        self.footnote = plotter_options.get('footnote', None)
         self.footnote_options = plotter_options.get('footnote_options', {})
+        self.footnote_manager = None
 
         self.title = plotter_options.get('title', None)
         self.title_options = plotter_options.get('title_options', None)
@@ -94,7 +171,7 @@ class PlotterCore:
         if not self.background_manager is None:
             self.background_manager.add_background(self)
 
-        # self.title overrides
+        # self.title overrides 'label' in self.title_options
         if self.title is None:
             if self.title_options is None:
                 pass
@@ -120,10 +197,23 @@ class PlotterCore:
         self.cnt = None
         self.mappable = None
 
-    def __call__(self, tidx=None, footnote='', title=None):
+
+    def __call__(self, tidx=None, footnote=None, title=None):
         if tidx is None: tidx = 0
-        arr = self.arr[tidx]
+        # get 2d array to plot
+        if self.subdomain is None:
+            idx = [tidx, slice(None),  slice(None)]
+            i0,j0 = 1, 1
+        else:
+            idx = [tidx, slice( (self.subdomain[1]-1), self.subdomain[3]), 
+                    slice((self.subdomain[0]-1),self.subdomain[2])]
+            i0, j0 = self.subdomain[:2]
+
+        arr = self.arr[tuple(idx)]
+
         ts = self.tstamps[tidx]
+        self.current_arr = arr
+        self.current_tstamp = ts
 
         if self.hasdata:
             if self.imshow_options is not None:
@@ -138,8 +228,8 @@ class PlotterCore:
                 self.cnt = self.ax.contourf(self.x, self.y, arr,
                                             extent=self.extent, transform=self.projection, **kwds)
 
-            if footnote is not None:
-                self.footnote.set_text(footnote)
+            if self.footnote_manager is not None:
+                self.footnote_manager(footnote)
 
         else:
             if self.imshow_options is not None:
@@ -179,15 +269,21 @@ class PlotterCore:
                     warnings.warn('No data to show, Colorbar turned off',
                                   pu.PlotterWarning)
 
-            if footnote is not None:
-                self.footnote = self.ax.annotate(footnote,
-                                                 xy=(0.5, 0),  # bottom center
-                                                 xytext=(0, -6),
-                                                 # drop 6 ponts below (works if there is no x axis label)
-                                                 # xytext=(0,-18), # drop 18 ponts below (works with x-small fontsize axis label)
-                                                 xycoords='axes fraction',
-                                                 textcoords='offset points',
-                                                 ha='center', va='top')
+            # None => default?  or '' => nothing?
+            if self.footnote is not '':
+                self.footnote_manager = FootnoteManager(self, self.footnote, 
+                        self.footnote_options)
+                #self.footnote_manager(footnote)
+                
+
+                # self.footnote = self.ax.annotate(footnote,
+                #                                  xy=(0.5, 0),  # bottom center
+                #                                  xytext=(0, -6),
+                #                                  # drop 6 ponts below (works if there is no x axis label)
+                #                                  # xytext=(0,-18), # drop 18 ponts below (works with x-small fontsize axis label)
+                #                                  xycoords='axes fraction',
+                #                                  textcoords='offset points',
+                #                                  ha='center', va='top')
 
             self.hasdata = True
 
