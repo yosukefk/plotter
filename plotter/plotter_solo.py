@@ -21,5 +21,5 @@ class Plotter:
         plt.savefig(oname)
 
     #def __call__(self, oname, tidx=None, footnote=''):
-    def __call__(self, oname, **kwargs):
-        self.save(oname, **kwargs)
+    def __call__(self, oname, *args, **kwargs):
+        self.save(oname, *args, **kwargs)
