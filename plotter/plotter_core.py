@@ -196,7 +196,7 @@ class PlotterCore:
         self.cnt = None
         self.mappable = None
 
-    def __call__(self, tidx=None, footnote=None, title=None):
+    def update(self, tidx=None, footnote=None, title=None):
         if tidx is None: tidx = 0
         # get 2d array to plot
         idx = [tidx, self.jslice, self.islice]
@@ -266,16 +266,6 @@ class PlotterCore:
             if self.footnote is not '':
                 self.footnote_manager = FootnoteManager(self, self.footnote,
                                                         self.footnote_options)
-                # self.footnote_manager(footnote)
-
-                # self.footnote = self.ax.annotate(footnote,
-                #                                  xy=(0.5, 0),  # bottom center
-                #                                  xytext=(0, -6),
-                #                                  # drop 6 ponts below (works if there is no x axis label)
-                #                                  # xytext=(0,-18), # drop 18 ponts below (works with x-small fontsize axis label)
-                #                                  xycoords='axes fraction',
-                #                                  textcoords='offset points',
-                #                                  ha='center', va='top')
 
             self.hasdata = True
 
@@ -288,6 +278,9 @@ class PlotterCore:
             warnings.warn('set zorder was what you need?',
                           DeprecationWarning)
             self.customize(self.customize_after)
+
+    def __call__(self, **kwargs):
+        self.update(**kwargs)
 
     def customize(self, fnc):
         # apply fnc to self.ax

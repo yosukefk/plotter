@@ -70,7 +70,8 @@ class Plotter:
                                         x=x, y=y, plotter_options=po) for arr, po in zip(arrays, plotter_options)]
         self.axes = [p.ax for p in self.plotters]
 
-    def __call__(self, oname, tidx=None, footnote='', suptitle=None, titles=None, footnotes=''):
+    def save(self, oname, tidx=None, footnote='', suptitle=None, titles=None, footnotes=''):
+        ''' updates and save...'''
 
         # remember if plots were blank
         haddata = self.plotters[0].hasdata
@@ -127,4 +128,7 @@ class Plotter:
                 ax.set_title(ttle)
 
         self.fig.savefig(oname, bbox_inches='tight')
+
+    def __call__(self, oname, **kwargs):
+        self.save(oname, **kwargs)
 

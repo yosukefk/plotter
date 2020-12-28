@@ -16,6 +16,10 @@ class Plotter:
                                 extent=extent, x=x, y=y, plotter_options=plotter_options)
         self.ax = self.p.ax
 
-    def __call__(self, oname, tidx=None, footnote=''):
+    def save(self, oname, tidx=None, footnote=''):
         self.p(tidx, footnote)
         plt.savefig(oname)
+
+    #def __call__(self, oname, tidx=None, footnote=''):
+    def __call__(self, oname, **kwargs):
+        self.save(oname, **kwargs)
