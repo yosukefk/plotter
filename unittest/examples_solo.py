@@ -688,28 +688,28 @@ if __name__ == '__main__':
 
     mpl.rcParams['savefig.dpi'] = 300
 
-    # tester_r1()
-    # tester_tr2() # this sometime fails, when done in series with others, weird...
-    # tester_tc2()
-    # tester_tr3()
-    # tester_tc3()
-    # tester_tr4()
-    # tester_tc4()
-    #
-    # tester_pr2a()
-    # tester_pr2b()  # this sometime fails, when done in series with others, weird...
-    #tester_pr2b_v()
+    tester_r1()
+    tester_tr2() # this sometime fails, when done in series with others, weird...
+    tester_tc2()
+    tester_tr3()
+    tester_tc3()
+    tester_tr4()
+    tester_tc4()
+    
+    tester_pr2a()
+    tester_pr2b()  # this sometime fails, when done in series with others, weird...
+    tester_pr2b_v()
     tester_pr2b_v(quiet=True)
-    # tester_pc2()
-    # tester_pc2_v()
-    # tester_pr3()
-    # tester_pc3()
-    # tester_pr4()
-    # tester_pc4()
-    #
-    # tester_s1a()
-    # tester_s1b()
-    # tester_s2()
-    # tester_s3()
-    # tester_s4()
-    # tester_s5()
+    tester_pc2()
+    tester_pc2_v()
+    tester_pr3()
+    tester_pc3()
+    tester_pr4()
+    tester_pc4()
+    
+    tester_s1a()
+    tester_s1b()
+    tester_s2()
+    tester_s3()
+    tester_s4()
+    tester_s5()

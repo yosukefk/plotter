@@ -17,7 +17,9 @@ class FootnoteManager:
         else:
             self.footnote_template = footnote
 
-        keys_to_extract = ('format_minmax', 'format_tstamp')
+        keys_to_extract = (
+                'tstamp_format', 'minmax_format',
+                )
         self.footnote_options = {k: v for k, v in footnote_options.items() if
                                  k in keys_to_extract}
 
@@ -46,7 +48,11 @@ class FootnoteManager:
 
     def _update_text(self):
         arr = self.plotter.current_arr
+
         tstamp = self.plotter.current_tstamp
+        if 'tstamp_format' in self.footnote_options:
+            tstamp = tstamp.strftime(self.footnote_options['tstamp_format'])
+
         i0 = self.plotter.i0
         j0 = self.plotter.j0
         # find timestamp and min/max
@@ -56,8 +62,8 @@ class FootnoteManager:
         vmx = arr[jmx, imx]
         imn += i0
         imx += i0
-        jmn += j0
-        jmx += j0
+        jmn = j0 -jmn
+        jmx = j0 -jmx
         # vmn,vmx = [fnf.format(_) for _ in (vmn, vmx)]
         current_text = self.footnote_template.format(**locals())
         return current_text
@@ -95,10 +101,11 @@ class PlotterCore:
         self.subdomain = plotter_options.get('subdomain', None)
         if self.subdomain is None:
             self.jslice = slice(None)
-            self.ijlice = slice(None)
+            self.islice = slice(None)
             self.i0 = 1
-            self.j0 = 1
+            self.j0 = array.shape[-2]
         else:
+            raise NotImplementedError('subdomain need QA')
             self.jslice = slice((self.subdomain[1] - 1), self.subdomain[3])
             self.islice = slice((self.subdomain[0] - 1), self.subdomain[2])
             self.i0 = self.subdomain[0]
@@ -192,13 +199,8 @@ class PlotterCore:
     def __call__(self, tidx=None, footnote=None, title=None):
         if tidx is None: tidx = 0
         # get 2d array to plot
-        if self.subdomain is None:
-            idx = [tidx, slice(None), slice(None)]
-            i0, j0 = 1, 1
-        else:
-            idx = [tidx, slice((self.subdomain[1] - 1), self.subdomain[3]),
-                   slice((self.subdomain[0] - 1), self.subdomain[2])]
-            i0, j0 = self.subdomain[:2]
+        idx = [tidx, self.jslice, self.islice]
+
 
         arr = self.arr[tuple(idx)]
 
