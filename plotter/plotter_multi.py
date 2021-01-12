@@ -129,6 +129,6 @@ class Plotter:
 
         self.fig.savefig(oname, bbox_inches='tight')
 
-    def __call__(self, oname, **kwargs):
-        self.save(oname, **kwargs)
+    def __call__(self, oname, *args, **kwargs):
+        self.save(oname, *args, **kwargs)
 
