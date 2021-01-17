@@ -16,8 +16,8 @@ class Plotter:
                                 extent=extent, x=x, y=y, plotter_options=plotter_options)
         self.ax = self.p.ax
 
-    def save(self, oname, tidx=None, footnote=''):
-        self.p(tidx, footnote)
+    def save(self, oname, tidx=None, footnote=None):
+        self.p.update(tidx, footnote)
         plt.savefig(oname)
 
     #def __call__(self, oname, tidx=None, footnote=''):
