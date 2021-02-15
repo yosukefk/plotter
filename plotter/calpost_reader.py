@@ -9,6 +9,16 @@ import pytz
 
 
 def Reader(f, tslice=slice(None, None), x=None, y=None):
+    '''reads calpost tseries output file (gridded recep), returns dict of numpy arrays
+
+    :param FileIO f: opened calpost tseries file
+    :param slice tslice: slice of time index
+    :param list x: list of x coords
+    :param list y: list of y coords
+
+    :return: data as 3d array (t, y, x), with key 'v' of dict
+    :rtype: dict
+    '''
     name = next(f)[31:]
     next(f)
     units = next(f)

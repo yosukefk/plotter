@@ -5,7 +5,9 @@ setup(
         version='1.0.1',
         description='make tile plot from camx/calpuff etc',
         url='https://github.com/yosukefk/plotter',
-        license='MIT License',
+        license='MIT',
         packages=['plotter'], 
-        install_requires=['cartopy'],
+        install_requires=[
+            'cartopy>=0.18'
+            ],
         )
