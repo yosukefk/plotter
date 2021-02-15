@@ -1,11 +1,18 @@
+import warnings
 from . import plotter_core as pc
 from . import plotter_util as pu
 import cartopy.crs as ccrs
-import rasterio
-from rasterio.warp import reproject, calculate_default_transform, Resampling
+
+try:
+    import rasterio
+    from rasterio.warp import reproject, calculate_default_transform, Resampling
+    has_rasterio = False
+except ImportError:
+    warnings.warn('no rasterio', ImportWarning)
+    has_rasterio = True
+
 import numpy as np
 import tempfile
-import warnings
 
 
 # TODO maybe make this part of PlotterCore itself?
@@ -19,6 +26,9 @@ class BackgroundManager:
         :param projection: projection to be used for the plot
         :param wms_options: arguments to GeoAxes.add_wms()
         """
+        if not has_rasterio:
+            raise RuntimeError('no raster io')
+
         if bgfile is None:
             self.projection = projection
             self.extent = extent

@@ -1,6 +1,11 @@
-import cartopy.crs as ccrs
-import rasterio
 import warnings
+import cartopy.crs as ccrs
+try:
+    import rasterio
+    has_rasterio = False
+except ImportError:
+    warnings.warn('no rasterio', ImportWarning)
+    has_rasterio = True
 
 
 class PlotterWarning(UserWarning): pass
@@ -17,7 +22,9 @@ def LambertConformalTCEQ():
 class background_adder:
     # https://ocefpaf.github.io/python4oceanographers/blog/2015/03/02/geotiff/
     def __init__(self, fname, alpha=.2):
-        warnings.warn('use background_manager', DeprecationWarning)
+        if not has_rasterio:
+            raise RuntimeError('no raster io')
+        warnings.warn('use background_manager instead!', DeprecationWarning)
         ds = rasterio.open(str(fname))
         self.data = ds.read()[:3, :, :].transpose((1, 2, 0))
         self.extent = [ds.transform[2], ds.transform[2] + ds.transform[0] * ds.width,
