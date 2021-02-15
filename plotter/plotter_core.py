@@ -279,7 +279,7 @@ class PlotterCore:
                           DeprecationWarning)
             self.customize(self.customize_after)
 
-    def __call__(self,*args, **kwargs):
+    def __call__(self, *args, **kwargs):
         self.update(*args, **kwargs)
 
     def customize(self, fnc):

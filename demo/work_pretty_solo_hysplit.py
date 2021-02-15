@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 import sys
 
-sys.path.append('..')
+plotterdir = '..'
+sys.path.append(plotterdir)
 
 from plotter import hysplit_reader
 import plotter.plotter_solo as plotter_solo
@@ -47,8 +48,8 @@ else:
             print("Error: %s : %s" % (f, e.strerror))
 
 # aux inputs
-bgfile = '../resources/naip_toy_pmerc_5.tif'
-shpfile = '../resources/emitters.shp'
+bgfile = Path(plotterdir) / 'resources/naip_toy_pmerc_5.tif'
+shpfile = Path(plotterdir)  / 'resources/emitters.shp'
 
 
 # source locations
@@ -59,7 +60,7 @@ df_shp = df_shp.to_crs('EPSG:3857')
 title = 'Unintented Pulsated S2'
 
 with open(ddir / fname) as f:
-    #dat = hysplit_reader.Reader(f)
+    # provide coordinate that i know
     x = np.arange(34)*0.1 -464.35
     y = np.arange(47)*0.1 -906.65
     dat = hysplit_reader.Reader(f, x=x, y=y)
@@ -168,7 +169,7 @@ saveone(min(16*60, len(tstamps)-1), (odir / oname).with_suffix('.png'))
 # 68 for stampede, 24 for ls5
 nthreads = 24  # ls5
 
-# except that you are on login node
+# except that you are on TACC login node
 hn = socket.getfqdn()
 if hn.startswith('login') and '.tacc.' in hn:
     ntheads = 1

@@ -7,7 +7,8 @@ import pytz
 def Reader(f, tslice=slice(None, None), x=None, y=None):
     data = pd.read_csv(f, sep='\s+')
     data = data.iloc[tslice, :]
-    units = 'ppb'
+    # there is no way to tell units...?
+    units = '???'
 
     v = data.iloc[:, 9:].values
     ts = [datetime.datetime(_[0] + 2000, *_[1:]).replace(tzinfo=pytz.utc).astimezone(pytz.timezone('Etc/GMT+6'))

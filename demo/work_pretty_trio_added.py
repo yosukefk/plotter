@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 import sys
 
-sys.path.append('..')
+plotterdir = '..'
+sys.path.append(plotterdir)
 
 from plotter import calpost_reader
 import plotter.plotter_multi as plotter_multi
@@ -19,6 +20,7 @@ from pathlib import Path
 from multiprocessing import Pool
 import shlex
 import subprocess
+import socket
 import sys
 
 # save better resolution image 
@@ -56,8 +58,8 @@ else:
             print("Error: %s : %s" % (f, e.strerror))
 
 # aux inputs
-bgfile = '../resources/naip_toy_pmerc_5.tif'
-shpfile = '../resources/emitters.shp'
+bgfile = Path(plotterdir) / 'resources/naip_toy_pmerc_5.tif'
+shpfile = Path(plotterdir)  / 'resources/emitters.shp'
 
 
 # source locations
@@ -173,20 +175,26 @@ def saveone(i, pname=None):
 
 # make single image file (for QA)
 saveone(16*60, (odir / oname).with_suffix('.png'))
-### 
-### run_parallel = True
-### if run_parallel:
-###     # parallel processing
-###     # save all frames in parallel
-###     # 68 for stampede, 24 for ls5
-###     nthreads = 24  # ls5
-###     with Pool(nthreads) as pool:
-###         pool.map(saveone, range(len(tstamps)))
-### else:
-###     # serial processing
-###     for i in range(len(tstamps)):
-###         saveone(i)
-### 
-### # make mpeg file
-### cmd = f'ffmpeg -i "{wdir / "%04d.png"}" -vf scale=1920:-2 -vframes 2880 -crf 3 -vcodec libx264 -pix_fmt yuv420p -f mp4 -y "{odir / oname}"'
-### subprocess.run(shlex.split(cmd), check=True)
+
+# you decide if you want to use many cores
+# parallel processing
+# save all frames in parallel
+# 68 for stampede, 24 for ls5
+nthreads = 24  # ls5
+
+# except that you are on TACC login node
+hn = socket.getfqdn()
+if hn.startswith('login') and '.tacc.' in hn:
+    ntheads = 1
+
+if nthreads > 1:
+    with Pool(nthreads) as pool:
+        pool.map(saveone, range(len(tstamps)))
+else:
+    # serial processing
+    for i in range(len(tstamps)):
+        saveone(i)
+
+# make mpeg file
+cmd = f'ffmpeg -i "{wdir / "%04d.png"}" -vf scale=1920:-2 -vframes 2880 -crf 3 -vcodec libx264 -pix_fmt yuv420p -f mp4 -y "{odir / oname}"'
+subprocess.run(shlex.split(cmd), check=True)

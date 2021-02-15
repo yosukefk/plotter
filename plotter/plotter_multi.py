@@ -81,7 +81,7 @@ class Plotter:
 
         for p,fn in zip(self.plotters, footnotes):
 
-            p(tidx, footnote=fn)
+            p(tidx=tidx, footnote=fn)
 
         # if it was blank, need some initalization
         if not haddata:

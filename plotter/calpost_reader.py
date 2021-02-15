@@ -8,7 +8,7 @@ import re
 import pytz
 
 
-def Reader(f, tslice=slice(None, None)):
+def Reader(f, tslice=slice(None, None), x=None, y=None):
     name = next(f)[31:]
     next(f)
     units = next(f)
@@ -20,14 +20,16 @@ def Reader(f, tslice=slice(None, None)):
     typ = next(f)
     ix = next(f)
     iy = next(f)
-    x = next(f)
-    y = next(f)
+    xx = next(f)
+    yy = next(f)
 
     typ = np.array(re.split(' +', typ[16:].strip()))
     ix = np.fromstring(ix[16:], dtype=int, sep=' ')
     iy = np.fromstring(iy[16:], dtype=int, sep=' ')
-    x = np.fromstring(x[16:], dtype=float, sep=' ')
-    y = np.fromstring(y[16:], dtype=float, sep=' ')
+    # read x,y from file but, can be overwritten if user provide
+    if any(_ is None for _ in (x, y)):
+        x = np.fromstring(xx[16:], dtype=float, sep=' ')
+        y = np.fromstring(yy[16:], dtype=float, sep=' ')
     x = np.unique(x)
     y = np.unique(y)
 
