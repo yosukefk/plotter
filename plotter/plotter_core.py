@@ -12,7 +12,6 @@ import numpy as np
 import warnings
 
 
-
 class FootnoteManager:
 
     def __init__(self, plotter, footnote=None, footnote_options={}):

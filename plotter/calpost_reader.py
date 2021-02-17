@@ -16,7 +16,7 @@ def Reader(f, tslice=slice(None, None), x=None, y=None):
     :param list x: list of x coords
     :param list y: list of y coords
 
-    :return: data as 3d array (t, y, x), with key 'v' of dict
+    :return: dict, with ['v'] has data as 3d array (t, y, x)
     :rtype: dict
     '''
     name = next(f)[31:]
