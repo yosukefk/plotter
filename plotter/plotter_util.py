@@ -74,12 +74,14 @@ def savemp4(p, saveone=None, nthreads=None, odir='.', oname='animation.mp4'):
         if hn.startswith('login') and '.tacc.' in hn:
             nthreads = 1
 
+        nframes = len(p.tstamps)
+
         if nthreads > 1:
             with Pool(nthreads) as pool:
-                pool.map(saveone, range(len(p.tstamps)))
+                pool.map(saveone, range(nframes))
         else:
             # serial processing
-            for i in range(len(p.tstamps)):
+            for i in range(nframes):
                 saveone(i)
 
 
@@ -87,7 +89,7 @@ def savemp4(p, saveone=None, nthreads=None, odir='.', oname='animation.mp4'):
 
 
         # make mpeg file
-        cmd = f'ffmpeg -i "{Path(wdir) / "%04d.png"}" -vframes 2880 -crf 3 -vcodec libx264 -pix_fmt yuv420p -f mp4 -y "{Path(odir) / oname}"'
+        cmd = f'ffmpeg -i "{Path(wdir) / "%04d.png"}" -vframes {nframes} -crf 3 -vcodec libx264 -pix_fmt yuv420p -f mp4 -y "{Path(odir) / oname}"'
         subprocess.run(shlex.split(cmd), check=True)
 
 
