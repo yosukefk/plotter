@@ -1,15 +1,20 @@
 import warnings
 from . import plotter_core as pc
 from . import plotter_util as pu
-import cartopy.crs as ccrs
+try:
+    import cartopy.crs as ccrs
+    has_cartopy = True
+except ImportError:
+    warnings.warn('no cartopy', ImportWarning)
+    has_cartopy = False
 
 try:
     import rasterio
     from rasterio.warp import reproject, calculate_default_transform, Resampling
-    has_rasterio = False
+    has_rasterio = True
 except ImportError:
     warnings.warn('no rasterio', ImportWarning)
-    has_rasterio = True
+    has_rasterio = False
 
 import numpy as np
 import tempfile

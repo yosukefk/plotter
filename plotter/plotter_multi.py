@@ -26,6 +26,8 @@ class Plotter:
 
         self.nplot = len(arrays)
 
+        self.tstamps = tstamps
+
         # make sure that plotter_options are unintentionally shared across
         # plots
         if plotter_options is None:
@@ -132,3 +134,5 @@ class Plotter:
     def __call__(self, oname, *args, **kwargs):
         self.save(oname, *args, **kwargs)
 
+    def savemp4(self, oname):
+        pc.pu.savemp4(self, oname=oname)

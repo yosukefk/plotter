@@ -1,6 +1,13 @@
 from . import plotter_util as pu
-import cartopy.crs as ccrs
+
+try:
+    import cartopy.crs as ccrs
+    has_cartopy = True
+except ImportError:
+    warnings.warn('no cartopy', ImportWarning)
+    has_cartopy = False
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 import numpy as np
 import warnings
 
@@ -25,7 +32,8 @@ class FootnoteManager:
 
         # builtin options
         myopts = dict(
-            text=footnote,
+            #text=footnote, # matplotlib >= 3.3 renamed to 's' to 'text'
+            s=footnote,  # matplotlib < 3.2 needs 's' for annotate
             xy=(0.5, 0),  # bottom center
             xytext=(0, -6),
             # drop 6 ponts below (works if there is no x axis label)
@@ -36,6 +44,11 @@ class FootnoteManager:
         )
         myopts.update({k: v for k, v in footnote_options.items() if k not in
                        keys_to_extract})
+
+        if mpl.__version__ < '3.3' and 'text' in myopts:
+            myopts['s'] = myopts['text']
+            del myopts['text']
+
 
         self.footnote = self.plotter.ax.annotate(**myopts)
         self()

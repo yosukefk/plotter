@@ -12,6 +12,7 @@ reload(pc)
 class Plotter:
     def __init__(self, array, tstamps, projection=None, extent=None, x=None, y=None,
                  plotter_options=None):
+        self.tstamps = tstamps
         self.p = pc.PlotterCore(array, tstamps, projection=projection,
                                 extent=extent, x=x, y=y, plotter_options=plotter_options)
         self.ax = self.p.ax
@@ -23,3 +24,9 @@ class Plotter:
     #def __call__(self, oname, tidx=None, footnote=''):
     def __call__(self, oname, *args, **kwargs):
         self.save(oname, *args, **kwargs)
+
+    def savemp4(self, oname):
+        pc.pu.savemp4(self, oname=oname)
+
+
+

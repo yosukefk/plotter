@@ -1,7 +1,12 @@
 """facilitates passing pseudoNetCDF data"""
 
 
-import cartopy.crs as ccrs
+try:
+    import cartopy.crs as ccrs
+    has_cartopy = True
+except ImportError:
+    warnings.warn('no cartopy', ImportWarning)
+    has_cartopy = False
 import numpy as np
 import pytz
 import datetime
