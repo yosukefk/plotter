@@ -16,6 +16,12 @@ Grab required pacages
 
 `conda install -c conda-forge --file requirements.txt`
 
+Install to your python path
+
+`pip install .`
+
+Now you should be able to `import plotter` to use the tool.
+
 ## Usage
 
 Working example, can take it as a starting point for your work
