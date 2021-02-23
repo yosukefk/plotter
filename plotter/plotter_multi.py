@@ -72,7 +72,8 @@ class Plotter:
                                         x=x, y=y, plotter_options=po) for arr, po in zip(arrays, plotter_options)]
         self.axes = [p.ax for p in self.plotters]
 
-    def save(self, oname, tidx=None, footnote='', suptitle=None, titles=None, footnotes=''):
+    def savefig(self, oname, tidx=None, footnote='', suptitle=None,
+            titles=None, footnotes='', *args, **kwargs):
         ''' updates and save...'''
 
         # remember if plots were blank
@@ -129,10 +130,10 @@ class Plotter:
             for ax, ttle in zip(self.axes, titles):
                 ax.set_title(ttle)
 
-        self.fig.savefig(oname, bbox_inches='tight')
+        self.fig.savefig(oname, bbox_inches='tight', *args, **kwargs)
 
     def __call__(self, oname, *args, **kwargs):
-        self.save(oname, *args, **kwargs)
+        self.savefig(oname, *args, **kwargs)
 
     def savemp4(self, oname):
         pc.pu.savemp4(self, oname=oname)

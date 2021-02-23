@@ -17,13 +17,13 @@ class Plotter:
                                 extent=extent, x=x, y=y, plotter_options=plotter_options)
         self.ax = self.p.ax
 
-    def save(self, oname, tidx=None, footnote=None):
+    def savefig(self, oname, tidx=None, footnote=None, *args, **kwargs):
         self.p.update(tidx, footnote)
-        plt.savefig(oname)
+        plt.savefig(oname, *args, **kwargs)
 
     #def __call__(self, oname, tidx=None, footnote=''):
     def __call__(self, oname, *args, **kwargs):
-        self.save(oname, *args, **kwargs)
+        self.savefig(oname, *args, **kwargs)
 
     def savemp4(self, oname):
         pc.pu.savemp4(self, oname=oname)
