@@ -40,6 +40,14 @@ def Reader(f, tslice=slice(None, None), x=None, y=None):
     if any(_ is None for _ in (x, y)):
         x = np.fromstring(xx[16:], dtype=float, sep=' ')
         y = np.fromstring(yy[16:], dtype=float, sep=' ')
+    ptid = pd.DataFrame.from_dict({
+        'ix': ix,
+        'iy': iy,
+        'x': x,
+        'y': y,
+        'sxy': ['%d:%d' % (p,q) for (p,q) in zip(*[1000*np.round(_, 2) for _
+            in (x, y)])]
+        })
     x = np.unique(x)
     y = np.unique(y)
 
@@ -83,7 +91,8 @@ def Reader(f, tslice=slice(None, None), x=None, y=None):
         lst_v.append(v)
     ts = np.array(lst_ts)
     v = np.stack(lst_v, axis=0)
-    return {'name': name, 'units': units, 'ts': ts, 'grid': grid, 'y': y, 'x': x, 'v': v}
+    return {'name': name, 'units': units, 'ts': ts, 'grid': grid, 'y': y,
+            'x': x, 'v': v, 'ptid': ptid}
 
 
 def tester():
@@ -95,5 +104,10 @@ def tester():
     return dat
 
 if __name__ == '__main__':
-    dat = tester()
+
+    #dat = tester()
+    #print(dat)
+    import sys
+    with open(sys.argv[1]) as f:
+        dat = Reader(f, slice(12*60, 12*60+10))
     print(dat)
