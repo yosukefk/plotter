@@ -24,6 +24,12 @@ def Reader(f, tslice=slice(None, None), x=None, y=None):
 
         dct0 = {'x': x, 'y': y, 'grid': grid}
 
+    ptid = pd.DataFrame.from_dict({
+        'x': x,
+        'y': y,
+        'sxy': ['%d:%d' % (p,q) for (p,q) in zip(*[1000*np.round(_, 2) for _
+            in (x, y)])]
+        })
     dct = {'v': v, 'ts': ts, 'units': units, 'df': data}
     if dct0:
         dct.update(dct0)
