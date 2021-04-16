@@ -13,6 +13,7 @@ except ImportError:
     has_rasterio = True
 
 
+import numpy as np
 from multiprocessing import Pool
 import shlex
 import subprocess
@@ -55,6 +56,8 @@ def savemp4(p, saveone=None, nthreads=None, odir='.', oname='animation.mp4'):
     :param plotter:
     '''
 
+    # TODO allow passing wdir, in case user wants to hold onto them
+
     with tempfile.TemporaryDirectory() as wdir:
 
         # you decide if you want to use many cores
@@ -67,7 +70,7 @@ def savemp4(p, saveone=None, nthreads=None, odir='.', oname='animation.mp4'):
         if saveone is None:
             #saveone = lambda i: p.save(Path(wdir) / f'{i:04}.png', tidx=i)
             def saveone(i):
-                p.save(Path(wdir) / f'{i:04}.png', tidx=i)
+                p.savefig(Path(wdir) / png_fmt_py.format(i), tidx=i)
 
         # except that you are on TACC login node
         hn = socket.getfqdn()
@@ -75,6 +78,10 @@ def savemp4(p, saveone=None, nthreads=None, odir='.', oname='animation.mp4'):
             nthreads = 1
 
         nframes = len(p.tstamps)
+        # '{:04d}.png' for python
+        # '%04d.png' for shell
+        png_fmt_py = '{:0' + str(int(np.log10(nframes) + 1)) + 'd}.png'
+        png_fmt_sh = '%0' + str(int(np.log10(nframes) + 1)) + 'd.png'
 
         if nthreads > 1:
             with Pool(nthreads) as pool:
@@ -89,7 +96,8 @@ def savemp4(p, saveone=None, nthreads=None, odir='.', oname='animation.mp4'):
 
 
         # make mpeg file
-        cmd = f'ffmpeg -i "{Path(wdir) / "%04d.png"}" -vframes {nframes} -crf 3 -vcodec libx264 -pix_fmt yuv420p -f mp4 -y "{Path(odir) / oname}"'
+        #cmd = f'ffmpeg -i "{Path(wdir) / "%04d.png"}" -vframes {nframes} -crf 3 -vcodec libx264 -pix_fmt yuv420p -f mp4 -y "{Path(odir) / oname}"'
+        cmd = f'ffmpeg -i "{Path(wdir) / png_fmt_sh }" -vframes {nframes} -crf 3 -vcodec libx264 -pix_fmt yuv420p -f mp4 -y "{Path(odir) / oname}"'
         subprocess.run(shlex.split(cmd), check=True)
 
 
