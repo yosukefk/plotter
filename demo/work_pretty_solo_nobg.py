@@ -155,11 +155,18 @@ p = plotter_solo.Plotter(array=arr, tstamps=tstamps,
 
 # function to save one time frame
 def saveone(i, pname=None):
-    if pname is None: pname = wdir / f'{i:04}.png'
+    #if pname is None: pname = wdir / f'{i:04}.png'
+    if pname is None: pname = wdir / png_fmt_py.format(i)
 
     ts = tstamps[i]
     footnote = str(ts)
     p(pname, tidx=i, footnote=footnote)
+
+ntsteps = len(tstamps)
+# '{:04d}.png' for python
+# '%04d.png' for shell
+png_fmt_py = '{:0' + str(int(np.log10(ntsteps) + 1)) + 'd}.png'
+png_fmt_sh = '%0' + str(int(np.log10(ntsteps) + 1)) + 'd.png'
 
 # make single image file (for QA)
 saveone(16*60, (odir / oname).with_suffix('.png'))
@@ -185,4 +192,5 @@ else:
 
 # make mpeg file
 cmd = f'ffmpeg -i "{wdir / "%04d.png"}" -vframes 2880 -crf 3 -vcodec libx264 -pix_fmt yuv420p -f mp4 -y "{odir / oname}"'
+cmd = f'ffmpeg -i "{wdir / png_fmt_sh }" -vframes ntsteps -crf 3 -vcodec libx264 -pix_fmt yuv420p -f mp4 -y "{odir / oname}"'
 subprocess.run(shlex.split(cmd), check=True)
