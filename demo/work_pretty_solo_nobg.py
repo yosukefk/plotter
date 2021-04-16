@@ -16,6 +16,8 @@ import matplotlib.colors as colors
 from shapely.geometry import Polygon
 from adjustText import adjust_text
 
+import numpy as np
+
 from pathlib import Path
 from multiprocessing import Pool
 import shlex
