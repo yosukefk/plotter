@@ -29,6 +29,11 @@ def LambertConformalTCEQ():
     return ccrs.LambertConformal(central_longitude=-97, central_latitude=40,
                                  standard_parallels=(33, 45), globe=ccrs.Globe(semimajor_axis=6370000,
                                                                                semiminor_axis=6370000))
+# HRRR's Lambert Conformal projection, define in caropy way
+def LambertConformalHRRR():
+    return ccrs.LambertConformal(central_longitude=-97.5, central_latitude=38.5,
+                                 standard_parallels=(38.5, 38.5), globe=ccrs.Globe(semimajor_axis=6370000,
+                                                                               semiminor_axis=6370000))
 
 
 # Deprecated
