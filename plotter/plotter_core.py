@@ -276,7 +276,7 @@ class PlotterCore:
                                   pu.PlotterWarning)
 
             # None => default?  or '' => nothing?
-            if self.footnote is not '':
+            if self.footnote != '':
                 self.footnote_manager = FootnoteManager(self, self.footnote,
                                                         self.footnote_options)
 
