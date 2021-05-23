@@ -48,6 +48,11 @@ def Reader(f, tslice=slice(None, None), x=None, y=None):
         'sxy': ['%d:%d' % (p,q) for (p,q) in zip(*[1000*np.round(_, 2) for _
             in (x, y)])]
         })
+    # hold on to each point's coordinates
+    xr = x
+    yr = y
+
+    # get the unique values of x and y
     x = np.unique(x)
     y = np.unique(y)
 
@@ -57,6 +62,7 @@ def Reader(f, tslice=slice(None, None), x=None, y=None):
     # print(nx, ny, nx*ny)
     # print(len(x), len(y), len(x)*len(y))
     # print(nx == len(x)*len(y))
+    is_subregion = False
     if len(x) == nx and len(y) == ny:
         # this is good, gridded data
         # print('GRID')
@@ -65,8 +71,23 @@ def Reader(f, tslice=slice(None, None), x=None, y=None):
         # print('DESC')
         nx = len(x)
         ny = len(y)
+        
     else:
-        raise RuntimeError('non gridded data...')
+        # see if the data is subset of array
+        if len(x)*len(y) * .1 < nx:
+
+            nx = len(x)
+            ny = len(y)
+
+            is_subregion = True
+            idx = [(_ == x).argmax() for _ in xr]
+            jdx = [(_ == y).argmax() for _ in yr]
+            map_subregion= [(j,i) for (j,i) in zip(jdx,idx)]
+
+        else:
+            print('len(x),len(y)=', len(x), len(y))
+            print('nx,ny=', nx, ny)
+            raise RuntimeError('non gridded data...')
 
     for i in range(3):
         next(f)
@@ -86,9 +107,18 @@ def Reader(f, tslice=slice(None, None), x=None, y=None):
         # print(ts)
         lst_ts.append(ts)
 
-        v = np.fromstring(line[16:], dtype=float, sep=' ').reshape(ny, nx)
+        v = np.fromstring(line[16:], dtype=float, sep=' ')
+
+        if is_subregion:
+            # TODO
+            vv = np.empty((ny, nx))
+            vv[:] = np.nan
+            for ji,val in zip(map_subregion, v):
+                vv[ji] = val
+        else:
+            vv = v.reshape(ny, nx)
         # print(v)
-        lst_v.append(v)
+        lst_v.append(vv)
     ts = np.array(lst_ts)
     v = np.stack(lst_v, axis=0)
     return {'name': name, 'units': units, 'ts': ts, 'grid': grid, 'y': y,
