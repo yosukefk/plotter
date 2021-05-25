@@ -31,8 +31,6 @@ class BackgroundManager:
         :param projection: projection to be used for the plot
         :param wms_options: arguments to GeoAxes.add_wms()
         """
-        if not has_rasterio:
-            raise RuntimeError('no raster io')
 
         if bgfile is None:
             self.projection = projection
@@ -40,6 +38,10 @@ class BackgroundManager:
             self.img = None
             self.wms_options = wms_options
         else:
+
+            if not has_rasterio:
+                raise RuntimeError('no raster io')
+
             # use bgfile's extent
             self.b = rasterio.open(bgfile)
 
