@@ -149,6 +149,8 @@ class PlotterCore:
         self.extent = extent
         self.x = x
         self.y = y
+        if self.extent is None and not (self.x is None or self.y is None):
+            self.extent = [self.x[0], self.x[-1], self.y[0], self.y[-1]]
 
         # data's projection
         # assume TCEQ's lambert for the data array
