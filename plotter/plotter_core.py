@@ -8,6 +8,7 @@ except ImportError:
     has_cartopy = False
 import matplotlib.pyplot as plt
 import matplotlib as mpl
+mpl.use('Agg')
 import numpy as np
 import warnings
 

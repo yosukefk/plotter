@@ -4,8 +4,10 @@ except ImportError:
     import plotter_core as pc
 
 import matplotlib.pyplot as plt
-from importlib import reload
+import matplotlib as mpl
+mpl.use('Agg')
 
+from importlib import reload
 reload(pc)
 
 

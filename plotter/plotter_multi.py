@@ -6,9 +6,11 @@ except ImportError:
     import plotter_util as pu
 
 import matplotlib.pyplot as plt
-from importlib import reload
+import matplotlib as mpl
+mpl.use('Agg')
 import warnings
 
+from importlib import reload
 reload(pc)
 
 
