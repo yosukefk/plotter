@@ -20,6 +20,7 @@ import subprocess
 import socket
 import tempfile
 from pathlib import Path
+import os
 
 class PlotterWarning(UserWarning): pass
 
@@ -65,52 +66,77 @@ def savemp4(p, wdir=None, nthreads=None, odir='.', oname='animation.mp4'):
 
     if wdir is None:
         is_tempdir = True
-        wdir = tempfile.TemporaryDirectory()
+        tempdir = tempfile.TemporaryDirectory()
+        wdir = Path(tempdir.name)
     else:
         is_tempdir = False
-        wdir.mkdir(exist_ok=False)
 
-    # you decide if you want to use many cores
+        if isinstance(wdir , str):
+            wdir = Path(wdir)
+        if wdir.exists():
+            for x in wdir.glob('*.png'): x.unlink()
+        else:
+            wdir.mkdir(exist_ok=False)
+
     # parallel processing
     # save all frames in parallel
     # 68 for stampede, 24 for ls5
-    if nthreads is None:
-        nthreads = 24  # ls5
 
-# FIXME this cannot be pickled, and doewnt work with Pool()
-# lambda is the same thing
-#    def saveone(i):
-#        p.savefig(Path(wdir) / png_fmt_py.format(i), tidx=i)
+    hn = socket.getfqdn()
+    if nthreads is None:
+        #nthreads = 24  # ls5, stampede2 skx node
+        if 'frontera' in hn:
+            nthreads = 56  # frontera
+        elif 'ls5' in hn:
+            nthreads = 24
+        elif 'stampede2' in hn:
+            nthreads = 24
+        else:
+            nthreads = 1
 
     # except that you are on TACC login node
-    hn = socket.getfqdn()
     if hn.startswith('login') and '.tacc.' in hn:
         nthreads = 1
 
     nframes = len(p.tstamps)
+
     # '{:04d}.png' for python
     # '%04d.png' for shell
     png_fmt_py = '{:0' + str(int(np.log10(nframes) + 1)) + 'd}.png'
     png_fmt_sh = '%0' + str(int(np.log10(nframes) + 1)) + 'd.png'
 
+    # object that does the p.savefig()
+    saveone = _saveone(p, os.path.join(wdir, png_fmt_py))
+
+
+
+
     if nthreads > 1:
         with Pool(nthreads) as pool:
             pool.map(saveone, range(nframes))
-            #pool.map(lambda i: p.savefig(Path(wdir) / pnt_fmt_py.format(i),
-            #    tidx=i), range(nframes))
+        opt_threads = f'-threads {min(16, nthreads)}'  # ffmpeg says that dont use more than 16 threads
     else:
         # serial processing
         for i in range(nframes):
             saveone(i)
+        opt_threads = ''
 
 
     # make mpeg file
-    #cmd = f'ffmpeg -i "{Path(wdir) / "%04d.png"}" -vframes {nframes} -crf 3 -vcodec libx264 -pix_fmt yuv420p -f mp4 -y "{Path(odir) / oname}"'
-    cmd = f'ffmpeg -i "{Path(wdir) / png_fmt_sh }" -vframes {nframes} -crf 3 -vcodec libx264 -pix_fmt yuv420p -f mp4 -y "{Path(odir) / oname}"'
+    cmd = f'ffmpeg -i "{Path(wdir) / png_fmt_sh }" -vframes {nframes} -crf 3 -vcodec libx264 -pix_fmt yuv420p -f mp4 -y {opt_threads} "{Path(odir) / oname}"'
     subprocess.run(shlex.split(cmd), check=True)
 
     if is_tempdir:
-        wdir.cleanup()
+        tempdir.cleanup()
 
-#def _saveone(i):
-# do i have to make p globa variable...?
+class _saveone:
+    # save one image from plotter
+    # made into class in global level in order to use from mutiprocessing
+    # https://stackoverflow.com/questions/62186218/python-multiprocessing-attributeerror-cant-pickle-local-object
+    def __init__(self, p, png_fmt):
+        # do i have to make p globa variable...?
+        self.p = p
+        self.png_fmt = png_fmt
+    def __call__(self, i):
+        self.p.savefig(self.png_fmt.format(i), tidx=i)
+
