@@ -22,7 +22,8 @@ import tempfile
 
 # TODO maybe make this part of PlotterCore itself?
 class BackgroundManager:
-    def __init__(self, bgfile=None, source_projection=None, extent=None, projection=None, wms_options=None):
+    def __init__(self, bgfile=None, source_projection=None, extent=None,
+            projection=None, wms_options=None, add_image_options=None):
         """Manage plot's projection/extent/background
 
         :param bgfile: Geotiff file to use as background
@@ -37,6 +38,7 @@ class BackgroundManager:
             self.extent = extent
             self.img = None
             self.wms_options = wms_options
+            self.add_image_options = add_image_options
         else:
 
             if not has_rasterio:
@@ -179,3 +181,13 @@ class BackgroundManager:
             p.ax.imshow(self.img, extent=self.extent, origin='upper')
         elif self.wms_options:
             p.ax.add_wms(**self.wms_options)
+        elif self.add_image_options:
+            p.ax.add_image(*self.add_image_options)
+
+
+    def purge_bgfile_hook(self):
+
+        try:
+            del self.b
+        except AttributeError:
+            pass
