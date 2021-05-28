@@ -57,6 +57,8 @@ class background_adder:
     def refresh_background(self, p):
         p.background_bga.set_zorder(1)
 
+
+# create animation mp4 file
 def savemp4(p, wdir=None, nthreads=None, odir='.', oname='animation.mp4'):
     '''save mp4
     :param plotter:
@@ -134,8 +136,8 @@ class _saveone:
     # made into class in global level in order to use from mutiprocessing
     # https://stackoverflow.com/questions/62186218/python-multiprocessing-attributeerror-cant-pickle-local-object
     def __init__(self, p, png_fmt):
-        # do i have to make p globa variable...?
         self.p = p
+        self.p.plotter.background_manager.purge_bgfile_hook()
         self.png_fmt = png_fmt
     def __call__(self, i):
         self.p.savefig(self.png_fmt.format(i), tidx=i)
