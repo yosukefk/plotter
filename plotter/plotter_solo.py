@@ -15,20 +15,21 @@ class Plotter:
     def __init__(self, array, tstamps, projection=None, extent=None, x=None, y=None,
                  plotter_options=None):
         self.tstamps = tstamps
-        self.p = pc.PlotterCore(array, tstamps, projection=projection,
+        self.plotter = pc.PlotterCore(array, tstamps, projection=projection,
                                 extent=extent, x=x, y=y, plotter_options=plotter_options)
-        self.ax = self.p.ax
+        self.ax = self.plotter.ax
 
     def savefig(self, oname, tidx=None, footnote=None, *args, **kwargs):
-        self.p.update(tidx, footnote)
+        self.plotter.update(tidx, footnote)
         plt.savefig(oname, *args, **kwargs)
 
     #def __call__(self, oname, tidx=None, footnote=''):
     def __call__(self, oname, *args, **kwargs):
         self.savefig(oname, *args, **kwargs)
 
-    def savemp4(self, oname):
-        pc.pu.savemp4(self, oname=oname)
+    def savemp4(self, oname, wdir=None, nthreads=None, odir='.'):
+        pc.pu.savemp4(self, oname=oname, wdir=wdir, nthreads=nthreads,
+                odir=odir)
 
 
 

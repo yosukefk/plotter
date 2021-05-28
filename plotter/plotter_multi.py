@@ -137,5 +137,6 @@ class Plotter:
     def __call__(self, oname, *args, **kwargs):
         self.savefig(oname, *args, **kwargs)
 
-    def savemp4(self, oname):
-        pc.pu.savemp4(self, oname=oname)
+    def savemp4(self, oname, wdir=None, nthreads=None, odir='.'):
+        pc.pu.savemp4(self, oname=oname, wdir=wdir, nthreads=nthreads,
+                odir=odir)
