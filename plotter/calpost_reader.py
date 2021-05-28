@@ -11,6 +11,7 @@ import warnings
 class cprValueError(ValueError): pass
 
 
+# old name...
 def Reader(f, tslice=slice(None,None), x=None, y=None):
     warnings.warn('use calpost_reader()', DeprecationWarning)
     return calpost_reader(f, tslice, x, y)
@@ -45,8 +46,8 @@ def calpost_cat(lst):
 
     # time step size
     td = [_['ts'][1] - _['ts'][0] for _ in lst]
-    print(td)
-    print(td == td[0])
+    #print('td (timestep size) =',td)
+    #print('(td == td[0]) = ',[_ == td[0] for _ in td])
     if not all([_ == td[0] for _ in td]):
         raise cprValueError('incompatible time step size: {}'.format(td))
 
@@ -72,7 +73,7 @@ def calpost_cat(lst):
     msg1 = ''
     msg2 = ''
 
-    print(overlaps)
+    #print('overlaps=',overlaps)
     if any(_ < 0 for _ in overlaps ):
         pos = ['{}/{}'.format(p,p+1) for x in range(len(lst)-1)]
         msg1 = ', '.join([pos[_] for _ in overlaps if _ == -1])
@@ -90,18 +91,31 @@ def calpost_cat(lst):
 
     # v and ts need to be overwritten by catenated array
 
-    d = lst[0]
-    o = overlaps[0]
-    
+    #chop = [None if _ == 0 else -_ for _ in overlaps]
+
+    #dat['ts'] = np.concatenate(
+    #        [d['ts'][:c] for d,c in 
+    #            zip(lst[:-1], chop)] + 
+    #        [ lst[-1]['ts'] ])
+
+    #dat['v'] = np.concatenate(
+    #        [d['v'][:c] for d,c in 
+    #            zip(lst[:-1], chop)] 
+    #            + [ lst[-1]['v'] ])
+
+    chop = [None if _ == 0 else -_ for _ in overlaps]
+
     dat['ts'] = np.concatenate(
-            [d['ts'][:-o] for d,o in 
-                zip(lst[:-1], overlaps)] + 
-            [ lst[-1]['ts'] ])
+        [lst[0]['ts']] +
+        [d['ts'][o:] for d,o in
+         zip(lst[1:],overlaps)]
+    )
 
     dat['v'] = np.concatenate(
-            [d['v'][:-o] for d,o in 
-                zip(lst[:-1], overlaps)] 
-                + [ lst[-1]['v'] ])
+        [lst[0]['v']] +
+        [d['v'][o:] for d,o in
+         zip(lst[1:],overlaps)]
+    )
     return dat
 
 
@@ -127,7 +141,7 @@ def calpost_reader(f, tslice=slice(None, None), x=None, y=None):
     '''
 
     # assume file name passed if 'f' is string
-    if isinstance(f, str):
+    if isinstance(f, (str, Path)):
         with open(f) as ff:
             return calpost_reader(ff, tslice, x, y)
 
