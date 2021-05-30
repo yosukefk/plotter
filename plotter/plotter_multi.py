@@ -7,20 +7,31 @@ except ImportError:
 
 import matplotlib.pyplot as plt
 import matplotlib as mpl
-mpl.use('Agg')
 import warnings
 
 from importlib import reload
 reload(pc)
-
+mpl.use('Agg')
 
 class Plotter:
     def __init__(self, arrays, tstamps, projection=None, extent=None, x=None, y=None,
                  plotter_options=None, figure_options=None):
+        """
+        Wrappter for multple PlotterCore, allows savefig() and savemp4()
 
-        # assumptions:  
-        #   tstamps, projection, extent are shared across plots
-        #   landscape orientation, all plots side by side
+        :param list arrays: list of 3-d arrays for each plot
+        :param np.ndarray tstamps: 1-d array of datetime, dimensions(t), common across plots
+        :param ccrs.CRS projection: projection of xy coordinate of data, common across plots
+        :param list extent: xy extent of data, with with coordinate of projection, common across plots
+        :param np.ndarray x: x coordinate of data, common across plots
+        :param np.ndarray  y: y coordinate of data, common across plots
+        :param dict or list plotter_options: all the arguments passed to all plot, or list of options one for each plot
+        :param figure_options: options passed to "figure", the container for the plots
+
+        assumptions:
+          tstamps, projection, extent are shared across plots
+          landscape orientation, all plots side by side
+        """
 
         if figure_options is None:
             figure_options = {}
@@ -76,8 +87,18 @@ class Plotter:
 
     def savefig(self, oname, tidx=None, footnote='', suptitle=None,
             titles=None, footnotes='', *args, **kwargs):
-        ''' updates and save...'''
+        """
+        Saves single image file
 
+        :param str oname: output file name
+        :param int tidx: index of tstamps
+        :param str footnote: footnote for the figure (container)
+        :param str suptitle: suptitle (title for container)
+        :param list titles: title for each plot
+        :param list footnotes: footnotes for each plot
+        :param args: extra arguments passed to plt.savefig()
+        :param kwargs: extra arguments passed to plt.savefig()
+        """
         # remember if plots were blank
         haddata = self.plotters[0].hasdata
 
@@ -119,24 +140,30 @@ class Plotter:
             if footnote is not None:
                 self.footnote.set_text(footnote)
 
-
-
-
-        if not suptitle is None:
+        if suptitle is not None:
             warnings.warn('i dont like suptitle after all', DeprecationWarning)
             if not isinstance(suptitle, dict):
                 suptitle = {'t': suptitle}
             self.fig.suptitle(**suptitle)
 
-        if not titles is None:
+        if titles is not None:
             for ax, ttle in zip(self.axes, titles):
                 ax.set_title(ttle)
 
         self.fig.savefig(oname, bbox_inches='tight', *args, **kwargs)
 
     def __call__(self, oname, *args, **kwargs):
+        """savefig()"""
         self.savefig(oname, *args, **kwargs)
 
     def savemp4(self, oname, wdir=None, nthreads=None, odir='.'):
+        """
+        Save MP4 animation
+
+        :param str oname: output MP4 file name
+        :param str wdir: dir to save intermediate PNG files (None will use Temporary dir)
+        :param int nthreads: number of threads to use on parallel machine
+        :param str odir: dir to save output file
+        """
         pc.pu.savemp4(self, oname=oname, wdir=wdir, nthreads=nthreads,
                 odir=odir)

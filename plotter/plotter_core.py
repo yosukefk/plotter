@@ -1,39 +1,52 @@
 from . import plotter_util as pu
+import warnings
 
 try:
     import cartopy.crs as ccrs
+
     has_cartopy = True
 except ImportError:
     warnings.warn('no cartopy', ImportWarning)
     has_cartopy = False
 import matplotlib.pyplot as plt
 import matplotlib as mpl
-mpl.use('Agg')
 import numpy as np
 import warnings
 
+mpl.use('Agg')
+
 
 class FootnoteManager:
+    """Manages Footnote"""
 
-    def __init__(self, plotter, footnote=None, footnote_options={}):
+    def __init__(self, plotter, footnote=None, footnote_options=None):
+        """
 
+        :rtype: FootnoteManager
+        :param PlotterCore plotter:  PlotterCore to which footnote is added
+        :param str,  footnote: default footnote
+        :param dict,  footnote_options (optional):
+        """
         self.plotter = plotter
+        if footnote_options is None:
+            footnote_options = {}
         if footnote is None:
-            self.footnote_template = footnote_options.get('text',
-                                                          "{tstamp}\nMin({imn}, {jmn}) = {vmn:.1f}, Max({imx}, {jmx}) = {vmx:.1f}",
-                                                          )
+            self.footnote_template = footnote_options.get(
+                'text',
+                "{tstamp}\nMin({imn}, {jmn}) = {vmn:.1f}, Max({imx}, {jmx}) = {vmx:.1f}"
+            )
         else:
             self.footnote_template = footnote
 
         keys_to_extract = (
-                'tstamp_format', 'minmax_format',
-                )
+            'tstamp_format', 'minmax_format',
+        )
         self.footnote_options = {k: v for k, v in footnote_options.items() if
                                  k in keys_to_extract}
 
         # builtin options
         myopts = dict(
-            #text=footnote, # matplotlib >= 3.3 renamed to 's' to 'text'
+            # text=footnote, # matplotlib >= 3.3 renamed to 's' to 'text'
             s=footnote,  # matplotlib < 3.2 needs 's' for annotate
             xy=(0.5, 0),  # bottom center
             xytext=(0, -6),
@@ -50,17 +63,21 @@ class FootnoteManager:
             myopts['s'] = myopts['text']
             del myopts['text']
 
-
         self.footnote = self.plotter.ax.annotate(**myopts)
         self()
 
     def __call__(self, footnote=None):
-        # either rewrite footnote altogether, or update using the template
+        """
+        either rewrite footnote altogether, or update using the template
+
+        :param str footnote: overwrites footnote
+        """
         if footnote is None:
             footnote = self._update_text()
         self.footnote.set_text(footnote)
 
     def _update_text(self):
+        """Generate standard footnotes"""
         arr = self.plotter.current_arr
 
         tstamp = self.plotter.current_tstamp
@@ -76,8 +93,8 @@ class FootnoteManager:
         vmx = arr[jmx, imx]
         imn += i0
         imx += i0
-        jmn = j0 -jmn
-        jmx = j0 -jmx
+        jmn = j0 - jmn
+        jmx = j0 - jmx
         # vmn,vmx = [fnf.format(_) for _ in (vmn, vmx)]
         current_text = self.footnote_template.format(**locals())
         return current_text
@@ -88,14 +105,14 @@ class PlotterCore:
                  plotter_options=None):
         """
 
-        :rtype: object
-        :param array: 3-d array of data values, dimensions(t, y, x), or 2+ d array of data values, dimensions(t, ...)
-        :param tstamps: 1-d array of datetime, dimensions(t)
-        :param projection: projection of xy coordinate of data
-        :param extent: xy extent of data, with with coordinate of projection
-        :param x: x coordinate of data, with shape matching (...) part of array
-        :param y: y coordinate of data, with shape matching (...) part of array
-        :param plotter_options: all the arguments passed to plotter
+        :rtype: PlotterCore
+        :param np.ndarray array: 3-d array of data values, dimensions(t, y, x), or 2+ d array of data values, dimensions(t, ...)
+        :param np.ndarray tstamps: 1-d array of datetime, dimensions(t)
+        :param ccrs.CRS projection: projection of xy coordinate of data
+        :param list extent: xy extent of data, with with coordinate of projection
+        :param np.ndarray x: x coordinate of data, with shape matching (...) part of array
+        :param np.ndarray y: y coordinate of data, with shape matching (...) part of array
+        :param dict plotter_options: all the arguments passed to plotter
         """
 
         if plotter_options is None: plotter_options = {}
@@ -211,12 +228,20 @@ class PlotterCore:
         self.im = None
         self.cnt = None
         self.mappable = None
+        self.current_arr = None
+        self.current_tstamp = None
 
     def update(self, tidx=None, footnote=None, title=None):
+        """
+        Update plot to data at tidx
+
+        :param int tidx: time index
+        :param str footnote: footnote overwrite
+        :param str title:  title overwrite
+        """
         if tidx is None: tidx = 0
         # get 2d array to plot
         idx = [tidx, self.jslice, self.islice]
-
 
         arr = self.arr[tuple(idx)]
 
@@ -285,23 +310,28 @@ class PlotterCore:
 
             self.hasdata = True
 
-        if not title is None:
+        if title is not None:
             # update the title
             self.ax.set_title(title)
 
-        # customizeration needed after updating data
+        # customization needed after updating data
         if self.customize_after:
             warnings.warn('set zorder was what you need?',
                           DeprecationWarning)
             self.customize(self.customize_after)
 
     def __call__(self, *args, **kwargs):
+        """update()"""
         self.update(*args, **kwargs)
 
     def customize(self, fnc):
-        # apply fnc to self.ax
-        # no arguments
+        """
+        apply function to self.ax
 
+        :param function fnc:
+        """
+
+        # no arguments
         if callable(fnc):
             fnc(self)
         elif '__len__' in dir(fnc):
