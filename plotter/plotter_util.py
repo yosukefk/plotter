@@ -100,9 +100,8 @@ def savemp4(p, wdir=None, nthreads=None, odir='.', oname='animation.mp4'):
 
     hn = socket.getfqdn()
     if nthreads is None:
-        #nthreads = 24  # ls5, stampede2 skx node
         if 'frontera' in hn:
-            nthreads = 56  # frontera
+            nthreads = 56
         elif 'ls5' in hn:
             nthreads = 24
         elif 'stampede2' in hn:

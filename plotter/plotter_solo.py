@@ -17,13 +17,13 @@ class Plotter:
         """
         Wrapper for single PlotterCore, allows savefig() and savemp4()
 
-        :param np.ndarray array:
-        :param np.ndarray tstamps:
-        :param ccrs.CRS projection:
-        :param list extent:
-        :param np.ndarray x:
-        :param np.ndarray y:
-        :param dict plotter_options:
+        :param np.ndarray array:  3-d array of data values, dimensions(t, y, x)
+        :param np.ndarray tstamps: 1-d array of datetime, dimensions(t)
+        :param ccrs.CRS projection: projection of xy coordinate of data
+        :param list extent: xy extent of data, with with coordinate of projection
+        :param np.ndarray x: x coordinate of data
+        :param np.ndarray y: y coordinate of data
+        :param dict plotter_options: all the arguments passed to plotter
         """
         self.tstamps = tstamps
         self.plotter = pc.PlotterCore(array, tstamps, projection=projection,
@@ -52,7 +52,7 @@ class Plotter:
         Saves MP4 animation
 
         :param str oname: output MP4 file name
-        :param str wdir: dir to save intermediate PNG files
+        :param str wdir: dir to save intermediate PNG files (None will use Temporary dir)
         :param int nthreads: number of threads to use on parallel machine
         :param str odir: dir to save output file
         """

@@ -26,11 +26,12 @@ class BackgroundManager:
             projection=None, wms_options=None, add_image_options=None):
         """Manage plot's projection/extent/background
 
-        :param bgfile: Geotiff file to use as background
-        :param source_projection: projection of bgfile, in case cartopy don't understand it
-        :param extent: extent of background (x0, x1, y0, y1)
-        :param projection: projection to be used for the plot
-        :param wms_options: arguments to GeoAxes.add_wms()
+        :param str bgfile: name of Geotiff file to use as background
+        :param ccrs.CRS source_projection: projection of bgfile, in case cartopy don't understand it
+        :param list extent: extent of background (x0, x1, y0, y1)
+        :param ccrs.CRS projection: projection to be used for the plot
+        :param dict wms_options: arguments to GeoAxes.add_wms()
+        :param dict add_image_options: arguments to GeoAxes.add_image()
         """
 
         if bgfile is None:
@@ -75,6 +76,13 @@ class BackgroundManager:
 
     @staticmethod
     def read_projection(crs_data):
+        """
+        reead rasterio's crs data (Proj.4) and return equivalent ccrs.CRS
+
+        :rtype: ccrs.CRS
+        :param dict crs_data: Proj.4 projection specification
+        :return: projection
+        """
         # try interpret projection of raster...  this should be supported by cartopy,
         # something like this https://github.com/SciTools/cartopy/pull/1023, which kind of superceded by
         # https://github.com/SciTools/cartopy/issues/1477 which is still taking time...  So for now i do
@@ -174,19 +182,23 @@ class BackgroundManager:
 
     def add_background(self, p: pc.PlotterCore):
         """
+        Add background image, either by GeoAxes.imshow, GeoAxes.add_wms or GeoAxes.add_image()
 
         :param p: PlotterCore
         """
-        if not self.img is None:
+        if self.img is not None:
             p.ax.imshow(self.img, extent=self.extent, origin='upper')
         elif self.wms_options:
             p.ax.add_wms(**self.wms_options)
         elif self.add_image_options:
             p.ax.add_image(*self.add_image_options)
 
-
     def purge_bgfile_hook(self):
+        """
+        drop bgfile attribute, which is rasterio
 
+        rasterio cannot be picked, so it needs to be purged for multiprocessing
+        """
         try:
             del self.b
         except AttributeError:
