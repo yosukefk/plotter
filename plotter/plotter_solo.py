@@ -53,8 +53,8 @@ class Plotter:
 
         :param str oname: output MP4 file name
         :param str wdir: dir to save intermediate PNG files
-        :param nthreads: number of threads to use on parallel machine
-        :param odir: dir to save uptut file
+        :param int nthreads: number of threads to use on parallel machine
+        :param str odir: dir to save output file
         """
         pc.pu.savemp4(self, oname=oname, wdir=wdir, nthreads=nthreads,
                 odir=odir)

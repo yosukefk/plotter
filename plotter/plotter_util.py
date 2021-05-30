@@ -25,13 +25,23 @@ import os
 class PlotterWarning(UserWarning): pass
 
 
-# TCEQ's Lambert Conformal projection, define in caropy way
 def LambertConformalTCEQ():
+    """
+    TCEQ's Lambert Conformal projection, define in caropy way
+
+    :rtype: ccrs.CRS
+    :return: CRS
+    """
     return ccrs.LambertConformal(central_longitude=-97, central_latitude=40,
                                  standard_parallels=(33, 45), globe=ccrs.Globe(semimajor_axis=6370000,
                                                                                semiminor_axis=6370000))
-# HRRR's Lambert Conformal projection, define in caropy way
 def LambertConformalHRRR():
+    """
+    HRRR's Lambert Conformal projection, define in caropy way
+
+    :rtype: ccrs.CRS
+    :return: CRS
+    """
     return ccrs.LambertConformal(central_longitude=-97.5, central_latitude=38.5,
                                  standard_parallels=(38.5, 38.5), globe=ccrs.Globe(semimajor_axis=6370000,
                                                                                semiminor_axis=6370000))
@@ -60,11 +70,15 @@ class background_adder:
 
 # create animation mp4 file
 def savemp4(p, wdir=None, nthreads=None, odir='.', oname='animation.mp4'):
-    '''save mp4
-    :param plotter:
-    '''
+    """save mp4
 
-    # TODO allow passing wdir, in case user wants to hold onto them
+    :param plotter_solo.Plotter or plotter_multi.Plotter p: use savefig() to make MP4
+    :param str wdir: dir to save intermediate PNG files
+    :param int nthreads: number of threads to use on parallel machine
+    :param odir: dir to save output file
+    :param str oname: output MP4 file name
+
+    """
 
     if wdir is None:
         is_tempdir = True
@@ -110,9 +124,6 @@ def savemp4(p, wdir=None, nthreads=None, odir='.', oname='animation.mp4'):
     # object that does the p.savefig()
     saveone = _saveone(p, os.path.join(wdir, png_fmt_py))
 
-
-
-
     if nthreads > 1:
         with Pool(nthreads) as pool:
             pool.map(saveone, range(nframes))
@@ -123,8 +134,7 @@ def savemp4(p, wdir=None, nthreads=None, odir='.', oname='animation.mp4'):
             saveone(i)
         opt_threads = ''
 
-
-    # make mpeg file
+    # make mp4 file
     cmd = f'ffmpeg -i "{Path(wdir) / png_fmt_sh }" -vframes {nframes} -crf 3 -vcodec libx264 -pix_fmt yuv420p -f mp4 -y {opt_threads} "{Path(odir) / oname}"'
     subprocess.run(shlex.split(cmd), check=True)
 
@@ -132,13 +142,16 @@ def savemp4(p, wdir=None, nthreads=None, odir='.', oname='animation.mp4'):
         tempdir.cleanup()
 
 class _saveone:
-    # save one image from plotter
+    """save one image from plotter, so that multiprocessing.Pool can be used"""
+
     # made into class in global level in order to use from mutiprocessing
     # https://stackoverflow.com/questions/62186218/python-multiprocessing-attributeerror-cant-pickle-local-object
     def __init__(self, p, png_fmt):
         self.p = p
+        # rasterio cannot be pickled, so drop it
         self.p.plotter.background_manager.purge_bgfile_hook()
         self.png_fmt = png_fmt
+
     def __call__(self, i):
         self.p.savefig(self.png_fmt.format(i), tidx=i)
 
