@@ -2,7 +2,7 @@
 import sys
 
 plotterdir = '..'
-sys.path.append(plotterdir)
+sys.path.insert(0, plotterdir)
 
 from plotter import calpost_reader
 import plotter.plotter_multi as plotter_multi
@@ -163,44 +163,10 @@ p = plotter_multi.Plotter(arrays=arrays, tstamps=tstamps,
                          figure_options=figure_options)
 
 
-# function to save one time frame
-def saveone(i, pname=None):
-    #if pname is None: pname = wdir / f'{i:04}.png'
-    if pname is None: pname = wdir / png_fmt_py.format(i)
-
-    ts = tstamps[i]
-    footnote = str(ts)
-    p.savefig(pname, tidx=i, footnote=footnote)
-
-ntsteps = len(tstamps)
-# '{:04d}.png' for python
-# '%04d.png' for shell
-png_fmt_py = '{:0' + str(int(np.log10(ntsteps) + 1)) + 'd}.png'
-png_fmt_sh = '%0' + str(int(np.log10(ntsteps) + 1)) + 'd.png'
-
 # make single image file (for QA)
-saveone(min(16*60, ntsteps-1), (odir / oname).with_suffix('.png'))
-
-# you decide if you want to use many cores
-# parallel processing
-# save all frames in parallel
-# 68 for stampede, 24 for ls5
-nthreads = 24  # ls5
-
-# except that you are on TACC login node
-hn = socket.getfqdn()
-if hn.startswith('login') and '.tacc.' in hn:
-    ntheads = 1
-
-if nthreads > 1:
-    with Pool(nthreads) as pool:
-        pool.map(saveone, range(len(tstamps)))
-else:
-    # serial processing
-    for i in range(len(tstamps)):
-        saveone(i)
+ntsteps = len(tstamps)
+p.savefig((odir / oname).with_suffix('.png'), 
+        tidx=min(16*60,ntsteps-1))
 
 # make mpeg file
-#cmd = f'ffmpeg -i "{wdir / "%04d.png"}" -vf scale=1920:-2 -vframes 2880 -crf 3 -vcodec libx264 -pix_fmt yuv420p -f mp4 -y "{odir / oname}"'
-cmd = f'ffmpeg -i "{wdir / png_fmt_sh }" -vf scale=1920:-2 -vframes {ntsteps} -crf 3 -vcodec libx264 -pix_fmt yuv420p -f mp4 -y "{odir / oname}"'
-subprocess.run(shlex.split(cmd), check=True)
+p.savemp4(odir / oname, wdir=wdir )
