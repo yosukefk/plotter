@@ -22,6 +22,8 @@ import tempfile
 from pathlib import Path
 import os
 
+from plotter.plotter_multi import Plotter as PlotterMulti
+
 class PlotterWarning(UserWarning): pass
 
 
@@ -120,8 +122,15 @@ def savemp4(p, wdir=None, nthreads=None, odir='.', oname='animation.mp4'):
     png_fmt_py = '{:0' + str(int(np.log10(nframes) + 1)) + 'd}.png'
     png_fmt_sh = '%0' + str(int(np.log10(nframes) + 1)) + 'd.png'
 
+    is_multi = isinstance(p, PlotterMulti)
+
+    if is_multi:
+        adjust_width = '-vf scale=1920:-2'
+    else:
+        adjust_width = ''
+
     # object that does the p.savefig()
-    saveone = _saveone(p, os.path.join(wdir, png_fmt_py))
+    saveone = _saveone(p, os.path.join(wdir, png_fmt_py), is_multi)
 
     if nthreads > 1:
         with Pool(nthreads) as pool:
@@ -134,7 +143,7 @@ def savemp4(p, wdir=None, nthreads=None, odir='.', oname='animation.mp4'):
         opt_threads = ''
 
     # make mp4 file
-    cmd = f'ffmpeg -i "{Path(wdir) / png_fmt_sh }" -vframes {nframes} -crf 3 -vcodec libx264 -pix_fmt yuv420p -f mp4 -y {opt_threads} "{Path(odir) / oname}"'
+    cmd = f'ffmpeg -i "{Path(wdir) / png_fmt_sh }" {adjust_width} -vframes {nframes} -crf 3 -vcodec libx264 -pix_fmt yuv420p -f mp4 -y {opt_threads} "{Path(odir) / oname}"'
     subprocess.run(shlex.split(cmd), check=True)
 
     if is_tempdir:
@@ -145,10 +154,15 @@ class _saveone:
 
     # made into class in global level in order to use from mutiprocessing
     # https://stackoverflow.com/questions/62186218/python-multiprocessing-attributeerror-cant-pickle-local-object
-    def __init__(self, p, png_fmt):
+    def __init__(self, p, png_fmt, is_multi):
         self.p = p
         # rasterio cannot be pickled, so drop it
-        self.p.plotter.background_manager.purge_bgfile_hook()
+        if is_multi:
+            for plotter in self.p.plotters:
+                plotter.background_manager.purge_bgfile_hook()
+        else:
+            self.p.plotter.background_manager.purge_bgfile_hook()
+
         self.png_fmt = png_fmt
 
     def __call__(self, i):
