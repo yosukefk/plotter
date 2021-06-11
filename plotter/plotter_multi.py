@@ -13,6 +13,7 @@ from importlib import reload
 reload(pc)
 mpl.use('Agg')
 
+
 class Plotter:
     def __init__(self, arrays, tstamps, projection=None, extent=None, x=None, y=None,
                  plotter_options=None, figure_options=None):
@@ -49,7 +50,7 @@ class Plotter:
         elif isinstance(plotter_options, dict):
             # if one set of options are provided, duplicate them
             warnings.warn('plotter options are duplicated for all plots',
-                    category=pu.PlotterWarning)
+                          category=pu.PlotterWarning)
             # TODO imshow options may needed to be cloned as well
             plotter_options = [plotter_options] + [plotter_options.copy()
                                                    for _ in range(self.nplot - 1)]
@@ -61,14 +62,14 @@ class Plotter:
             for i in range(1, self.nplot):
                 if id(plotter_options[0]) == id(plotter_options[i]):
                     warnings.warn(f'plotter options {i} is unlinked from first one',
-                                category=pu.PlotterWarning)
+                                  category=pu.PlotterWarning)
                     plotter_options[i] = plotter_options[i].copy()
                 if 'imshow_options' in plotter_options[0]:
                     if id(plotter_options[0]['imshow_options']) == \
                             id(plotter_options[i].get('imshow_options',
                                                       None)):
-                        warnings.warn(f'imshow options {i} is unlinked from first one', 
-                                category=pu.PlotterWarning)
+                        warnings.warn(f'imshow options {i} is unlinked from first one',
+                                      category=pu.PlotterWarning)
                         plotter_options[i]['imshow_options'] = \
                             plotter_options[i]['imshow_options'].copy()
 
@@ -86,7 +87,7 @@ class Plotter:
         self.axes = [p.ax for p in self.plotters]
 
     def savefig(self, oname, tidx=None, footnote='', suptitle=None,
-            titles=None, footnotes='', *args, **kwargs):
+                titles=None, footnotes='', *args, **kwargs):
         """
         Saves single image file
 
@@ -102,10 +103,10 @@ class Plotter:
         # remember if plots were blank
         haddata = self.plotters[0].hasdata
 
-        if isinstance(footnotes, str) or              len(footnotes) != len(self.plotters):
+        if isinstance(footnotes, str) or len(footnotes) != len(self.plotters):
             footnotes = [footnotes] * len(self.plotters)
 
-        for p,fn in zip(self.plotters, footnotes):
+        for p, fn in zip(self.plotters, footnotes):
 
             p(tidx=tidx, footnote=fn)
 
@@ -132,10 +133,10 @@ class Plotter:
                 # no clue why, but y=0.2 puts text nicely below the plots, for pair case...
                 if self.nplot <= 2:
                     my_ypos = .2
-                elif self.nplot >=3:
+                elif self.nplot >= 3:
                     my_ypos = .3
                 self.footnote = self.fig.text(0.5, my_ypos, footnote,
-                                                 ha='center', va='top')
+                                              ha='center', va='top')
         else:
             if footnote is not None:
                 self.footnote.set_text(footnote)
@@ -166,4 +167,4 @@ class Plotter:
         :param str odir: dir to save output file
         """
         pc.pu.savemp4(self, oname=oname, wdir=wdir, nthreads=nthreads,
-                odir=odir)
+                      odir=odir)

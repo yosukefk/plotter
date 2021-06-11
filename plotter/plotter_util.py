@@ -4,12 +4,14 @@ try:
     has_cartopy = True
 except ImportError:
     warnings.warn('no cartopy', ImportWarning)
+    ccrs = None
     has_cartopy = False
 try:
     import rasterio
     has_rasterio = False
 except ImportError:
     warnings.warn('no rasterio', ImportWarning)
+    rasterio = None
     has_rasterio = True
 
 
@@ -24,6 +26,7 @@ import os
 
 from plotter.plotter_multi import Plotter as PlotterMulti
 
+
 class PlotterWarning(UserWarning): pass
 
 
@@ -37,6 +40,8 @@ def LambertConformalTCEQ():
     return ccrs.LambertConformal(central_longitude=-97, central_latitude=40,
                                  standard_parallels=(33, 45), globe=ccrs.Globe(semimajor_axis=6370000,
                                                                                semiminor_axis=6370000))
+
+
 def LambertConformalHRRR():
     """
     HRRR's Lambert Conformal projection, define in caropy way
@@ -45,8 +50,8 @@ def LambertConformalHRRR():
     :return: CRS
     """
     return ccrs.LambertConformal(central_longitude=-97.5, central_latitude=38.5,
-                                 standard_parallels=(38.5, 38.5), globe=ccrs.Globe(semimajor_axis=6370000,
-                                                                               semiminor_axis=6370000))
+                                 standard_parallels=(38.5, 38.5),
+                                 globe=ccrs.Globe(semimajor_axis=6370000, semiminor_axis=6370000))
 
 
 # Deprecated
@@ -89,10 +94,11 @@ def savemp4(p, wdir=None, nthreads=None, odir='.', oname='animation.mp4'):
     else:
         is_tempdir = False
 
-        if isinstance(wdir , str):
+        if isinstance(wdir, str):
             wdir = Path(wdir)
         if wdir.exists():
-            for x in wdir.glob('*.png'): x.unlink()
+            for x in wdir.glob('*.png'):
+                x.unlink()
         else:
             wdir.mkdir(exist_ok=False)
 
@@ -149,6 +155,7 @@ def savemp4(p, wdir=None, nthreads=None, odir='.', oname='animation.mp4'):
     if is_tempdir:
         tempdir.cleanup()
 
+
 class _saveone:
     """save one image from plotter, so that multiprocessing.Pool can be used"""
 
@@ -167,4 +174,3 @@ class _saveone:
 
     def __call__(self, i):
         self.p.savefig(self.png_fmt.format(i), tidx=i)
-

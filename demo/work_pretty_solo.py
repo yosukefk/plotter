@@ -15,8 +15,6 @@ import matplotlib.colors as colors
 from shapely.geometry import Polygon
 from adjustText import adjust_text
 
-import numpy as np
-
 from pathlib import Path
 
 # save better resolution image 
@@ -46,7 +44,7 @@ else:
 
 # aux inputs
 bgfile = Path(plotterdir) / 'resources/naip_toy_pmerc_5.tif'
-shpfile = Path(plotterdir)  / 'resources/emitters.shp'
+shpfile = Path(plotterdir) / 'resources/emitters.shp'
 
 
 # source locations
@@ -57,7 +55,7 @@ df_shp = df_shp.to_crs('EPSG:3857')
 title = 'Regular Sources'
 
 # read data
-dat = calpost_reader.Reader(ddir / fname)
+dat = calpost_reader.calpost_reader(ddir / fname)
 
 # grab necessary info
 arr = dat['v']
@@ -106,10 +104,10 @@ plotter_options = {
     'customize_once': [
         # emission points
         lambda p: df_shp.plot(ax=p.ax, column='kls', categorical=True, legend=False, zorder=10,
-                          markersize=2,
-                          # got red/blue/yellow from colorbrewer's Set1
-                          cmap=colors.ListedColormap(['#e41a1c', '#377eb8', '#ffff33'])
-                          ),
+                              markersize=2,
+                              # got red/blue/yellow from colorbrewer's Set1
+                              cmap=colors.ListedColormap(['#e41a1c', '#377eb8', '#ffff33'])
+                              ),
 
         # emission point annotations
         lambda p: 
@@ -119,9 +117,9 @@ plotter_options = {
             list(
                 # this part creates annotation for each point
                 p.ax.annotate(_.Site_Label, (_.geometry.x, _.geometry.y,),
-                    zorder=11, 
-                    fontsize='xx-small',
-                    )
+                              zorder=11,
+                              fontsize='xx-small',
+                              )
                 # goes across all points but filter by Site_Label
                 for _ in df_shp.itertuples()
             ),
@@ -142,8 +140,8 @@ p = plotter_solo.Plotter(array=arr, tstamps=tstamps,
 
 # make single image file (for QA)
 ntsteps = len(tstamps)
-p.savefig((odir / oname).with_suffix('.png'), 
-        tidx=min(16*60,ntsteps-1))
+p.savefig((odir / oname).with_suffix('.png'),
+          tidx=min(16*60, ntsteps-1))
 
 # make mpeg file
-p.savemp4(odir / oname, wdir=wdir )
+p.savemp4(odir / oname, wdir=wdir)
