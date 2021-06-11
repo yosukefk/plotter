@@ -3,6 +3,8 @@ import numpy as np
 import datetime
 import pytz
 from pathlib import Path
+import warnings
+
 from . import calpost_reader
 calpost_cat = calpost_reader.calpost_cat
 
@@ -12,7 +14,18 @@ def Reader(f, tslice=slice(None, None), x=None, y=None):
     warnings.warn('use hysplit_reader()', DeprecationWarning)
     return hysplit_reader(f, tslice, x, y)
 
+
 def hysplit_reader(f, tslice=slice(None, None), x=None, y=None):
+    """reads hysplit output file, returns dict of numpy arrays
+
+    :param FileIO f: either (1)opened hysplit output file, (2) hysplit output filename or (3) list of (1) or (2)
+    :param slice tslice: slice of time index
+    :param list x: list of x coords
+    :param list y: list of y coords
+
+    :return: dict, with ['v'] has data as 3d array (t, y, x)
+    :rtype: dict
+    """
     # assume file name passed if 'f' is string
     if isinstance(f, (str, Path)):
         with open(f) as ff:
@@ -37,7 +50,7 @@ def hysplit_reader(f, tslice=slice(None, None), x=None, y=None):
         print('v.shp=', dat['v'].shape)
         return dat
 
-    data = pd.read_csv(f, sep='\s+')
+    data = pd.read_csv(f, sep=r'\s+')
     data = data.iloc[tslice, :]
     # there is no way to tell units...?
     units = '???'
@@ -50,7 +63,6 @@ def hysplit_reader(f, tslice=slice(None, None), x=None, y=None):
     if not all((x is None, y is None)):
         nx, ny = len(x), len(y)
         print(v.shape, nx, ny)
-        is_subregion = False
         if nx*ny == v.shape[1]:
             grid = {'x0': x.min(), 'x1': x.max(), 'y0': y.min(), 'y1': y.max(),
                     'nx': nx, 'ny': ny, 'dx': x[1] - x[0],
@@ -70,11 +82,9 @@ def hysplit_reader(f, tslice=slice(None, None), x=None, y=None):
             nx = len(x)
             ny = len(y)
 
-            is_subregion = True
             idx = [(_ == x).argmax() for _ in xr]
             jdx = [(_ == y).argmax() for _ in yr]
             map_subregion = [(j, i) for (j, i) in zip(jdx, idx)]
-    
 
             grid = {'x0': x.min(), 'x1': x.max(), 'y0': y.min(), 'y1': y.max(),
                     'nx': nx, 'ny': ny, 'dx': x[1] - x[0],
@@ -93,17 +103,14 @@ def hysplit_reader(f, tslice=slice(None, None), x=None, y=None):
             raise ValueError(
                 f'inconsistent shape: len(x),len(y),v.shape = {len(x)}, {len(y)}, {v.shape}'
             )
-            
 
-
-
-    #print(x)
-    #ptid = pd.DataFrame.from_dict({
-    #    'x': x,
-    #    'y': y,
-    #    'sxy': ['%d:%d' % (p,q) for (p,q) in zip(*[1000*np.round(_, 2) for _
-    #        in (x, y)])]
-    #    })
+    # print(x)
+    # ptid = pd.DataFrame.from_dict({
+    #     'x': x,
+    #     'y': y,
+    #     'sxy': ['%d:%d' % (p,q) for (p,q) in zip(*[1000*np.round(_, 2) for _
+    #         in (x, y)])]
+    #     })
     dct = {'v': v, 'ts': ts, 'units': units, 'df': data, 'name': None}
     if dct0:
         dct.update(dct0)

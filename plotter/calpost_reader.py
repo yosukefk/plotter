@@ -9,7 +9,8 @@ import pytz
 import warnings
 
 
-class cprValueError(ValueError): pass
+class cprValueError(ValueError):
+    pass
 
 
 # old name...
@@ -21,7 +22,7 @@ def Reader(f, tslice=slice(None, None), x=None, y=None):
 def calpost_reader(f, tslice=slice(None, None), x=None, y=None):
     """reads calpost tseries output file (gridded recep), returns dict of numpy arrays
 
-    :param FileIO f: opened calpost tseries file
+    :param FileIO f: either (1) opened calpost tseries file, (2) calpost tseries file name or (3) list of (1) or (2)
     :param slice tslice: slice of time index
     :param list x: list of x coords
     :param list y: list of y coords
@@ -98,6 +99,7 @@ def calpost_reader(f, tslice=slice(None, None), x=None, y=None):
     # print(len(x), len(y), len(x)*len(y))
     # print(nx == len(x)*len(y))
     is_subregion = False
+    map_subregion = None
     if len(x) == nx and len(y) == ny:
         # this is good, gridded data
         # print('GRID')
@@ -216,8 +218,10 @@ def calpost_cat(lst):
         pos = ['{}/{}'.format(p, p + 1) for p in range(len(lst) - 1)]
         msg1 = ', '.join([pos[_] for _ in overlaps if _ == -1])
         msg2 = ', '.join([pos[_] for _ in overlaps if _ == -2])
-        if msg1: msg1 = 'non-advancing: ' + msg1
-        if msg2: msg2 = 'non-contiguous: ' + msg2
+        if msg1:
+            msg1 = 'non-advancing: ' + msg1
+        if msg2:
+            msg2 = 'non-contiguous: ' + msg2
         msg = '; '.join([msg1, msg2])
         raise cprValueError('incompatible time series: {}'.format(msg))
 
