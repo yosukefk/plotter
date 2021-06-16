@@ -228,7 +228,7 @@ def calpost_cat(lst):
 
     # v and ts need to be overwritten by concatenated array
 
-    chop = [None if _ == 0 else -_ for _ in overlaps]
+    chop = [None if _ == 0 else _ for _ in overlaps]
 
     dat['ts'] = np.concatenate(
         [lst[0]['ts']] +
