@@ -92,7 +92,7 @@ class Plotter:
         self.axes = [p.ax for p in self.plotters]
 
     def savefig(self, oname, tidx=None, footnote=None, suptitle=None,
-            titles=None, footnotes='', *args, **kwargs):
+            titles=None, footnotes=None, *args, **kwargs):
         """
         Saves single image file
 
@@ -108,7 +108,7 @@ class Plotter:
         # remember if plots were blank
         haddata = self.plotters[0].hasdata
 
-        if isinstance(footnotes, str) or len(footnotes) != len(self.plotters):
+        if footnote is None or isinstance(footnotes, str) or len(footnotes) != len(self.plotters):
             footnotes = [footnotes] * len(self.plotters)
 
         for p,fn in zip(self.plotters, footnotes):
