@@ -135,9 +135,9 @@ class Plotter:
                     **{'shrink': my_shrink, **cbopt})
 
             if self.footnote is None:
-                print('mk fnm')
-                print('self.footnote = ', self.footnote)
-                print('self.footnote_options = ', self.footnote_options)
+                #print('mk fnm')
+                #print('self.footnote = ', self.footnote)
+                #print('self.footnote_options = ', self.footnote_options)
                 self.footnote_manager = pf.FootnoteManager(self, self.footnote,
                                                         self.footnote_options)
                 self.footnote_manager()
@@ -153,7 +153,7 @@ class Plotter:
                                                  ha='center', va='top')
         else:
             if self.footnote_manager is not None:
-                print('setting fn {footnote}')
+                #print('setting fn {footnote}')
 
                 self.footnote_manager(footnote)
 

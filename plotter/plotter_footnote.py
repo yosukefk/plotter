@@ -79,7 +79,7 @@ class FootnoteManager:
 
         :param str footnote: overwrites footnote
         """
-        print('fn call', self.plotter)
+#        print('fn call', self.plotter)
         if footnote is None:
             footnote = self._update_text()
         self.footnote.set_text(footnote)
