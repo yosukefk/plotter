@@ -58,6 +58,8 @@ class FootnoteManager:
             print('fig')
             # builtin options
             # no clue why, but y=0.2 puts text nicely below the plots, for pair case...
+            print('nplot = ', self.plotter.nplot)
+            
             if self.plotter.nplot <= 2:
                 my_ypos = .2
             elif self.plotter.nplot >=3:
@@ -69,6 +71,11 @@ class FootnoteManager:
                 y=my_ypos,  
                 ha='center', va='top',
             )
+            myopts.update({k: v for k, v in footnote_options.items() if k not in
+                           keys_to_extract})
+            myopts['s'] = myopts.pop('text', myopts['s'])
+            print(myopts)
+
             self.footnote = self.plotter.fig.text(**myopts)
         else:
             raise RuntimeError(f'not sure what this is: {self.plotter}')
