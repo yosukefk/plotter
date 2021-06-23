@@ -82,9 +82,18 @@ class Plotter:
         self.footnote_manager = None
 
         # specify the subplot positions
+        if self.nplot < 4:
+            nrow = 1
+            ncol = self.nplot
+        elif self.nplot < 9:
+            nrow = 2
+            ncol = (self.nplot + 1 ) // nrow
+        else:
+            nrow = 3
+            ncol = (self.nplot + 2 ) // nrow
         for i in range(self.nplot):
             plotter_options[i]['fig'] = self.fig
-            plotter_options[i]['pos'] = (1, self.nplot, i + 1)
+            plotter_options[i]['pos'] = (nrow, ncol, i + 1)
 
         # create plots
         self.plotters = [pc.PlotterCore(arr, tstamps, projection=projection, extent=extent,
