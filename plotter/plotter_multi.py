@@ -1,9 +1,11 @@
 try:
     from . import plotter_core as pc
     from . import plotter_util as pu
+    from . import plotter_footnote as pf
 except ImportError:
     import plotter_core as pc
     import plotter_util as pu
+    import plotter_footnote as pf
 
 import matplotlib.pyplot as plt
 import matplotlib as mpl
@@ -76,18 +78,32 @@ class Plotter:
         # one figure to hold all plots
         self.fig = plt.figure()
 
+        self.footnote = figure_options.get('footnote', None)
+        self.footnote_options = figure_options.get('footnote_options', {})
+        self.footnote_manager = None
+        self.suptitle = figure_options.get('suptitle', None)
+
         # specify the subplot positions
+        if self.nplot < 4:
+            nrow = 1
+            ncol = self.nplot
+        elif self.nplot < 9:
+            nrow = 2
+            ncol = (self.nplot + 1 ) // nrow
+        else:
+            nrow = 3
+            ncol = (self.nplot + 2 ) // nrow
         for i in range(self.nplot):
             plotter_options[i]['fig'] = self.fig
-            plotter_options[i]['pos'] = (1, self.nplot, i + 1)
+            plotter_options[i]['pos'] = (nrow, ncol, i + 1)
 
         # create plots
         self.plotters = [pc.PlotterCore(arr, tstamps, projection=projection, extent=extent,
                                         x=x, y=y, plotter_options=po) for arr, po in zip(arrays, plotter_options)]
         self.axes = [p.ax for p in self.plotters]
 
-    def savefig(self, oname, tidx=None, footnote='', suptitle=None,
-                titles=None, footnotes='', *args, **kwargs):
+    def savefig(self, oname, tidx=None, footnote=None, suptitle=None,
+            titles=None, footnotes=None, *args, **kwargs):
         """
         Saves single image file
 
@@ -103,10 +119,10 @@ class Plotter:
         # remember if plots were blank
         haddata = self.plotters[0].hasdata
 
-        if isinstance(footnotes, str) or len(footnotes) != len(self.plotters):
+        if footnote is None or isinstance(footnotes, str) or len(footnotes) != len(self.plotters):
             footnotes = [footnotes] * len(self.plotters)
 
-        for p, fn in zip(self.plotters, footnotes):
+        for p,fn in zip(self.plotters, footnotes):
 
             p(tidx=tidx, footnote=fn)
 
@@ -129,7 +145,16 @@ class Plotter:
                     use_gridspec=True,
                     **{'shrink': my_shrink, **cbopt})
 
-            if footnote is not None:
+            if self.footnote is None:
+                #print('mk fnm')
+                #print('self.footnote = ', self.footnote)
+                #print('self.footnote_options = ', self.footnote_options)
+                self.footnote_manager = pf.FootnoteManager(self, self.footnote,
+                                                        self.footnote_options)
+                self.footnote_manager()
+
+            #if footnote is not None:
+            else:
                 # no clue why, but y=0.2 puts text nicely below the plots, for pair case...
                 if self.nplot <= 2:
                     my_ypos = .2
@@ -138,14 +163,26 @@ class Plotter:
                 self.footnote = self.fig.text(0.5, my_ypos, footnote,
                                               ha='center', va='top')
         else:
-            if footnote is not None:
+            if self.footnote_manager is not None:
+                #print('setting fn {footnote}')
+
+                self.footnote_manager(footnote)
+
+            elif footnote is not None:
                 self.footnote.set_text(footnote)
 
+        if suptitle is None:
+            suptitle = self.suptitle
         if suptitle is not None:
-            warnings.warn('i dont like suptitle after all', DeprecationWarning)
+            #warnings.warn('i dont like suptitle after all', DeprecationWarning)
+            #if not isinstance(suptitle, dict):
+            #    suptitle = {'t': suptitle,
+            #                }
+            #self.fig.suptitle(**suptitle)
             if not isinstance(suptitle, dict):
-                suptitle = {'t': suptitle}
-            self.fig.suptitle(**suptitle)
+                suptitle = {'x': .1, 'y': .8, 's': suptitle, 'fontsize':
+                            'large'}
+            self.fig.text(**suptitle)
 
         if titles is not None:
             for ax, ttle in zip(self.axes, titles):

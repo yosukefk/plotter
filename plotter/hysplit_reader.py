@@ -56,8 +56,8 @@ def hysplit_reader(f, tslice=slice(None, None), x=None, y=None):
     units = '???'
 
     v = data.iloc[:, 9:].values
-    ts = [datetime.datetime(_[0] + 2000, *_[1:]).replace(tzinfo=pytz.utc).astimezone(pytz.timezone('Etc/GMT+6'))
-          for _ in data.iloc[:, 1:6].itertuples(index=False)]
+    ts = np.array([datetime.datetime(_[0] + 2000, *_[1:]).replace(tzinfo=pytz.utc).astimezone(pytz.timezone('Etc/GMT+6'))
+          for _ in data.iloc[:, 1:6].itertuples(index=False)])
 
     dct0 = {}
     if not all((x is None, y is None)):

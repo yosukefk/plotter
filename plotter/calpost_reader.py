@@ -176,9 +176,17 @@ def calpost_cat(lst):
     chk['units'] = all((_['units'] == lst[0]['units']) for _ in lst)
 
     # test grid is identical
-    chk['grid'] = all((_['grid'] == lst[0]['grid']) for _ in lst)
-    chk['x'] = all((all(_['x'] == lst[0]['x'])) for _ in lst)
-    chk['y'] = all((all(_['y'] == lst[0]['y'])) for _ in lst)
+    if 'grid' in lst[0]:
+        chk['grid'] = all((_['grid'] == lst[0]['grid']) for _ in lst)
+    else:
+        chk['grid'] = all('grid' not in _ for _ in lst)
+    if 'x' in lst[0]:
+        chk['x'] = all((all(_['x'] == lst[0]['x'])) for _ in lst)
+        chk['y'] = all((all(_['y'] == lst[0]['y'])) for _ in lst)
+    else:
+        chk['x'] = all('x' not in _ for _ in lst)
+        chk['y'] = all('y' not in _ for _ in lst)
+
 
     # ptid not checked, because x, y are checked
 
@@ -232,7 +240,7 @@ def calpost_cat(lst):
 
     # v and ts need to be overwritten by concatenated array
 
-    chop = [None if _ == 0 else -_ for _ in overlaps]
+    chop = [None if _ == 0 else _ for _ in overlaps]
 
     dat['ts'] = np.concatenate(
         [lst[0]['ts']] +

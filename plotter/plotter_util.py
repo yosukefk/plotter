@@ -163,6 +163,7 @@ class _saveone:
     # https://stackoverflow.com/questions/62186218/python-multiprocessing-attributeerror-cant-pickle-local-object
     def __init__(self, p, png_fmt, is_multi):
         self.p = p
+        self.is_multi = is_multi
         # rasterio cannot be pickled, so drop it
         if is_multi:
             for plotter in self.p.plotters:
