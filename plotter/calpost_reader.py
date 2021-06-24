@@ -14,12 +14,12 @@ class cprValueError(ValueError):
 
 
 # old name...
-def Reader(f, tslice=slice(None, None), x=None, y=None):
+def Reader(f, tslice=slice(None, None), x=None, y=None, z=None):
     warnings.warn('use calpost_reader()', DeprecationWarning)
     return calpost_reader(f, tslice, x, y)
 
 
-def calpost_reader(f, tslice=slice(None, None), x=None, y=None):
+def calpost_reader(f, tslice=slice(None, None), x=None, y=None, z=None):
     """reads calpost tseries output file (gridded recep), returns dict of numpy arrays
 
     :param FileIO f: either (1) opened calpost tseries file, (2) calpost tseries file name or (3) list of (1) or (2)
@@ -34,11 +34,11 @@ def calpost_reader(f, tslice=slice(None, None), x=None, y=None):
     # assume file name passed if 'f' is string
     if isinstance(f, (str, Path)):
         with open(f) as ff:
-            return calpost_reader(ff, tslice, x, y)
+            return calpost_reader(ff, tslice, x, y, z)
 
     # read each input, and then cat
     if isinstance(f, list):
-        dat = [calpost_reader(_, slice(None, None), x, y) for _ in f]
+        dat = [calpost_reader(_, slice(None, None), x, y, z) for _ in f]
         dat = calpost_cat(dat)
         print('ts.shp=', dat['ts'].shape)
         print('v.shp=', dat['v'].shape)
@@ -54,6 +54,11 @@ def calpost_reader(f, tslice=slice(None, None), x=None, y=None):
         print('ts.shp=', dat['ts'].shape)
         print('v.shp=', dat['v'].shape)
         return dat
+
+    if z is not None:
+        nz = len(z)
+    else:
+        nz = 1
 
     name = next(f)[31:]
     next(f)
@@ -76,13 +81,16 @@ def calpost_reader(f, tslice=slice(None, None), x=None, y=None):
     if any(_ is None for _ in (x, y)):
         x = np.fromstring(xx[16:], dtype=float, sep=' ')
         y = np.fromstring(yy[16:], dtype=float, sep=' ')
+    print('len():', len(ix), len(iy), len(x), len(y))
     ptid = pd.DataFrame.from_dict({
         'ix': ix,
         'iy': iy,
-        'x': x,
-        'y': y,
-        'sxy': ['%d:%d' % (p, q) for (p, q) in zip(*[1000 * np.round(_, 2) for _
-                                                     in (x, y)])]
+        'x': np.tile(x, nz),
+        'y': np.tile(y, nz),
+        'sxy': np.tile(
+            ['%d:%d' % (p, q) for (p, q) in zip(*[1000 * np.round(_, 2) for _
+                                                     in (x, y)])],
+            nz),
     })
     # hold on to each point's coordinates
     xr = x
@@ -101,24 +109,24 @@ def calpost_reader(f, tslice=slice(None, None), x=None, y=None):
     is_subregion = False
     map_subregion = None
     if len(x) == nx and len(y) == ny:
-        # this is good, gridded data
+        # this is good, gridded data, 2D
         # print('GRID')
         pass
-    elif len(x) * len(y) == nx:
+    elif len(x) * len(y) == nx / nz:
         # print('DESC')
         nx = len(x)
         ny = len(y)
 
     else:
         # see if the data is subset of array
-        if len(x) * len(y) * .1 < nx:
+        if len(x) * len(y) * .1 < nx / nz:
 
             nx = len(x)
             ny = len(y)
 
             is_subregion = True
-            idx = [(_ == x).argmax() for _ in xr]
-            jdx = [(_ == y).argmax() for _ in yr]
+            idx = [(_ == x).argmax() for _ in xr[:nx]]
+            jdx = [(_ == y).argmax() for _ in yr[:ny]]
             map_subregion = [(j, i) for (j, i) in zip(jdx, idx)]
 
         else:
@@ -148,12 +156,23 @@ def calpost_reader(f, tslice=slice(None, None), x=None, y=None):
 
         if is_subregion:
             # TODO
-            vv = np.empty((ny, nx))
-            vv[:] = np.nan
-            for ji, val in zip(map_subregion, v):
-                vv[ji] = val
+            if nz > 1:
+                vv = np.empty((nz, ny, nx))
+                vv[:] = np.nan
+                for k in nz:
+                    for ji, val in zip(map_subregion,
+                                       v[k*nz*ny*nx:(k+1)*nz*ny*nx]):
+                        vv[k][ji] = val
+            else:
+                vv = np.empty((ny, nx))
+                vv[:] = np.nan
+                for ji, val in zip(map_subregion, v):
+                    vv[ji] = val
         else:
-            vv = v.reshape(ny, nx)
+            if nz > 1:
+                vv = v.reshape(nz, ny, nx)
+            else:
+                vv = v.reshape(ny, nx)
         # print(v)
         lst_v.append(vv)
     ts = np.array(lst_ts)
