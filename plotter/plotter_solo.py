@@ -27,14 +27,14 @@ class Plotter:
         """
         self.tstamps = tstamps
         self.plotter = pc.PlotterCore(array, tstamps, projection=projection,
-                                extent=extent, x=x, y=y, plotter_options=plotter_options)
+                                      extent=extent, x=x, y=y, plotter_options=plotter_options)
         self.ax = self.plotter.ax
 
     def savefig(self, oname, tidx=None, footnote=None, *args, **kwargs):
         """
         Saves single image file
 
-        :param str oname: output file name
+        :param str, Path oname: output file name
         :param int tidx: index of tstamps
         :param str footnote: footnote overwrite
         :param list args: extra arguments passed to plt.savefig()
@@ -51,13 +51,10 @@ class Plotter:
         """
         Saves MP4 animation
 
-        :param str oname: output MP4 file name
-        :param str wdir: dir to save intermediate PNG files (None will use Temporary dir)
+        :param str, Path oname: output MP4 file name
+        :param str, Path wdir: dir to save intermediate PNG files (None will use Temporary dir)
         :param int nthreads: number of threads to use on parallel machine
-        :param str odir: dir to save output file
+        :param str, Path odir: dir to save output file
         """
         pc.pu.savemp4(self, oname=oname, wdir=wdir, nthreads=nthreads,
-                odir=odir)
-
-
-
+                      odir=odir)

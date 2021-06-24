@@ -1,6 +1,7 @@
 from . import calpost_reader as cpr
 from . import hysplit_reader as hsr
 
+import numpy as np
 from pathlib import Path
 
 
@@ -13,15 +14,15 @@ def get_format(f):
     line = next(f)
     f.seek(0)
 
-    fmt = None
-    if line.startswith( ' TIME-SERIES Output  --------  '):
+    if line.startswith(' TIME-SERIES Output  --------  '):
         fmt = 'calpost'
-    elif line.startswith( '    JDAY  YR  MO DA1 HR1 MN1 DA2 HR2 MN2'):
+    elif line.startswith('    JDAY  YR  MO DA1 HR1 MN1 DA2 HR2 MN2'):
         fmt = 'hysplit'
     else:
         raise ValueError(f'unknown file format: {line[:30]}')
 
     return fmt
+
 
 def reader(f, tslice=slice(None, None), x=None, y=None):
     """reads calpost/hysplit tseries output file (gridded recep), returns dict of numpy arrays
@@ -69,7 +70,6 @@ def reader(f, tslice=slice(None, None), x=None, y=None):
         raise ValueError('unknown file format')
 
 
-
 def cat(lst):
     """
     concatenates list of hysplit/calpost tseries data, assuming they are continuous time series
@@ -95,20 +95,19 @@ def cat(lst):
         chk['x'] = all('x' not in _ for _ in lst)
         chk['y'] = all('y' not in _ for _ in lst)
 
-
     # ptid not checked, because x, y are checked
 
     if not all(chk.values()):
         msg = ', '.join([_ for _ in chk if not chk[_]])
 
-        raise cprValueError('incompatible header: {}'.format(msg))
+        raise ValueError('incompatible header: {}'.format(msg))
 
     # time step size
     td = [_['ts'][1] - _['ts'][0] for _ in lst]
     # print('td (timestep size) =',td)
     # print('(td == td[0]) = ',[_ == td[0] for _ in td])
     if not all([_ == td[0] for _ in td]):
-        raise cprValueError('incompatible time step size: {}'.format(td))
+        raise ValueError('incompatible time step size: {}'.format(td))
 
     # done testing, find overlap of time period
 
@@ -139,7 +138,7 @@ def cat(lst):
         if msg2:
             msg2 = 'non-contiguous: ' + msg2
         msg = '; '.join([msg1, msg2])
-        raise cprValueError('incompatible time series: {}'.format(msg))
+        raise ValueError('incompatible time series: {}'.format(msg))
 
     # time series look ok, ready to roll!
 
@@ -162,5 +161,3 @@ def cat(lst):
          zip(lst[1:], chop)]
     )
     return dat
-
-

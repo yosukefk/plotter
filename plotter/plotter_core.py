@@ -8,6 +8,7 @@ try:
     has_cartopy = True
 except ImportError:
     warnings.warn('no cartopy', ImportWarning)
+    ccrs = None
     has_cartopy = False
 import matplotlib.pyplot as plt
 import matplotlib as mpl
@@ -245,7 +246,7 @@ class PlotterCore:
         """
         apply function to self.ax
 
-        :param function fnc:
+        :param function, list fnc:
         """
 
         # no arguments

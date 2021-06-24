@@ -15,6 +15,7 @@ from importlib import reload
 reload(pc)
 mpl.use('Agg')
 
+
 class Plotter:
     def __init__(self, arrays, tstamps, projection=None, extent=None, x=None, y=None,
                  plotter_options=None, figure_options=None):
@@ -51,7 +52,7 @@ class Plotter:
         elif isinstance(plotter_options, dict):
             # if one set of options are provided, duplicate them
             warnings.warn('plotter options are duplicated for all plots',
-                    category=pu.PlotterWarning)
+                          category=pu.PlotterWarning)
             # TODO imshow options may needed to be cloned as well
             plotter_options = [plotter_options] + [plotter_options.copy()
                                                    for _ in range(self.nplot - 1)]
@@ -63,14 +64,14 @@ class Plotter:
             for i in range(1, self.nplot):
                 if id(plotter_options[0]) == id(plotter_options[i]):
                     warnings.warn(f'plotter options {i} is unlinked from first one',
-                                category=pu.PlotterWarning)
+                                  category=pu.PlotterWarning)
                     plotter_options[i] = plotter_options[i].copy()
                 if 'imshow_options' in plotter_options[0]:
                     if id(plotter_options[0]['imshow_options']) == \
                             id(plotter_options[i].get('imshow_options',
                                                       None)):
-                        warnings.warn(f'imshow options {i} is unlinked from first one', 
-                                category=pu.PlotterWarning)
+                        warnings.warn(f'imshow options {i} is unlinked from first one',
+                                      category=pu.PlotterWarning)
                         plotter_options[i]['imshow_options'] = \
                             plotter_options[i]['imshow_options'].copy()
 
@@ -88,10 +89,10 @@ class Plotter:
             ncol = self.nplot
         elif self.nplot < 9:
             nrow = 2
-            ncol = (self.nplot + 1 ) // nrow
+            ncol = (self.nplot + 1) // nrow
         else:
             nrow = 3
-            ncol = (self.nplot + 2 ) // nrow
+            ncol = (self.nplot + 2) // nrow
         for i in range(self.nplot):
             plotter_options[i]['fig'] = self.fig
             plotter_options[i]['pos'] = (nrow, ncol, i + 1)
@@ -102,7 +103,7 @@ class Plotter:
         self.axes = [p.ax for p in self.plotters]
 
     def savefig(self, oname, tidx=None, footnote=None, suptitle=None,
-            titles=None, footnotes=None, *args, **kwargs):
+                titles=None, footnotes=None, *args, **kwargs):
         """
         Saves single image file
 
@@ -121,7 +122,7 @@ class Plotter:
         if footnote is None or isinstance(footnotes, str) or len(footnotes) != len(self.plotters):
             footnotes = [footnotes] * len(self.plotters)
 
-        for p,fn in zip(self.plotters, footnotes):
+        for p, fn in zip(self.plotters, footnotes):
 
             p(tidx=tidx, footnote=fn)
 
@@ -145,25 +146,25 @@ class Plotter:
                     **{'shrink': my_shrink, **cbopt})
 
             if self.footnote is None:
-                #print('mk fnm')
-                #print('self.footnote = ', self.footnote)
-                #print('self.footnote_options = ', self.footnote_options)
+                # print('mk fnm')
+                # print('self.footnote = ', self.footnote)
+                # print('self.footnote_options = ', self.footnote_options)
                 self.footnote_manager = pf.FootnoteManager(self, self.footnote,
-                                                        self.footnote_options)
+                                                           self.footnote_options)
                 self.footnote_manager()
 
-            #if footnote is not None:
+            # if footnote is not None:
             else:
                 # no clue why, but y=0.2 puts text nicely below the plots, for pair case...
                 if self.nplot <= 2:
                     my_ypos = .2
-                elif self.nplot >=3:
+                elif self.nplot >= 3:
                     my_ypos = .3
                 self.footnote = self.fig.text(0.5, my_ypos, footnote,
-                                                 ha='center', va='top')
+                                              ha='center', va='top')
         else:
             if self.footnote_manager is not None:
-                #print('setting fn {footnote}')
+                # print('setting fn {footnote}')
 
                 self.footnote_manager(footnote)
 
@@ -173,11 +174,11 @@ class Plotter:
         if suptitle is None:
             suptitle = self.suptitle
         if suptitle is not None:
-            #warnings.warn('i dont like suptitle after all', DeprecationWarning)
-            #if not isinstance(suptitle, dict):
-            #    suptitle = {'t': suptitle, 
-            #                }
-            #self.fig.suptitle(**suptitle)
+            # warnings.warn('i dont like suptitle after all', DeprecationWarning)
+            # if not isinstance(suptitle, dict):
+            #     suptitle = {'t': suptitle,
+            #                 }
+            # self.fig.suptitle(**suptitle)
             if not isinstance(suptitle, dict):
                 suptitle = {'x': .1, 'y': .8, 's': suptitle, 'fontsize':
                             'large'}
@@ -203,4 +204,4 @@ class Plotter:
         :param str odir: dir to save output file
         """
         pc.pu.savemp4(self, oname=oname, wdir=wdir, nthreads=nthreads,
-                odir=odir)
+                      odir=odir)

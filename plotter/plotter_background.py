@@ -6,6 +6,7 @@ try:
     has_cartopy = True
 except ImportError:
     warnings.warn('no cartopy', ImportWarning)
+    ccrs = None
     has_cartopy = False
 
 try:
@@ -14,6 +15,10 @@ try:
     has_rasterio = True
 except ImportError:
     warnings.warn('no rasterio', ImportWarning)
+    rasterio = None
+    reproject = None
+    calculate_default_transform = None
+    Resampling = None
     has_rasterio = False
 
 import numpy as np
@@ -23,10 +28,10 @@ import tempfile
 # TODO maybe make this part of PlotterCore itself?
 class BackgroundManager:
     def __init__(self, bgfile=None, source_projection=None, extent=None,
-            projection=None, wms_options=None, add_image_options=None):
+                 projection=None, wms_options=None, add_image_options=None):
         """Manage plot's projection/extent/background
 
-        :param str bgfile: name of Geotiff file to use as background
+        :param str, Path bgfile: name of Geotiff file to use as background
         :param ccrs.CRS source_projection: projection of bgfile, in case cartopy don't understand it
         :param list extent: extent of background (x0, x1, y0, y1)
         :param ccrs.CRS projection: projection to be used for the plot
@@ -88,7 +93,8 @@ class BackgroundManager:
         # https://github.com/SciTools/cartopy/issues/1477 which is still taking time...  So for now i do
         # quick-and-dirty job here
         # this is good source too https://github.com/djhoese/cartopy/blob/feature-from-proj/lib/cartopy/_proj4.py
-        # but he manually eddite crs.py to interpret from proj4 components and i dont think i can import his work easily.
+        # but he manually edited crs.py to interpret from proj4 components, and
+        # i dont think i can import his work easily.
 
         if 'init' in crs_data and crs_data['init'].lower().startswith('epsg:'):
             # if epsg is specified, assume it is going to work.
@@ -97,7 +103,7 @@ class BackgroundManager:
                 source_projection = ccrs.Mercator.GOOGLE
             else:
                 # this goes to internet to get info, so avoid it if possible
-                source_projection =  ccrs.epsg(epsg)
+                source_projection = ccrs.epsg(epsg)
 
         elif 'proj' in crs_data:
 
@@ -145,13 +151,13 @@ class BackgroundManager:
 
         return source_projection
 
-    def warp(self, projection: ccrs.Projection):
+    def warp(self, projection: ccrs.CRS):
         """reproject bacground raster
 
         :param projection: ccrs.Projection
         """
         transform, width, height = calculate_default_transform(
-            self.b.crs.data, projection.proj4_params, self.b.width, self.b.height, *(self.b.bounds)
+            self.b.crs.data, projection.proj4_params, self.b.width, self.b.height, *self.b.bounds
         )
         kwds = self.b.meta
         kwds['transform'] = transform

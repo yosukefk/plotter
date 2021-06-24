@@ -62,10 +62,10 @@ class FootnoteManager:
             
             if self.plotter.nplot <= 2:
                 my_ypos = .2
-            elif self.plotter.nplot >=3:
+            elif self.plotter.nplot >= 3:
                 my_ypos = .3
             myopts = dict(
-                #text=footnote, # matplotlib >= 3.3 renamed to 's' to 'text'
+                # text=footnote, # matplotlib >= 3.3 renamed to 's' to 'text'
                 s=footnote,  # matplotlib < 3.2 needs 's' for annotate
                 x=0.5,
                 y=my_ypos,  
@@ -119,6 +119,3 @@ class FootnoteManager:
         # vmn,vmx = [fnf.format(_) for _ in (vmn, vmx)]
         current_text = self.footnote_template.format(**locals())
         return current_text
-
-
-
