@@ -80,6 +80,7 @@ class Plotter:
         self.footnote = figure_options.get('footnote', None)
         self.footnote_options = figure_options.get('footnote_options', {})
         self.footnote_manager = None
+        self.suptitle = figure_options.get('suptitle', None)
 
         # specify the subplot positions
         if self.nplot < 4:
@@ -169,11 +170,18 @@ class Plotter:
             elif footnote is not None:
                 self.footnote.set_text(footnote)
 
+        if suptitle is None:
+            suptitle = self.suptitle
         if suptitle is not None:
-            warnings.warn('i dont like suptitle after all', DeprecationWarning)
+            #warnings.warn('i dont like suptitle after all', DeprecationWarning)
+            #if not isinstance(suptitle, dict):
+            #    suptitle = {'t': suptitle, 
+            #                }
+            #self.fig.suptitle(**suptitle)
             if not isinstance(suptitle, dict):
-                suptitle = {'t': suptitle}
-            self.fig.suptitle(**suptitle)
+                suptitle = {'x': .1, 'y': .8, 's': suptitle, 'fontsize':
+                            'large'}
+            self.fig.text(**suptitle)
 
         if titles is not None:
             for ax, ttle in zip(self.axes, titles):
