@@ -173,16 +173,20 @@ class Plotter:
 
         if suptitle is None:
             suptitle = self.suptitle
+
         if suptitle is not None:
             # warnings.warn('i dont like suptitle after all', DeprecationWarning)
             # if not isinstance(suptitle, dict):
             #     suptitle = {'t': suptitle,
             #                 }
             # self.fig.suptitle(**suptitle)
-            if not isinstance(suptitle, dict):
-                suptitle = {'x': .1, 'y': .8, 's': suptitle, 'fontsize':
-                            'large'}
-            self.fig.text(**suptitle)
+            my_suptitle = {'x': .1, 'y': .8, 
+                        'fontsize': 'large'}
+            if isinstance(suptitle, dict):
+                my_suptitle.update(suptitle)
+            else:
+                my_suptitle['s'] = suptitle 
+            self.fig.text(**my_suptitle)
 
         if titles is not None:
             for ax, ttle in zip(self.axes, titles):
