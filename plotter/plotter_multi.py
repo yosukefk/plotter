@@ -89,10 +89,10 @@ class Plotter:
             ncol = self.nplot
         elif self.nplot < 9:
             nrow = 2
-            ncol = (self.nplot + 1 ) // nrow
+            ncol = (self.nplot + 1) // nrow
         else:
             nrow = 3
-            ncol = (self.nplot + 2 ) // nrow
+            ncol = (self.nplot + 2) // nrow
         for i in range(self.nplot):
             plotter_options[i]['fig'] = self.fig
             plotter_options[i]['pos'] = (nrow, ncol, i + 1)
@@ -103,7 +103,7 @@ class Plotter:
         self.axes = [p.ax for p in self.plotters]
 
     def savefig(self, oname, tidx=None, footnote=None, suptitle=None,
-            titles=None, footnotes=None, *args, **kwargs):
+                titles=None, footnotes=None, *args, **kwargs):
         """
         Saves single image file
 
@@ -122,7 +122,7 @@ class Plotter:
         if footnote is None or isinstance(footnotes, str) or len(footnotes) != len(self.plotters):
             footnotes = [footnotes] * len(self.plotters)
 
-        for p,fn in zip(self.plotters, footnotes):
+        for p, fn in zip(self.plotters, footnotes):
 
             p(tidx=tidx, footnote=fn)
 
@@ -146,14 +146,14 @@ class Plotter:
                     **{'shrink': my_shrink, **cbopt})
 
             if self.footnote is None:
-                #print('mk fnm')
-                #print('self.footnote = ', self.footnote)
-                #print('self.footnote_options = ', self.footnote_options)
+                # print('mk fnm')
+                # print('self.footnote = ', self.footnote)
+                # print('self.footnote_options = ', self.footnote_options)
                 self.footnote_manager = pf.FootnoteManager(self, self.footnote,
-                                                        self.footnote_options)
+                                                           self.footnote_options)
                 self.footnote_manager()
 
-            #if footnote is not None:
+            # if footnote is not None:
             else:
                 # no clue why, but y=0.2 puts text nicely below the plots, for pair case...
                 if self.nplot <= 2:
@@ -164,7 +164,7 @@ class Plotter:
                                               ha='center', va='top')
         else:
             if self.footnote_manager is not None:
-                #print('setting fn {footnote}')
+                # print('setting fn {footnote}')
 
                 self.footnote_manager(footnote)
 
@@ -174,11 +174,11 @@ class Plotter:
         if suptitle is None:
             suptitle = self.suptitle
         if suptitle is not None:
-            #warnings.warn('i dont like suptitle after all', DeprecationWarning)
-            #if not isinstance(suptitle, dict):
-            #    suptitle = {'t': suptitle,
-            #                }
-            #self.fig.suptitle(**suptitle)
+            # warnings.warn('i dont like suptitle after all', DeprecationWarning)
+            # if not isinstance(suptitle, dict):
+            #     suptitle = {'t': suptitle,
+            #                 }
+            # self.fig.suptitle(**suptitle)
             if not isinstance(suptitle, dict):
                 suptitle = {'x': .1, 'y': .8, 's': suptitle, 'fontsize':
                             'large'}
