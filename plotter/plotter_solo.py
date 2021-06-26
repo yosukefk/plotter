@@ -15,7 +15,7 @@ reload(pc)
 
 class Plotter:
     def __init__(self, array, tstamps, projection=None, extent=None, x=None,
-                 y=None, z=None, idx=None, jdx=None, plotter_options=None):
+                 y=None, z=None, plotter_options=None):
         """
         Wrapper for single PlotterCore, allows savefig() and savemp4()
 
@@ -32,10 +32,19 @@ class Plotter:
             self.plotter = pc.PlotterCore(array, tstamps, projection=projection,
                                           extent=extent, x=x, y=y, plotter_options=plotter_options)
         else:
-            self.plotter = pv.PlotterVprof(array,
-                                           tstamps,projection=projection, extent=extent, 
-                                           x=x, y=y, z=z, idx=idx, jdx=jdx,
-                                           plotter_options=plotter_options)
+            if 'kdx' in plotter_options:
+                kdx = plotter_options.pop('kdx', None)
+                print(array.shape)
+                print(array[:, kdx, :, :].shape)
+                self.plotter = pc.PlotterCore(array[:, kdx, :, :], tstamps, projection=projection,
+                                              extent=extent, x=x, y=y, plotter_options=plotter_options)
+            else:
+                idx = plotter_options.pop('idx', None)
+                jdx = plotter_options.pop('jdx', None)
+                self.plotter = pv.PlotterVprof(array,
+                                               tstamps,projection=projection, extent=extent, 
+                                               x=x, y=y, z=z, idx=idx, jdx=jdx,
+                                               plotter_options=plotter_options)
 
         self.ax = self.plotter.ax
 

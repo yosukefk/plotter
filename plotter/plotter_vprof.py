@@ -10,20 +10,27 @@ import warnings
 class PlotterVprof:
     def __init__(self, array, tstamps, z, idx=None, jdx=None,
                  projection=None, extent=None, x=None, y=None, plotter_options=None):
+        """
+
+        :rtype: PlotterVprof
+        :param np.ndarray array: 4-d array of data values, dimensions(t, z, y, x), or 2+ d array of data values, dimensions(t, ...)
+        :param np.ndarray tstamps: 1-d array of datetime, dimensions(t)
+        :param ccrs.CRS projection: projection of xy coordinate of data
+        :param list extent: xy extent of data, with with coordinate of projection
+        :param np.ndarray x: x coordinate of data, with shape matching (...) part of array
+        :param np.ndarray y: y coordinate of data, with shape matching (...) part of array
+        :param dict plotter_options: all the arguments passed to plotter
+        """
+
         if plotter_options is None: plotter_options = {}
+
+        # i have to know the axes being used, even user wants default
+        # so i grab default axes here and hold onto it
         self.fig = plotter_options.get('fig', plt.figure())
         pos = plotter_options.get('pos', None)
 
         self.arr = array
         self.tstamps = tstamps
-
-        self.extent = extent
-        self.x = x
-        self.y = y
-        if self.extent is None and not (self.x is None or self.y is None):
-            self.extent = [self.x[0], self.x[-1], self.y[0], self.y[-1]]
-
-        self.z = z
 
         if idx is None:
             if jdx is None:
@@ -59,9 +66,20 @@ class PlotterVprof:
         self.title = plotter_options.get('title', None)
         self.title_options = plotter_options.get('title_options', None)
 
+
+        # data's extent
+        self.extent = extent
+        self.x = x
+        self.y = y
+        if self.extent is None and not (self.x is None or self.y is None):
+            self.extent = [self.x[0], self.x[-1], self.y[0], self.y[-1]]
+
+        # vertical coordinates
+        self.z = z
+
         # create plots 
         if pos:
-            self.ax = self.fig.add_subprot(*pos)
+            self.ax = self.fig.add_subplot(*pos)
         else:
             self.ax = self.fig.add_subplot()
 
@@ -94,8 +112,17 @@ class PlotterVprof:
         self.current_tstamp = None
 
     def update(self, tidx=None, footnote=None, title=None):
+        """
+        Update plot to data at tidx
+
+        :param int tidx: time index
+        :param str footnote: footnote overwrite
+        :param str title:  title overwrite
+        """
         if tidx is None: tidx = 0
+        # get 2d array to plot
         idx = [tidx, self.kslice, self.jslice, self.islice]
+
         arr = self.arr[tuple(idx)]
 
         ts = self.tstamps[tidx]
@@ -118,6 +145,7 @@ class PlotterVprof:
         else:
 
             if self.contour_options is not None:
+                kwds = self.contour_options
                 if self.x is None:
                     if self.extent is None:
                         self.x = np.arange(arr.shape[1])
@@ -127,13 +155,11 @@ class PlotterVprof:
                         self.y = np.linspace(self.extent[3], self.extent[2], arr.shape[0], endpoint=False)
                         self.x = self.x + .5 * (self.x[1] - self.x[0])
                         self.y = self.y + .5 * (self.y[1] - self.y[0])
-
                 if self.idx is None:
                     self.xx = self.y
                 else:
                     self.xx = self.x
 
-                kwds = self.contour_options
                 print(kwds)
                 print(self.xx)
                 print(self.z)
