@@ -25,9 +25,11 @@ class Plotter:
         :param list extent: xy extent of data, with with coordinate of projection
         :param np.ndarray x: x coordinate of data
         :param np.ndarray y: y coordinate of data
+        :param np.ndarray z: z coordinate of data
         :param dict plotter_options: all the arguments passed to plotter
         """
         self.tstamps = tstamps
+
         if z is None:
             self.plotter = pc.PlotterCore(array, tstamps, projection=projection,
                                           extent=extent, x=x, y=y, plotter_options=plotter_options)
