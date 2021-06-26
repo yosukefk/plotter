@@ -13,7 +13,7 @@ class FootnoteManager:
         :param str,  footnote: default footnote
         :param dict,  footnote_options (optional):
         """
-        print('opt footnote:', footnote)
+#        print('opt footnote:', footnote)
         self.plotter = plotter
         if footnote_options is None:
             footnote_options = {}
@@ -32,7 +32,7 @@ class FootnoteManager:
                                  k in keys_to_extract}
 
         if hasattr(self.plotter, 'ax'):
-            print('ax')
+#            print('ax')
             # builtin options
             myopts = dict(
                 # text=footnote, # matplotlib >= 3.3 renamed to 's' to 'text'
@@ -55,10 +55,10 @@ class FootnoteManager:
             self.footnote = self.plotter.ax.annotate(**myopts)
             self()
         elif hasattr(self.plotter, 'fig'):
-            print('fig')
+#            print('fig')
             # builtin options
             # no clue why, but y=0.2 puts text nicely below the plots, for pair case...
-            print('nplot = ', self.plotter.nplot)
+#            print('nplot = ', self.plotter.nplot)
             
             if self.plotter.nplot <= 2:
                 my_ypos = .2

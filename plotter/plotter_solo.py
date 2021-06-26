@@ -1,7 +1,9 @@
 try:
     from . import plotter_core as pc
+    from . import plotter_vprof as pv
 except ImportError:
     import plotter_core as pc
+    import plotter_vprof as pv
 
 import matplotlib.pyplot as plt
 import matplotlib as mpl
@@ -12,8 +14,8 @@ reload(pc)
 
 
 class Plotter:
-    def __init__(self, array, tstamps, projection=None, extent=None, x=None, y=None,
-                 plotter_options=None):
+    def __init__(self, array, tstamps, projection=None, extent=None, x=None,
+                 y=None, z=None, idx=None, jdx=None, plotter_options=None):
         """
         Wrapper for single PlotterCore, allows savefig() and savemp4()
 
@@ -26,8 +28,13 @@ class Plotter:
         :param dict plotter_options: all the arguments passed to plotter
         """
         self.tstamps = tstamps
-        self.plotter = pc.PlotterCore(array, tstamps, projection=projection,
-                                      extent=extent, x=x, y=y, plotter_options=plotter_options)
+        if z is None:
+            self.plotter = pc.PlotterCore(array, tstamps, projection=projection,
+                                          extent=extent, x=x, y=y, plotter_options=plotter_options)
+        else:
+            self.plotter = pv.PlotterVprof(array, tstamps, z, idx, jdx,
+                                           plotter_options)
+
         self.ax = self.plotter.ax
 
     def savefig(self, oname, tidx=None, footnote=None, *args, **kwargs):
