@@ -1,19 +1,33 @@
 from . import plotter_util as pu
+from . import plotter_footnote as pf
+
+import matplotlib.pyplot as plt
+import numpy as np
+
 import warnings
 
+
 class PlotterVprof:
-    def __init__(self, array, tstamps, z, idx=None, jdx=None, plotter_options=None):
+    def __init__(self, array, tstamps, z, idx=None, jdx=None,
+                 projection=None, extent=None, x=None, y=None, plotter_options=None):
         if plotter_options is None: plotter_options = {}
         self.fig = plotter_options.get('fig', plt.figure())
         pos = plotter_options.get('pos', None)
 
         self.arr = array
         self.tstamps = tstamps
+
+        self.extent = extent
+        self.x = x
+        self.y = y
+        if self.extent is None and not (self.x is None or self.y is None):
+            self.extent = [self.x[0], self.x[-1], self.y[0], self.y[-1]]
+
         self.z = z
 
         if idx is None:
             if jdx is None:
-                raise ValueError('ijdx')
+                raise ValueError('none of idx/jdx provided')
             else:
                 islice = slice(None,None)
                 jslice = jdx
@@ -22,11 +36,12 @@ class PlotterVprof:
                 islice = idx
                 jslice = slice(None,None)
             else:
-                raise ValueError('ijslice')
+                raise ValueError('both idx/jdx provided')
         self.idx = idx
         self.jdx = jdx
         self.islice = islice
         self.jslice = jslice
+        self.kslice = slice(None,None)
 
         if 'imshow_option' in plotter_options:
             warnings.warn('imshow not supported', pu.PlotterWarning )
@@ -34,8 +49,11 @@ class PlotterVprof:
 
         self.colorbar_options = plotter_options.get('colorbar_options', {})
 
-        self.footnote = plotter_options.get('footnote', None)
-        self.footnote_options = plotter_options.get('footnote_options', {})
+        self.footnote = plotter_options.get('footnote', "{tstamp}") # default just time stamp
+        footnote_options = {'xytext': (0,-18)}  # default, need to push lower
+        footnote_options.update(
+            plotter_options.get('footnote_options', {}))
+        self.footnote_options=footnote_options
         self.footnote_manager = None
 
         self.title = plotter_options.get('title', None)
@@ -77,7 +95,7 @@ class PlotterVprof:
 
     def update(self, tidx=None, footnote=None, title=None):
         if tidx is None: tidx = 0
-        idx = [tidx, :, self.jslice, self.islice]
+        idx = [tidx, self.kslice, self.jslice, self.islice]
         arr = self.arr[tuple(idx)]
 
         ts = self.tstamps[tidx]
@@ -92,8 +110,7 @@ class PlotterVprof:
                 for c in self.cnt.collections:
                     c.remove()
                 kwds = self.contour_options
-                self.cnt = self.ax.contourf(self.x, self.y, arr,
-                                            extent=self.extent, transform=self.projection, **kwds)
+                self.cnt = self.ax.contourf(self.xx, self.z, arr,**kwds)
 
             if self.footnote_manager is not None:
                 self.footnote_manager(footnote)
@@ -101,10 +118,27 @@ class PlotterVprof:
         else:
 
             if self.contour_options is not None:
-                kwds = self.contour_options
                 if self.x is None:
-                    self.x = np.arrange(arr.shape[-1])
-                self.cnt = self.ax.contourf(self.x, self.z, arr,  **kwds)
+                    if self.extent is None:
+                        self.x = np.arange(arr.shape[1])
+                        self.y = np.arange(arr.shape[0])
+                    else:
+                        self.x = np.linspace(self.extent[0], self.extent[1], arr.shape[1], endpoint=False)
+                        self.y = np.linspace(self.extent[3], self.extent[2], arr.shape[0], endpoint=False)
+                        self.x = self.x + .5 * (self.x[1] - self.x[0])
+                        self.y = self.y + .5 * (self.y[1] - self.y[0])
+
+                if self.idx is None:
+                    self.xx = self.y
+                else:
+                    self.xx = self.x
+
+                kwds = self.contour_options
+                print(kwds)
+                print(self.xx)
+                print(self.z)
+                print(arr.shape)
+                self.cnt = self.ax.contourf(self.xx, self.z, arr,  **kwds)
                 self.mappable = self.cnt
 
             if self.colorbar_options is not None:
@@ -118,6 +152,9 @@ class PlotterVprof:
 
             # None => default?  or '' => nothing?
             if self.footnote != '':
+                print('here')
+                print(self.footnote)
+                print(self.footnote_options)
                 self.footnote_manager = pf.FootnoteManager(self, self.footnote,
                                                         self.footnote_options)
 

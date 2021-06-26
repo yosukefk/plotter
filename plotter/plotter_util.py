@@ -167,9 +167,11 @@ class _saveone:
         # rasterio cannot be pickled, so drop it
         if is_multi:
             for plotter in self.p.plotters:
-                plotter.background_manager.purge_bgfile_hook()
+                if hasattr(plotter, 'background_manager'):
+                    plotter.background_manager.purge_bgfile_hook()
         else:
-            self.p.plotter.background_manager.purge_bgfile_hook()
+            if hasattr(self.p.plotter, 'background_manager'):
+                self.p.plotter.background_manager.purge_bgfile_hook()
 
         self.png_fmt = png_fmt
 

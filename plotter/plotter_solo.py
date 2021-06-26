@@ -32,8 +32,10 @@ class Plotter:
             self.plotter = pc.PlotterCore(array, tstamps, projection=projection,
                                           extent=extent, x=x, y=y, plotter_options=plotter_options)
         else:
-            self.plotter = pv.PlotterVprof(array, tstamps, z, idx, jdx,
-                                           plotter_options)
+            self.plotter = pv.PlotterVprof(array,
+                                           tstamps,projection=projection, extent=extent, 
+                                           x=x, y=y, z=z, idx=idx, jdx=jdx,
+                                           plotter_options=plotter_options)
 
         self.ax = self.plotter.ax
 

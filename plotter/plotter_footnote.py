@@ -105,17 +105,25 @@ class FootnoteManager:
         if 'tstamp_format' in self.footnote_options:
             tstamp = tstamp.strftime(self.footnote_options['tstamp_format'])
 
-        i0 = my_plotter.i0
-        j0 = my_plotter.j0
-        # find timestamp and min/max
-        jmn, imn = np.unravel_index(arr.argmin(), arr.shape)
-        jmx, imx = np.unravel_index(arr.argmax(), arr.shape)
-        vmn = arr[jmn, imn]
-        vmx = arr[jmx, imx]
-        imn += i0
-        imx += i0
-        jmn = j0 - jmn
-        jmx = j0 - jmx
+        if hasattr(my_plotter, 'i0'):
+            i0 = my_plotter.i0
+            j0 = my_plotter.j0
+            # find timestamp and min/max
+            jmn, imn = np.unravel_index(arr.argmin(), arr.shape)
+            jmx, imx = np.unravel_index(arr.argmax(), arr.shape)
+            vmn = arr[jmn, imn]
+            vmx = arr[jmx, imx]
+            imn += i0
+            imx += i0
+            jmn = j0 - jmn
+            jmx = j0 - jmx
+        else:
+            imn=-99
+            jmn=-99
+            imx=-99
+            jmx=-99
+            vmn=-9999.9
+            vmx=-9999.9
         # vmn,vmx = [fnf.format(_) for _ in (vmn, vmx)]
         current_text = self.footnote_template.format(**locals())
         return current_text
