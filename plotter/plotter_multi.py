@@ -1,9 +1,11 @@
 try:
     from . import plotter_core as pc
+    from . import plotter_vprof as pv
     from . import plotter_util as pu
     from . import plotter_footnote as pf
 except ImportError:
     import plotter_core as pc
+    import plotter_vprof as pv
     import plotter_util as pu
     import plotter_footnote as pf
 
@@ -17,8 +19,8 @@ mpl.use('Agg')
 
 
 class Plotter:
-    def __init__(self, arrays, tstamps, projection=None, extent=None, x=None, y=None,
-                 plotter_options=None, figure_options=None):
+    def __init__(self, arrays, tstamps, projection=None, extent=None,
+                 x=None, y=None, z=None, plotter_options=None, figure_options=None):
         """
         Wrappter for multple PlotterCore, allows savefig() and savemp4()
 
@@ -27,7 +29,8 @@ class Plotter:
         :param ccrs.CRS projection: projection of xy coordinate of data, common across plots
         :param list extent: xy extent of data, with with coordinate of projection, common across plots
         :param np.ndarray x: x coordinate of data, common across plots
-        :param np.ndarray  y: y coordinate of data, common across plots
+        :param np.ndarray y: y coordinate of data, common across plots
+        :param np.ndarray z: z coordinate of data, common across plots
         :param dict or list plotter_options: all the arguments passed to all plot, or list of options one for each plot
         :param figure_options: options passed to "figure", the container for the plots
 
@@ -35,6 +38,11 @@ class Plotter:
           tstamps, projection, extent are shared across plots
           landscape orientation, all plots side by side
         """
+
+        # everython but these are passed to plt.figure()
+        self.figure_options_for_plotter = [
+            'footnote', 'footnote_options', 'colorbar_options', 'suptitle', 
+        ]
 
         if figure_options is None:
             figure_options = {}
@@ -76,7 +84,8 @@ class Plotter:
                             plotter_options[i]['imshow_options'].copy()
 
         # one figure to hold all plots
-        self.fig = plt.figure()
+        self.fig = plt.figure(**{k:v for k,v in self.figure_options.items() if k not
+                                 in self.figure_options_for_plotter})
 
         self.footnote = figure_options.get('footnote', None)
         self.footnote_options = figure_options.get('footnote_options', {})
@@ -98,8 +107,28 @@ class Plotter:
             plotter_options[i]['pos'] = (nrow, ncol, i + 1)
 
         # create plots
-        self.plotters = [pc.PlotterCore(arr, tstamps, projection=projection, extent=extent,
-                                        x=x, y=y, plotter_options=po) for arr, po in zip(arrays, plotter_options)]
+        if z is None:
+            self.plotters = [pc.PlotterCore(arr, tstamps, projection=projection, extent=extent,
+                                            x=x, y=y, plotter_options=po) for arr, po in zip(arrays, plotter_options)]
+        else:
+            self.plotters = []
+            for arr, po in zip(arrays, plotter_options):
+                if 'kdx' in po:
+                    kdx = po.pop('kdx', None)
+                    self.plotters.append(
+                        pc.PlotterCore(arr[:, kdx, :, :], tstamps, projection=projection, 
+                                       extent=extent, x=x, y=y, plotter_options=po) 
+                    )
+                else:
+                    idx = po.pop('idx', None)
+                    jdx = po.pop('jdx', None)
+                    self.plotters.append(
+                        pv.PlotterVprof(arr, 
+                                        tstamps,projection=projection, extent=extent, 
+                                       # x=x, y=y,  # ignore hor coord...
+                                        z=z, idx=idx, jdx=jdx,
+                                               plotter_options=po)
+                    )
         self.axes = [p.ax for p in self.plotters]
 
     def savefig(self, oname, tidx=None, footnote=None, suptitle=None,
@@ -124,7 +153,7 @@ class Plotter:
 
         for p, fn in zip(self.plotters, footnotes):
 
-            p(tidx=tidx, footnote=fn)
+            p.update(tidx=tidx, footnote=fn)
 
         # if it was blank, need some initalization
         if not haddata:

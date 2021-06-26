@@ -13,7 +13,7 @@ class FootnoteManager:
         :param str,  footnote: default footnote
         :param dict,  footnote_options (optional):
         """
-        print('opt footnote:', footnote)
+#        print('opt footnote:', footnote)
         self.plotter = plotter
         if footnote_options is None:
             footnote_options = {}
@@ -32,7 +32,7 @@ class FootnoteManager:
                                  k in keys_to_extract}
 
         if hasattr(self.plotter, 'ax'):
-            print('ax')
+#            print('ax')
             # builtin options
             myopts = dict(
                 # text=footnote, # matplotlib >= 3.3 renamed to 's' to 'text'
@@ -55,10 +55,10 @@ class FootnoteManager:
             self.footnote = self.plotter.ax.annotate(**myopts)
             self()
         elif hasattr(self.plotter, 'fig'):
-            print('fig')
+#            print('fig')
             # builtin options
             # no clue why, but y=0.2 puts text nicely below the plots, for pair case...
-            print('nplot = ', self.plotter.nplot)
+#            print('nplot = ', self.plotter.nplot)
             
             if self.plotter.nplot <= 2:
                 my_ypos = .2
@@ -105,17 +105,25 @@ class FootnoteManager:
         if 'tstamp_format' in self.footnote_options:
             tstamp = tstamp.strftime(self.footnote_options['tstamp_format'])
 
-        i0 = my_plotter.i0
-        j0 = my_plotter.j0
-        # find timestamp and min/max
-        jmn, imn = np.unravel_index(arr.argmin(), arr.shape)
-        jmx, imx = np.unravel_index(arr.argmax(), arr.shape)
-        vmn = arr[jmn, imn]
-        vmx = arr[jmx, imx]
-        imn += i0
-        imx += i0
-        jmn = j0 - jmn
-        jmx = j0 - jmx
+        if hasattr(my_plotter, 'i0'):
+            i0 = my_plotter.i0
+            j0 = my_plotter.j0
+            # find timestamp and min/max
+            jmn, imn = np.unravel_index(arr.argmin(), arr.shape)
+            jmx, imx = np.unravel_index(arr.argmax(), arr.shape)
+            vmn = arr[jmn, imn]
+            vmx = arr[jmx, imx]
+            imn += i0
+            imx += i0
+            jmn = j0 - jmn
+            jmx = j0 - jmx
+        else:
+            imn=-99
+            jmn=-99
+            imx=-99
+            jmx=-99
+            vmn=-9999.9
+            vmx=-9999.9
         # vmn,vmx = [fnf.format(_) for _ in (vmn, vmx)]
         current_text = self.footnote_template.format(**locals())
         return current_text
