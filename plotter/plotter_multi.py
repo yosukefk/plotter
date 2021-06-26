@@ -39,6 +39,11 @@ class Plotter:
           landscape orientation, all plots side by side
         """
 
+        # everython but these are passed to plt.figure()
+        self.figure_options_for_plotter = [
+            'footnote', 'footnote_options', 'colorbar_options', 'suptitle', 
+        ]
+
         if figure_options is None:
             figure_options = {}
         self.figure_options = figure_options
@@ -79,7 +84,8 @@ class Plotter:
                             plotter_options[i]['imshow_options'].copy()
 
         # one figure to hold all plots
-        self.fig = plt.figure()
+        self.fig = plt.figure(**{k:v for k,v in self.figure_options.items() if k not
+                                 in self.figure_options_for_plotter})
 
         self.footnote = figure_options.get('footnote', None)
         self.footnote_options = figure_options.get('footnote_options', {})
@@ -119,7 +125,8 @@ class Plotter:
                     self.plotters.append(
                         pv.PlotterVprof(arr, 
                                         tstamps,projection=projection, extent=extent, 
-                                        x=x, y=y, z=z, idx=idx, jdx=jdx,
+                                       # x=x, y=y,  # ignore hor coord...
+                                        z=z, idx=idx, jdx=jdx,
                                                plotter_options=po)
                     )
         self.axes = [p.ax for p in self.plotters]
