@@ -1,9 +1,11 @@
 try:
     from . import plotter_core as pc
     from . import plotter_vprof as pv
+    from . import plotter_tseries as pt
 except ImportError:
     import plotter_core as pc
     import plotter_vprof as pv
+    import plotter_ts as pt
 
 import matplotlib.pyplot as plt
 import matplotlib as mpl
@@ -31,7 +33,11 @@ class Plotter:
         self.tstamps = tstamps
 
         if z is None:
-            self.plotter = pc.PlotterCore(array, tstamps, projection=projection,
+            if 'tseries' in plotter_options:
+                self.plotter = pt.PlotterTseries(array, tstamps,
+                                            plotter_options=plotter_options)
+            else:
+                self.plotter = pc.PlotterCore(array, tstamps, projection=projection,
                                           extent=extent, x=x, y=y, plotter_options=plotter_options)
         else:
             if 'kdx' in plotter_options:
@@ -61,6 +67,7 @@ class Plotter:
         :param dict kwargs: extra arguments passed to plt.savefig()
         """
         self.plotter.update(tidx, footnote)
+        plt.figure(self.plotter.fig.number)
         plt.savefig(oname, *args, **kwargs)
 
     def __call__(self, oname, *args, **kwargs):
