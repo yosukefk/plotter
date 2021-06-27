@@ -10,6 +10,7 @@ from plotnine import (
     scale_y_log10, 
     scale_size_manual, 
 )
+p9.options.dpi = 600
 
 import matplotlib.pylab as plt
 import matplotlib.image as img
@@ -17,6 +18,7 @@ import matplotlib.image as img
 import pandas as pd
 import numpy as np
 import tempfile
+import warnings
 
 
 class PlotterTseries:
@@ -64,25 +66,27 @@ class PlotterTseries:
                                                value_name='v')
         self.df2['q'] = pd.Categorical(self.df2['q'], categories=qlabels)
         self.df2['g'] = self.df2['tag'] + self.df2['q'].astype(str)
+        self.nq = nq
 
-        # base tseries plot
-        self.gg = ( 
-            ggplot(data=self.df2, mapping=aes('t', 'v' )) + 
-            geom_line(aes(color='tag',alpha='q', size='q', group='g')) +
-            # TODO nice time axis needed
-#            scale_x_continuous(breaks=np.arange(0, hrmax, 24),
-#                       minor_breaks = np.arange(0, hrmax, 6),
-#            ) +
-            scale_color_brewer(name='Model', type='qual', palette='Set1') +
-            scale_alpha_manual(values=np.linspace(1, .2, num=nq)) + 
-            scale_size_manual(values=np.geomspace(2, .5, num=nq)) +
-            scale_y_log10(limits=[1.0, self.df2['v'].max()]) +
-            labs(
-                #title=title, 
-                #x='hour', 
-                y='conc (ppb)', 
-                alpha='Quantile', 
-                 size='Quantile',))
+# this makes this plotter object unpickable
+#        # base tseries plot
+#        self.gg = ( 
+#            ggplot(data=self.df2, mapping=aes('t', 'v' )) + 
+#            geom_line(aes(color='tag',alpha='q', size='q', group='g')) +
+#            # TODO nice time axis needed
+##            scale_x_continuous(breaks=np.arange(0, hrmax, 24),
+##                       minor_breaks = np.arange(0, hrmax, 6),
+##            ) +
+#            scale_color_brewer(name='Model', type='qual', palette='Set1') +
+#            scale_alpha_manual(values=np.linspace(1, .2, num=nq)) + 
+#            scale_size_manual(values=np.geomspace(2, .5, num=nq)) +
+#            scale_y_log10(limits=[1.0, self.df2['v'].max()]) +
+#            labs(
+#                #title=title, 
+#                #x='hour', 
+#                y='conc (ppb)', 
+#                alpha='Quantile', 
+#                 size='Quantile',))
         self.hasdata = False
 
 
@@ -98,13 +102,32 @@ class PlotterTseries:
         if tidx is None: tidx = 0
         t = self.tstamps[tidx]
         #print(self.df2.loc[self.df2['t'] == t, :])
-        gg = ( self.gg + 
-                 geom_vline(aes(xintercept=t)) + 
-                 geom_point(data=self.df2.loc[self.df2['t'] == t, :],
-                            mapping=aes('t', 'v', color='tag'),
-                            inherit_aes=False) 
-                 )
-        arr = self.gg2arr(gg)
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')
+            gg = (
+                ggplot(data=self.df2, mapping=aes('t', 'v' )) + 
+                geom_line(aes(color='tag',alpha='q', size='q', group='g')) +
+                # TODO nice time axis needed
+    #            scale_x_continuous(breaks=np.arange(0, hrmax, 24),
+    #                       minor_breaks = np.arange(0, hrmax, 6),
+    #            ) +
+                scale_color_brewer(name='Model', type='qual', palette='Set1') +
+                scale_alpha_manual(values=np.linspace(1, .2, num=self.nq)) + 
+                scale_size_manual(values=np.geomspace(2, .5, num=self.nq)) +
+                scale_y_log10(limits=[1.0, self.df2['v'].max()]) +
+                labs(
+                    #title=title, 
+                    #x='hour', 
+                    y='conc (ppb)', 
+                    alpha='Quantile', 
+                     size='Quantile',) + 
+                geom_vline(aes(xintercept=t)) + 
+                geom_point(data=self.df2.loc[self.df2['t'] == t, :], 
+                           mapping=aes('t', 'v', color='tag'), 
+                           inherit_aes=False) 
+            )
+
+            arr = self.gg2arr(gg)
 #        print(arr)
 #        print(arr.shape)
 #        print(np.quantile(arr[:,:,0], q=np.linspace(0,1)))
