@@ -22,6 +22,7 @@ class PlotterCore:
     def __init__(self, array, tstamps, projection=None, extent=None, x=None, y=None,
                  plotter_options=None):
         """
+        Manages mpl.Axes with a tile plot
 
         :rtype: PlotterCore
         :param np.ndarray array: 3-d array of data values, dimensions(t, y, x), or 2+ d array of data values, dimensions(t, ...)

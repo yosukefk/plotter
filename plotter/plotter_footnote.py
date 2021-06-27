@@ -32,7 +32,7 @@ class FootnoteManager:
                                  k in keys_to_extract}
 
         if hasattr(self.plotter, 'ax'):
-#            print('ax')
+            # print('ax')
             # builtin options
             myopts = dict(
                 # text=footnote, # matplotlib >= 3.3 renamed to 's' to 'text'
@@ -55,14 +55,17 @@ class FootnoteManager:
             self.footnote = self.plotter.ax.annotate(**myopts)
             self()
         elif hasattr(self.plotter, 'fig'):
-#            print('fig')
             # builtin options
             # no clue why, but y=0.2 puts text nicely below the plots, for pair case...
-#            print('nplot = ', self.plotter.nplot)
+
+            # print('fig')
+            # print('nplot = ', self.plotter.nplot)
             
             if self.plotter.nplot <= 2:
                 my_ypos = .2
             elif self.plotter.nplot >= 3:
+                my_ypos = .3
+            else:
                 my_ypos = .3
             myopts = dict(
                 # text=footnote, # matplotlib >= 3.3 renamed to 's' to 'text'
@@ -118,12 +121,12 @@ class FootnoteManager:
             jmn = j0 - jmn
             jmx = j0 - jmx
         else:
-            imn=-99
-            jmn=-99
-            imx=-99
-            jmx=-99
-            vmn=-9999.9
-            vmx=-9999.9
+            imn = -99
+            jmn = -99
+            imx = -99
+            jmx = -99
+            vmn = -9999.9
+            vmx = -9999.9
         # vmn,vmx = [fnf.format(_) for _ in (vmn, vmx)]
         current_text = self.footnote_template.format(**locals())
         return current_text

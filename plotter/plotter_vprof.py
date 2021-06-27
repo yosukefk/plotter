@@ -11,6 +11,7 @@ class PlotterVprof:
     def __init__(self, array, tstamps, z, idx=None, jdx=None,
                  projection=None, extent=None, x=None, y=None, plotter_options=None):
         """
+        Manages mpl.Axes with a vertical profile plot
 
         :rtype: PlotterVprof
         :param np.ndarray array: 4-d array of data values, dimensions(t, z, y, x), or 2+ d array of data values, dimensions(t, ...)
@@ -22,7 +23,8 @@ class PlotterVprof:
         :param dict plotter_options: all the arguments passed to plotter
         """
 
-        if plotter_options is None: plotter_options = {}
+        if plotter_options is None:
+            plotter_options = {}
 
         # i have to know the axes being used, even user wants default
         # so i grab default axes here and hold onto it
@@ -36,36 +38,35 @@ class PlotterVprof:
             if jdx is None:
                 raise ValueError('none of idx/jdx provided')
             else:
-                islice = slice(None,None)
+                islice = slice(None, None)
                 jslice = jdx
         else:
             if jdx is None:
                 islice = idx
-                jslice = slice(None,None)
+                jslice = slice(None, None)
             else:
                 raise ValueError('both idx/jdx provided')
         self.idx = idx
         self.jdx = jdx
         self.islice = islice
         self.jslice = jslice
-        self.kslice = slice(None,None)
+        self.kslice = slice(None, None)
 
         if 'imshow_option' in plotter_options:
-            warnings.warn('imshow not supported', pu.PlotterWarning )
+            warnings.warn('imshow not supported', pu.PlotterWarning)
         self.contour_options = plotter_options.get('contour_options', {})
 
         self.colorbar_options = plotter_options.get('colorbar_options', {})
 
-        self.footnote = plotter_options.get('footnote', "{tstamp}") # default just time stamp
-        footnote_options = {'xytext': (0,-18)}  # default, need to push lower
+        self.footnote = plotter_options.get('footnote', "{tstamp}")  # default just time stamp
+        footnote_options = {'xytext': (0, -18)}  # default, need to push lower
         footnote_options.update(
             plotter_options.get('footnote_options', {}))
-        self.footnote_options=footnote_options
+        self.footnote_options = footnote_options
         self.footnote_manager = None
 
         self.title = plotter_options.get('title', None)
         self.title_options = plotter_options.get('title_options', None)
-
 
         # data's extent
         self.extent = extent
@@ -82,7 +83,6 @@ class PlotterVprof:
             self.ax = self.fig.add_subplot(*pos)
         else:
             self.ax = self.fig.add_subplot()
-
 
         # self.title overrides 'label' in self.title_options
         if self.title is None:
@@ -119,7 +119,8 @@ class PlotterVprof:
         :param str footnote: footnote overwrite
         :param str title:  title overwrite
         """
-        if tidx is None: tidx = 0
+        if tidx is None:
+            tidx = 0
         # get 2d array to plot
         idx = [tidx, self.kslice, self.jslice, self.islice]
 
@@ -169,7 +170,7 @@ class PlotterVprof:
 
             if self.colorbar_options is not None:
                 kwds = self.colorbar_options
-                if not self.mappable is None:
+                if self.mappable is not None:
                     self.cb = plt.colorbar(mappable=self.mappable, ax=self.ax,
                                            **kwds)
                 else:
@@ -182,7 +183,7 @@ class PlotterVprof:
                 print(self.footnote)
                 print(self.footnote_options)
                 self.footnote_manager = pf.FootnoteManager(self, self.footnote,
-                                                        self.footnote_options)
+                                                           self.footnote_options)
 
             self.hasdata = True
 

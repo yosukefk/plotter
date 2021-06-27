@@ -27,7 +27,8 @@ import os
 from plotter.plotter_multi import Plotter as PlotterMulti
 
 
-class PlotterWarning(UserWarning): pass
+class PlotterWarning(UserWarning):
+    pass
 
 
 def LambertConformalTCEQ():
