@@ -5,7 +5,7 @@ plotterdir = './repo/plotter'
 sys.path.insert(0, plotterdir)
 
 from plotter import calpost_reader as cpr
-from plotter import  plotter_footnote as pf
+from plotter import plotter_footnote as pf
 import plotter.plotter_solo as plotter_solo
 import plotter.plotter_multi as plotter_multi
 from plotter.plotter_util import LambertConformalTCEQ
@@ -31,14 +31,14 @@ oname = 'vprof_test.mp4'
 
 # i have to provide coords for toy region because inconsitency in hrrr
 # projection and ccalpuff projecton
-xo = np.repeat(np.arange(34)*0.1 -464.35, 47)
-yo = np.tile(np.arange(47)*0.1 -906.65, 34)
+xo = np.repeat(np.arange(34) * 0.1 - 464.35, 47)
+yo = np.tile(np.arange(47) * 0.1 - 906.65, 34)
 
 # this is what i did when i ran calpuff
 zo = [2, 10, 30, 50, 80, 120]
 
-dat = cpr.calpost_reader(fname, x=xo, y=yo, z=zo)#, tslice=(60,None,None))
-#dat0 = cpr.calpost_reader(fname0, x=xo, y=yo)
+dat = cpr.calpost_reader(fname, x=xo, y=yo, z=zo)  # , tslice=(60,None,None))
+# dat0 = cpr.calpost_reader(fname0, x=xo, y=yo)
 
 arr = dat['v']
 ts = dat['ts']
@@ -73,19 +73,19 @@ contour_options = {
         'levels': bndry,
         'cmap': cmap,
         'norm': norm,
-#        'alpha': .5,
+        # 'alpha': .5,
         'extend': 'max',
     }
 colorbar_options = {
         'label': r'$CH_4$ (ppbV)',
     }
 
-if False:
+if True:
     # solo, vprof
 
     # TODO check if this value is right
     idx = 25 - 1
-    #idx = 25 - 1 + 1
+    # idx = 25 - 1 + 1
     oname = f'vprof_test_idx{idx}.mp4'
 
     plotter_options = {
@@ -103,9 +103,9 @@ if False:
 
     p.savefig(Path(oname).with_suffix('.0.png'), tidx=0)
     p.savefig(Path(oname).with_suffix('.1.png'), tidx=1)
-    #p.savemp4(oname, wdir=None)
+    # p.savemp4(oname, wdir=None)
 
-if False:
+if True:
     # solo, horizontal
     kdx = 0
     plotter_options = {
@@ -114,8 +114,8 @@ if False:
             add_image_options=[cimgt.GoogleTiles(style='satellite'), 13],
             ),
         'title': f'vprof test, kdx=0',
-        'contour_options': {k:v for k,v in chain(contour_options.items(),
-                                                 {'alpha':.5}.items())},
+        'contour_options': {k: v for k, v in chain(contour_options.items(),
+                                                   {'alpha': .5}.items())},
         'colorbar_options': {
             'label': r'$CH_4$ (ppbV)',
         },
@@ -128,35 +128,33 @@ if False:
 
     p.savefig(Path(oname).with_suffix('.png'), tidx=0)
 
-if False:
+if True:
     # duo vprof
 
-
     plotter_options = {
-#        'title': f'vprof test, idx={idx}',
+        # 'title': f'vprof test, idx={idx}',
         'contour_options': contour_options,
         'colorbar_options': None, 
         'footnote': '',
-       # 'footnote_options': {'text':''},
+        # 'footnote_options': {'text':''},
     }
     figure_options = {
         'colorbar_options': {
             'label': r'$CH_4$ (ppbV)',
         },
-        'footnote_options': {'text': "{tstamp}", 'y':.05},  #'fontsize': 'small'},
+        'footnote_options': {'text': "{tstamp}", 'y': .05},  # 'fontsize': 'small'},
     }
 
     listof_plotter_options = [plotter_options.copy(), plotter_options.copy()]
-    listof_plotter_options[0].update({'idx' : 24, 
+    listof_plotter_options[0].update({'idx': 24,
                                       'title': 'vprof test, idx=24'})
-    listof_plotter_options[1].update({'idx' : 25, 
+    listof_plotter_options[1].update({'idx': 25,
                                       'title': 'vprof test, idx=25'})
-
 
     oname = f'vprof_test_duo.mp4'
     # make a plot template
-    p = plotter_multi.Plotter(arrays=[arr, arr], tstamps=ts, 
-                             z=zo, plotter_options=listof_plotter_options,
+    p = plotter_multi.Plotter(arrays=[arr, arr], tstamps=ts,
+                              z=zo, plotter_options=listof_plotter_options,
                               figure_options=figure_options)
     p.savefig(Path(oname).with_suffix('.png'), tidx=0)
 
@@ -167,34 +165,34 @@ if True:
         'contour_options': contour_options,
         'colorbar_options': None, 
         'footnote': '',
-       # 'footnote_options': {'text':''},
+        # 'footnote_options': {'text':''},
     }
     figure_options = {
         'colorbar_options': {
             'label': r'$CH_4$ (ppbV)',
         },
-        'footnote_options': {'text': "{tstamp}", 'y':.05},  #'fontsize': 'small'},
-        'figsize': (10,4),
+        'footnote_options': {'text': "{tstamp}", 'y': .05},  # 'fontsize': 'small'},
+        'figsize': (10, 4),
     }
 
     listof_plotter_options = [plotter_options.copy() for _ in range(3)]
-    listof_plotter_options[0].update({'idx' : 24, 
+    listof_plotter_options[0].update({'idx': 24,
                                       'title': 'vprof test, idx=24'})
-    listof_plotter_options[1].update({'kdx' : 0, 
+    listof_plotter_options[1].update({'kdx': 0,
                                       'title': 'vprof test, surface',
                                       'background_manager': BackgroundManager( 
                                           add_image_options=[cimgt.GoogleTiles(style='satellite'),
                                                              13]),
-                                        'contour_options': {k:v for k,v in chain(contour_options.items(),
-                                                 {'alpha':.5}.items())},
+                                      'contour_options': {k: v for k, v in chain(contour_options.items(),
+                                                                                 {'alpha': .5}.items())},
                                       })
-    listof_plotter_options[2].update({'idx' : 25, 
+    listof_plotter_options[2].update({'idx': 25,
                                       'title': 'vprof test, idx=25'})
 
     oname = f'vprof_test_trio.mp4'
     # make a plot template
     p = plotter_multi.Plotter(arrays=[arr, arr, arr], tstamps=ts, x=x, y=y,
-                             z=zo, plotter_options=listof_plotter_options,
+                              z=zo, plotter_options=listof_plotter_options,
                               figure_options=figure_options)
     p.savefig(Path(oname).with_suffix('.png'), tidx=0)
     p.savemp4(oname, wdir=None)
