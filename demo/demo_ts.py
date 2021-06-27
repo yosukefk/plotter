@@ -7,6 +7,8 @@ sys.path.insert(0, plotterdir)
 from plotter.reader import reader, get_format
 import plotter.plotter_solo as plotter_solo
 
+import matplotlib.colors as colors
+
 import numpy as np
 from pathlib import Path
 
@@ -36,8 +38,8 @@ for fn, fmt in zip(fnames, fmts):
     x = {'calpost': xc, 'hysplit': xh}[fmt] 
     y = {'calpost': yc, 'hysplit': yh}[fmt] 
     dat = reader(fn, x=x, y=y)
-    xs.append(x)
-    ys.append(y)
+    xs.append(dat['x'])
+    ys.append(dat['y'])
     dats.append(dat)
 
 # find common time period
@@ -95,11 +97,84 @@ dct_arrays = {k:v for k,v in zip(fmts, arrays)}
 #
 #dats = [reader(fn, x=x, y=y,)
 #        for fn, x, y in zip(fnames, xs, ys)]
-if True:
+if False:
     # solo, ts
     plotter_options = {'tseries': True}
     oname = 'ts_test.mp4'
     p = plotter_solo.Plotter(array=dct_arrays, tstamps=ts, 
                              plotter_options=plotter_options)
+    p.savefig(Path(oname).with_suffix('.png'))
+    p.savemp4(oname, wdir=None)
+
+import plotter.plotter_multi as plotter_multi
+from plotter.plotter_util import LambertConformalTCEQ
+from plotter.plotter_background import BackgroundManager
+import cartopy.io.img_tiles as cimgt
+
+# Mrinali/Gary's surfer color scale
+cmap = colors.ListedColormap([
+    '#D6FAFE', '#02FEFF', '#C4FFC4', '#01FE02',
+    '#FFEE02', '#FAB979', '#EF6601', '#FC0100', ])
+cmap.set_under('#FFFFFF')
+cmap.set_over('#000000')
+# Define a normalization from values -> colors
+bndry = [1, 10, 50, 100, 200, 500, 1000, 2000]
+norm = colors.BoundaryNorm(bndry, len(bndry))
+contour_options = {
+        'levels': bndry,
+        'cmap': cmap,
+        'norm': norm,
+        'alpha': .5,
+        'extend': 'max',
+    }
+colorbar_options = {
+        'label': r'$CH_4$ (ppbV)',
+    }
+
+if True:
+    tile_plotter_options = {
+        'background_manager': BackgroundManager(
+            add_image_options=[cimgt.GoogleTiles(style='satellite'), 13],
+            ),
+        'contour_options': contour_options,
+        'colorbar_options': None, 
+        'footnote': '',
+       # 'footnote_options': {'text':''},
+    }
+    figure_options = {
+        'colorbar_options': {
+            'label': r'$CH_4$ (ppbV)',
+        },
+        'footnote_options': {'text': "{tstamp}", 'y':.05},  #'fontsize': 'small'},
+        'figsize': (10,4),
+    }
+
+    listof_plotter_options = [
+        tile_plotter_options.copy(),
+        {'tseries': True},
+        tile_plotter_options.copy(),
+    ]
+    listof_plotter_options[0].update({
+        'title': 'Hysplit',
+    })
+    listof_plotter_options[2].update({
+        'title': 'Calpuff',
+    })
+
+    oname = 'ts_test_trio.mp4'
+
+    assert np.all(xs[0] == xs[1])
+    assert np.all(ys[0] == ys[1])
+
+
+
+    p = plotter_multi.Plotter(arrays=[dct_arrays['hysplit'], dct_arrays,
+                                      dct_arrays['calpost']], tstamps=ts,
+                              x=xs[0]*1000, y=ys[0]*1000,
+                              projection=LambertConformalTCEQ(),
+                             plotter_options=listof_plotter_options,
+                              figure_options=figure_options)
+
     p.savefig(Path(oname).with_suffix('.png'), tidx=10)
     p.savemp4(oname, wdir=None)
+
