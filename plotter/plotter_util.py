@@ -169,10 +169,12 @@ class _saveone:
         if is_multi:
             for plotter in self.p.plotters:
                 if hasattr(plotter, 'background_manager'):
-                    plotter.background_manager.purge_bgfile_hook()
+                    if plotter.background_manager is not None:
+                        plotter.background_manager.purge_bgfile_hook()
         else:
             if hasattr(self.p.plotter, 'background_manager'):
-                self.p.plotter.background_manager.purge_bgfile_hook()
+                if self.p.plotter.background_manager is not None:
+                    self.p.plotter.background_manager.purge_bgfile_hook()
 
         self.png_fmt = png_fmt
 

@@ -1,11 +1,13 @@
 try:
     from . import plotter_core as pc
     from . import plotter_vprof as pv
+    from . import plotter_tseries as pt
     from . import plotter_util as pu
     from . import plotter_footnote as pf
 except ImportError:
     import plotter_core as pc
     import plotter_vprof as pv
+    import plotter_ts as pt
     import plotter_util as pu
     import plotter_footnote as pf
 
@@ -108,8 +110,17 @@ class Plotter:
 
         # create plots
         if z is None:
-            self.plotters = [pc.PlotterCore(arr, tstamps, projection=projection, extent=extent,
-                                            x=x, y=y, plotter_options=po) for arr, po in zip(arrays, plotter_options)]
+            self.plotters = []
+            for arr,po in zip(arrays, plotter_options):
+                if 'tseries' in po:
+                    self.plotters.append( 
+                        pt.PlotterTseries(arr, tstamps, plotter_options=po)
+                    )
+                else:
+                    self.plotters.append( 
+                        pc.PlotterCore(arr, tstamps, projection=projection, extent=extent,
+                                            x=x, y=y, plotter_options=po)
+                    )
         else:
             self.plotters = []
             for arr, po in zip(arrays, plotter_options):
