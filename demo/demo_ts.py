@@ -12,22 +12,22 @@ import matplotlib.colors as colors
 import numpy as np
 from pathlib import Path
 
-fnames  = [
+fnames = [
     '/scratch1/01923/ling/hysplit/hysplit.v5.0.0_CentOS/scripts/outconc.S2.const.hrrr.2m75kghr.txt',
-	'/scratch1/00576/yosuke/projects/astra/calpuff/work_yk/toy_mmif/calpost/tseries/tseries_ch4_1min_conc_toy_min_sys1_onesrc_byweek_20190925_20190927.dat',
+    '/scratch1/00576/yosuke/projects/astra/calpuff/work_yk/toy_mmif/calpost/tseries/tseries_ch4_1min_conc_toy_min_sys1_onesrc_byweek_20190925_20190927.dat',
 ]
 
 fmts = [get_format(fn[0]) if isinstance(fn, list) else get_format(fn) for fn in fnames]
 
 # i have to provide coords for toy region because inconsitency in hrrr
 # projection and calpuff projecton
-xc = np.repeat(np.arange(34)*0.1 -464.35, 47)
-yc = np.tile(np.arange(47)*0.1 -906.65, 34)
+xc = np.repeat(np.arange(34) * 0.1 - 464.35, 47)
+yc = np.tile(np.arange(47) * 0.1 - 906.65, 34)
 
 # above should work for hysplit, but i did differently (linear location of x
 # and y, instead of all points' x,y)
-xh = np.arange(34)*0.1 -464.35
-yh = np.arange(47)*0.1 -906.65
+xh = np.arange(34) * 0.1 - 464.35
+yh = np.arange(47) * 0.1 - 906.65
 
 
 xs = []
@@ -74,30 +74,31 @@ else:
 assert np.all(tstamps[0][s0:e0] == tstamps[1][s1:e1])
 
 # extract necessary data
-arrays = [dat['v'][s:e] for dat,s,e in zip(dats, (s0,s1), (e0,e1))]
-tss = [ts[s:e] for ts,s,e in zip(tstamps, (s0, s1), (e0, e1))]
+arrays = [dat['v'][s:e] for dat, s, e in zip(dats, (s0, s1), (e0, e1))]
+tss = [ts[s:e] for ts, s, e in zip(tstamps, (s0, s1), (e0, e1))]
 ts = tstamps[0][s0:e0]
 
 # conversion factors
 convfacs = [{'calpost': 1. / 16.043 * 0.024465403697038 * 1e9, 
              'hysplit': 1., }[_] for _ in fmts]
 
-arrays = [arr*cf for arr,cf in zip(arrays, convfacs)]
+arrays = [arr*cf for arr, cf in zip(arrays, convfacs)]
 
 # array has nan, so mask them
 arrays = [np.ma.masked_invalid(arr) for arr in arrays]
 
-dct_arrays = {k:v for k,v in zip(fmts, arrays)}
+dct_arrays = {k: v for k, v in zip(fmts, arrays)}
 
-## calpost knows location but hysplit needt to be told
-#xs = [{'calpost': None, 'hysplit': get_receptor_coords.df.x}[_] for _ in
-#      fmts]
-#ys = [{'calpost': None, 'hysplit': get_receptor_coords.df.y}[_] for _ in
-#      fmts]
+# # calpost knows location but hysplit needt to be told
+# xs = [{'calpost': None, 'hysplit': get_receptor_coords.df.x}[_] for _ in
+#       fmts]
+# ys = [{'calpost': None, 'hysplit': get_receptor_coords.df.y}[_] for _ in
+#       fmts]
 #
-#dats = [reader(fn, x=x, y=y,)
-#        for fn, x, y in zip(fnames, xs, ys)]
-if False:
+# dats = [reader(fn, x=x, y=y,)
+#         for fn, x, y in zip(fnames, xs, ys)]
+
+if True:
     # solo, ts
     plotter_options = {'tseries': True}
     oname = 'ts_test.mp4'
@@ -139,14 +140,14 @@ if True:
         'contour_options': contour_options,
         'colorbar_options': None, 
         'footnote': '',
-       # 'footnote_options': {'text':''},
+        # 'footnote_options': {'text':''},
     }
     figure_options = {
         'colorbar_options': {
             'label': r'$CH_4$ (ppbV)',
         },
-        'footnote_options': {'text': "{tstamp}", 'y':.05},  #'fontsize': 'small'},
-        'figsize': (10,4),
+        'footnote_options': {'text': "{tstamp}", 'y': .05},  # 'fontsize': 'small'},
+        'figsize': (10, 4),
     }
 
     listof_plotter_options = [
@@ -166,15 +167,12 @@ if True:
     assert np.all(xs[0] == xs[1])
     assert np.all(ys[0] == ys[1])
 
-
-
     p = plotter_multi.Plotter(arrays=[dct_arrays['hysplit'], dct_arrays,
                                       dct_arrays['calpost']], tstamps=ts,
                               x=xs[0]*1000, y=ys[0]*1000,
                               projection=LambertConformalTCEQ(),
-                             plotter_options=listof_plotter_options,
+                              plotter_options=listof_plotter_options,
                               figure_options=figure_options)
 
     p.savefig(Path(oname).with_suffix('.png'), tidx=10)
     p.savemp4(oname, wdir=None)
-
