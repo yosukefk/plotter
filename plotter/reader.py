@@ -17,33 +17,39 @@ def get_format(f):
     if line.startswith(' TIME-SERIES Output  --------  '):
         fmt = 'calpost'
     elif line.startswith('    JDAY  YR  MO DA1 HR1 MN1 DA2 HR2 MN2'):
-        fmt = 'hysplit'
+        fmt = 'hysplit_wide'
+    elif line.startswith('    JDAY YR1 MO1 DA1 HR1 MN1 YR2 MO2 DA2 HR2 MN2  Pol Lev   Station     Value '):
+        fmt = 'hysplit_long'
     else:
         raise ValueError(f'unknown file format: {line[:30]}')
 
     return fmt
 
 
-def reader(f, tslice=slice(None, None), x=None, y=None):
+def reader(f, tslice=slice(None, None), x=None, y=None, 
+           rdx_map=None):
     """reads calpost/hysplit tseries output file (gridded recep), returns dict of numpy arrays
 
     :param FileIO f: either (1) opened tseries file, (2) tseries file name or (3) list of (1) or (2)
     :param slice tslice: slice of time index
     :param list x: list of x coords
     :param list y: list of y coords
+    :param pd.DataFrame rdx_map: data frame with 'rdx'=receptor index, 'idx', model grid easting index and 'jdx' northing
 
     :return: dict, with ['v'] has data as 3d array (t, y, x)
     :rtype: dict
     """
 
-    # assume file name passed if 'f' is string
-    if isinstance(f, (str, Path)):
-        with open(f) as ff:
-            return reader(ff, tslice, x, y)
+#    # assume file name passed if 'f' is string
+#    if isinstance(f, (str, Path)):
+#        with open(f) as ff:
+#            return reader(ff, tslice, x, y, rdx_map)
 
     # read each input, and then cat
     if isinstance(f, list):
-        dat = [reader(_, slice(None, None), x, y) for _ in f]
+        if get_format(f[0]) == 'hysplit_long':
+            return hsr.hysplit_reader_long(f, tslice, x, y, rdx_map)
+        dat = [reader(_, slice(None, None), x, y, rdx_map) for _ in f]
         dat = cat(dat)
         print('ts.shp=', dat['ts'].shape)
         print('v.shp=', dat['v'].shape)
@@ -61,13 +67,16 @@ def reader(f, tslice=slice(None, None), x=None, y=None):
         return dat
 
     fmt = get_format(f)
+    print(f'fmt: {fmt}')
 
     if fmt == 'calpost':
-        return cpr.calpost_reader(f, tslice, x, y)
-    elif fmt == 'hysplit':
-        return hsr.hysplit_reader(f, tslice, x, y)
+        return cpr.calpost_reader(f, tslice, x, y, rdx_map)
+    elif fmt == 'hysplit_wide':
+        return hsr.hysplit_reader(f, tslice, x, y, rdx_map)
+    elif fmt == 'hysplit_long':
+        return hsr.hysplit_reader_long(f, tslice, x, y, rdx_map)
     else:
-        raise ValueError('unknown file format')
+        raise ValueError(f'unknown file format: {fmt}')
 
 
 def cat(lst):
