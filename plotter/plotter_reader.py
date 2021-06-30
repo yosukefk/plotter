@@ -3,6 +3,8 @@ from . import hysplit_reader as hsr
 
 import numpy as np
 from pathlib import Path
+from importlib import reload
+reload(hsr)
 
 
 def get_format(f):
@@ -26,7 +28,7 @@ def get_format(f):
     return fmt
 
 
-def reader(f, tslice=slice(None, None), x=None, y=None, 
+def reader(f, tslice=slice(None, None), x=None, y=None, z=None,
            rdx_map=None):
     """reads calpost/hysplit tseries output file (gridded recep), returns dict of numpy arrays
 
@@ -48,8 +50,8 @@ def reader(f, tslice=slice(None, None), x=None, y=None,
     # read each input, and then cat
     if isinstance(f, list):
         if get_format(f[0]) == 'hysplit_long':
-            return hsr.hysplit_reader_long(f, tslice, x, y, rdx_map)
-        dat = [reader(_, slice(None, None), x, y, rdx_map) for _ in f]
+            return hsr.hysplit_reader_long(f, tslice, x, y, z, rdx_map)
+        dat = [reader(_, slice(None, None), x, y, z, rdx_map) for _ in f]
         dat = cat(dat)
         print('ts.shp=', dat['ts'].shape)
         print('v.shp=', dat['v'].shape)
@@ -70,11 +72,11 @@ def reader(f, tslice=slice(None, None), x=None, y=None,
     print(f'fmt: {fmt}')
 
     if fmt == 'calpost':
-        return cpr.calpost_reader(f, tslice, x, y, rdx_map)
+        return cpr.calpost_reader(f, tslice, x, y, z, rdx_map)
     elif fmt == 'hysplit_wide':
-        return hsr.hysplit_reader(f, tslice, x, y, rdx_map)
+        return hsr.hysplit_reader(f, tslice, x, y, z, rdx_map)
     elif fmt == 'hysplit_long':
-        return hsr.hysplit_reader_long(f, tslice, x, y, rdx_map)
+        return hsr.hysplit_reader_long(f, tslice, x, y, z, rdx_map)
     else:
         raise ValueError(f'unknown file format: {fmt}')
 

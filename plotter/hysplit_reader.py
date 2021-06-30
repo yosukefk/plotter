@@ -11,11 +11,11 @@ calpost_cat = calpost_reader.calpost_cat
 
 
 # old name...
-def Reader(f, tslice=slice(None, None), x=None, y=None):
+def Reader(f, tslice=slice(None, None), x=None, y=None, z=None, rdx_map=None):
     warnings.warn('use hysplit_reader()', DeprecationWarning)
-    return hysplit_reader(f, tslice, x, y)
+    return hysplit_reader(f, tslice, x, y, z, rdx_map)
 
-def hysplit_reader_long(f, tslice=slice(None, None), x=None, y=None,
+def hysplit_reader_long(f, tslice=slice(None, None), x=None, y=None, z=None,
                         rdx_map=None):
     """reads hysplit output file, returns dict of numpy arrays
 
@@ -35,7 +35,7 @@ def hysplit_reader_long(f, tslice=slice(None, None), x=None, y=None,
     # assume file name passed if 'f' is string
     if isinstance(f, (str, Path)):
         df = pd.read_csv(f, sep=r'\s+')
-        return hysplit_reader_long(df, tslice, x, y, rdx_map)
+        return hysplit_reader_long(df, tslice, x, y, z, rdx_map)
 
 
     # list of files may have different time period and locations.  So
@@ -64,7 +64,7 @@ def hysplit_reader_long(f, tslice=slice(None, None), x=None, y=None,
         for dte,fnames in dct_fnames.items():
             dfs = [pd.read_csv(fn, sep=r'\s+') for fn in fnames]
             df = pd.concat(dfs)
-            dat.append(  hysplit_reader_long(df, tslice, x, y, rdx_map) )
+            dat.append(  hysplit_reader_long(df, tslice, x, y, z, rdx_map) )
 
         dat = calpost_cat(dat)
         dat['ts'] = dat['ts'][tslice]
@@ -76,22 +76,36 @@ def hysplit_reader_long(f, tslice=slice(None, None), x=None, y=None,
 
     units = '???'
 
-    df['Datetime'] = [datetime.datetime(_.YR1, _.MO1, _.DA1, _.HR1,
-                                 _.MN1).replace(tzinfo=pytz.utc).astimezone(pytz.timezone('Etc/GMT+6')) 
-                      for _ in df.itertuples()]
+    print('dt')
+    # extremely slow!
+    #df['Datetime'] = [datetime.datetime(_.YR1, _.MO1, _.DA1, _.HR1,
+    #                             _.MN1).replace(tzinfo=pytz.utc).astimezone(pytz.timezone('Etc/GMT+6')) 
+    #                  for _ in df.itertuples()]
+    #df['Datetime'] =  pd.to_datetime(df[['YR1', 'MO1', 'DA1', 'HR1', 'MN1']].assign(
+    #     YR1= lambda df: df['YR1'] + 2000).rename(
+    #         columns={'YR1':'year', 'MO1':'month', 'DA1': 'day', 'HR1': 'hour', 'MN1': 'minute'}), 
+    #                utc=True).dt.tz_convert('Etc/GMT+6')
+    df['Datetime_tup'] =  [_ for _ in  df[['YR1', 'MO1', 'DA1', 'HR1',
+                                'MN1']].itertuples()]
+    global ddf
+    ddf = df
 
-    df = df[['Datetime', 'Lev', 'Station', 'Value']]
+    df = df[['Datetime_tup', 'Lev', 'Station', 'Value']]
     #grouped = df.groupby(['Datetime', 'Lev', 'Station'])
 
     nrec = len(df.index)
 
 
-    df = df[['Datetime', 'Lev', 'Station', 'Value']].set_index( ['Datetime', 'Station', 'Lev'] )
+    print('set_index')
+    df = df[['Datetime_tup', 'Lev', 'Station', 'Value']].set_index(
+        ['Datetime_tup', 'Station', 'Lev'] )
+    print(df.head(10))
     ts = df.index.levels[0]
     stations = df.index.levels[1]
     nz = len(df.index.levels[2])
     nsta = len(df.index.levels[1])
     nt = len(df.index.levels[0])
+    print(nt, nz, nsta, nrec)
     assert nt * nz * nsta == nrec
     print(df.columns)
 
@@ -129,7 +143,7 @@ def hysplit_reader_long(f, tslice=slice(None, None), x=None, y=None,
                         zz[tuple(ji)] = p
             v = vv
     else:
-        ValueError('rdx_map is mandatory for now')
+        raise ValueError('rdx_map is mandatory for now')
 
     dct = {'v': v, 'ts': ts, 'units': units, 'df': f, 'name': None}
     dct.update(  {'x': x, 'y': y, 'grid': grid, })
@@ -214,7 +228,7 @@ def reshape(v, x=None, y=None, rdx_map=None):
             )
 
 
-def hysplit_reader(f, tslice=slice(None, None), x=None, y=None, rdx_map=None):
+def hysplit_reader(f, tslice=slice(None, None), x=None, y=None, z=None, rdx_map=None):
     """reads hysplit output file, returns dict of numpy arrays
 
     :param FileIO f: either (1)opened hysplit output file, (2) hysplit output filename or (3) list of (1) or (2)
@@ -228,11 +242,11 @@ def hysplit_reader(f, tslice=slice(None, None), x=None, y=None, rdx_map=None):
     # assume file name passed if 'f' is string
     if isinstance(f, (str, Path)):
         with open(f) as ff:
-            return hysplit_reader(ff, tslice, x, y)
+            return hysplit_reader(ff, tslice, x, y, z, rdx_map)
 
     # read each input, and then cat
     if isinstance(f, list):
-        dat = [hysplit_reader(_, slice(None, None), x, y) for _ in f]
+        dat = [hysplit_reader(_, slice(None, None), x, y, z, rdx_map) for _ in f]
         dat = calpost_cat(dat)
         print('ts.shp=', dat['ts'].shape)
         print('v.shp=', dat['v'].shape)
