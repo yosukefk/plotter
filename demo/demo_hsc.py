@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 import sys
 
-plotterdir = './repo/plotter'
+#plotterdir = './repo/plotter'
+plotterdir = '..'
 sys.path.insert(0, plotterdir)
 
 import plotter.plotter_reader as pr
@@ -40,6 +41,6 @@ fname_toy = [
     f'../../scripts/outconc.S2.const.hrrr.2m75kghr.3d.station_{_+1}.txt' for _ in range(11)]
 fname_pilot = '../outconc.outconc.hrrr.pilot.sep.w0306.200receptor.txt'
 
-#dat_pilot = pr.plotter_reader(fname_pilot, rdx_map = hsc_pilot)
-#dat = pr.plotter_reader(fname_toy, rdx_map = hsc_toy)
-dat = pr.plotter_reader(fname_toy2, rdx_map = hsc_toy)
+#dat_pilot = pr.reader(fname_pilot, rdx_map = hsc_pilot)
+#dat = pr.reader(fname_toy, rdx_map = hsc_toy)
+dat = pr.reader(fname_toy2, rdx_map = hsc_toy)

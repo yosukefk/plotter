@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 import sys
 
-plotterdir = './repo/plotter'
+#plotterdir = './repo/plotter'
+plotterdir = '..'
 sys.path.insert(0, plotterdir)
 
 from plotter import calpost_reader as cpr
