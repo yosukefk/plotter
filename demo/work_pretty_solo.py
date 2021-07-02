@@ -21,7 +21,7 @@ from pathlib import Path
 mpl.rcParams['savefig.dpi'] = 300
 
 # input directory/file names
-ddir = Path('../data')
+ddir = Path(plotterdir) / 'data'
 # input file name
 fname = 'tseries_ch4_1min_conc_toy_all.dat'
 

@@ -2,7 +2,7 @@
 import sys
 
 plotterdir = '..'
-sys.path.append(plotterdir)
+sys.path.insert(0, plotterdir)
 
 from plotter import calpost_reader
 import plotter.plotter_multi as plotter_multi
@@ -28,7 +28,7 @@ import socket
 mpl.rcParams['savefig.dpi'] = 300
 
 # input directory/file names
-ddir = Path('../data')
+ddir = Path(plotterdir) / 'data'
 
 # input file names
 if len(sys.argv) >= 1:

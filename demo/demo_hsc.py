@@ -10,14 +10,20 @@ import plotter.hysplit_coords as hsc
 import plotter.plotter_util as pu
 import plotter.hysplit_reader as hsr
 
+from pathlib import Path
+
 from importlib import reload
+
 
 reload(pr)
 reload(hsc)
 reload(hsr)
 
-rname_toy = '../../scripts/toy_model_allstations.txt'
-rname_pilot = '../receptor_200m.all.txt'
+ddir = Path(plotterdir) / 'data'
+
+#rname_toy = '../../scripts/toy_model_allstations.txt'
+rname_toy = ddir / 'toy_model_allstations.txt'
+rname_pilot = ddir / 'receptor_200m.all.txt'
 grid_toy = {'x0': -464.4,
              'y0': -906.7,
              'nx': 34,
@@ -36,10 +42,14 @@ hsc_toy = hsc.HysplitReceptorCoords(rname_toy, grid_toy, pu.LambertConformalTCEQ
 #hsc_pilot = hsc.HysplitReceptorCoords(rname_pilot, grid_pilot,
 #                                      pu.LambertConformalHRRR())
 
-fname_toy2 = f'../../scripts/outconc.S2.const.hrrr.2m75kghr.3d.station_2.txt'
+#fname_toy2 = f'../../scripts/outconc.S2.const.hrrr.2m75kghr.3d.station_2.txt'
+#fname_toy = [
+#    f'../../scripts/outconc.S2.const.hrrr.2m75kghr.3d.station_{_+1}.txt' for _ in range(11)]
+#fname_pilot = '../outconc.outconc.hrrr.pilot.sep.w0306.200receptor.txt'
+fname_toy2 = ddir / f'outconc.S2.const.hrrr.2m75kghr.3d.station_2.txt'
 fname_toy = [
-    f'../../scripts/outconc.S2.const.hrrr.2m75kghr.3d.station_{_+1}.txt' for _ in range(11)]
-fname_pilot = '../outconc.outconc.hrrr.pilot.sep.w0306.200receptor.txt'
+    ddir / f'outconc.S2.const.hrrr.2m75kghr.3d.station_{_+1}.txt' for _ in range(11)]
+fname_pilot = ddir / 'outconc.outconc.hrrr.pilot.sep.w0306.200receptor.txt'
 
 #dat_pilot = pr.reader(fname_pilot, rdx_map = hsc_pilot)
 #dat = pr.reader(fname_toy, rdx_map = hsc_toy)
