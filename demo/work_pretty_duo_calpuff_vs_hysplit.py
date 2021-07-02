@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import sys
 
-sys.path.append('..')
+sys.path.insert(0, '..')
 
 from plotter import hysplit_reader
 from plotter import calpost_reader
@@ -99,7 +99,7 @@ assert data[0]['units'] == 'g/m**3'
 # mwt g/mol
 # molar volume m3/mol
 arrays[0] = arrays[0] / 16.043 * 0.024465403697038 * 1e9
-assert data[1]['units'] == 'ppb'
+#assert data[1]['units'] == 'ppb'
 
 
 # Mrinali/Gary's surfer color scale
