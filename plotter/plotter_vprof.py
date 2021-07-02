@@ -101,6 +101,27 @@ class PlotterVprof:
             ttlopt.update(self.title_options)
             self.ax.set_title(**ttlopt)
 
+        # default settings...
+
+
+        if self.idx is None:
+            hor = self.x
+            xlab = 'easting'
+        elif self.jdx is None:
+            hor = self.y
+            xlab = 'northing'
+        else:
+            raise RuntimeError('???')
+
+        print('hor',hor)
+        if hor is not None:
+
+            self.ax.set_xticks([hor.min(), hor.max()])
+            self.ax.set_xticklabels([0, hor[-1]-hor[0]+hor[1]-hor[0]])
+            self.ax.set_xlabel(xlab)
+            self.ax.set_ylabel('height')
+
+
         # other customizations
         if 'customize_once' in plotter_options:
             self.customize(plotter_options['customize_once'])
@@ -138,7 +159,7 @@ class PlotterVprof:
                 for c in self.cnt.collections:
                     c.remove()
                 kwds = self.contour_options
-                self.cnt = self.ax.contourf(self.xx, self.z, arr,**kwds)
+                self.cnt = self.ax.contourf(self.hor, self.z, arr,**kwds)
 
             if self.footnote_manager is not None:
                 self.footnote_manager(footnote)
@@ -159,15 +180,15 @@ class PlotterVprof:
                 #print('idx', self.idx)
                 #print('jdx', self.jdx)
                 if self.idx is None:
-                    self.xx = self.x
+                    self.hor = self.x
                 elif self.jdx is None:
-                    self.xx = self.y
+                    self.hor = self.y
                 else:
                     raise RuntimeError('???')
 
-                print('self.xx', self.xx)
+                print('self.hor', self.hor)
                 print('self.z', self.z)
-                self.cnt = self.ax.contourf(self.xx, self.z, arr,  **kwds)
+                self.cnt = self.ax.contourf(self.hor, self.z, arr,  **kwds)
                 self.mappable = self.cnt
 
             if self.colorbar_options is not None:
@@ -185,7 +206,7 @@ class PlotterVprof:
                 print(self.footnote)
                 print(self.footnote_options)
                 self.footnote_manager = pf.FootnoteManager(self, self.footnote,
-                                                        self.footnote_options)
+                                                        footnote_options=self.footnote_options)
 
             #if self.customize_once:
             #    self.customize(self.customize_once)
