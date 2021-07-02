@@ -125,7 +125,7 @@ class Plotter:
                     self.plotters.append(
                         pv.PlotterVprof(arr, 
                                         tstamps,projection=projection, extent=extent, 
-                                       # x=x, y=y,  # ignore hor coord...
+                                        x=x, y=y, # passing x,y coordinate in map unit
                                         z=z, idx=idx, jdx=jdx,
                                                plotter_options=po)
                     )

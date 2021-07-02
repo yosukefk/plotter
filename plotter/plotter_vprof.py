@@ -104,6 +104,7 @@ class PlotterVprof:
         # other customizations
         if 'customize_once' in plotter_options:
             self.customize(plotter_options['customize_once'])
+        # self.customize_once = plotter_options.get('customize_once', None)
 
         self.hasdata = False
         self.cnt = None
@@ -155,15 +156,17 @@ class PlotterVprof:
                         self.y = np.linspace(self.extent[3], self.extent[2], arr.shape[0], endpoint=False)
                         self.x = self.x + .5 * (self.x[1] - self.x[0])
                         self.y = self.y + .5 * (self.y[1] - self.y[0])
+                #print('idx', self.idx)
+                #print('jdx', self.jdx)
                 if self.idx is None:
+                    self.xx = self.x
+                elif self.jdx is None:
                     self.xx = self.y
                 else:
-                    self.xx = self.x
+                    raise RuntimeError('???')
 
-                print(kwds)
-                print(self.xx)
-                print(self.z)
-                print(arr.shape)
+                print('self.xx', self.xx)
+                print('self.z', self.z)
                 self.cnt = self.ax.contourf(self.xx, self.z, arr,  **kwds)
                 self.mappable = self.cnt
 
@@ -183,6 +186,9 @@ class PlotterVprof:
                 print(self.footnote_options)
                 self.footnote_manager = pf.FootnoteManager(self, self.footnote,
                                                         self.footnote_options)
+
+            #if self.customize_once:
+            #    self.customize(self.customize_once)
 
             self.hasdata = True
 

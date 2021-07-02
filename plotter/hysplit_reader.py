@@ -81,26 +81,43 @@ def hysplit_reader_long(f, tslice=slice(None, None), x=None, y=None, z=None,
     #df['Datetime'] = [datetime.datetime(_.YR1, _.MO1, _.DA1, _.HR1,
     #                             _.MN1).replace(tzinfo=pytz.utc).astimezone(pytz.timezone('Etc/GMT+6')) 
     #                  for _ in df.itertuples()]
-    #df['Datetime'] =  pd.to_datetime(df[['YR1', 'MO1', 'DA1', 'HR1', 'MN1']].assign(
-    #     YR1= lambda df: df['YR1'] + 2000).rename(
-    #         columns={'YR1':'year', 'MO1':'month', 'DA1': 'day', 'HR1': 'hour', 'MN1': 'minute'}), 
-    #                utc=True).dt.tz_convert('Etc/GMT+6')
-    df['Datetime_tup'] =  [_ for _ in  df[['YR1', 'MO1', 'DA1', 'HR1',
-                                'MN1']].itertuples()]
-    global ddf
-    ddf = df
+    df['Datetime'] =  pd.to_datetime(df[['YR1', 'MO1', 'DA1', 'HR1', 'MN1']].assign(
+         YR1= lambda df: df['YR1'] + 2000).rename(
+             columns={'YR1':'year', 'MO1':'month', 'DA1': 'day', 'HR1': 'hour', 'MN1': 'minute'}), 
+                    utc=True).dt.tz_convert('Etc/GMT+6')
+    # bad idea!
+    #df['Datetime_tup'] =  [_ for _ in  df[['YR1', 'MO1', 'DA1', 'HR1',
+    #                            'MN1']].itertuples(index=False)]
 
-    df = df[['Datetime_tup', 'Lev', 'Station', 'Value']]
+    df = df[['Datetime', 'Lev', 'Station', 'Value']]
     #grouped = df.groupby(['Datetime', 'Lev', 'Station'])
+
 
     nrec = len(df.index)
 
 
     print('set_index')
-    df = df[['Datetime_tup', 'Lev', 'Station', 'Value']].set_index(
-        ['Datetime_tup', 'Station', 'Lev'] )
-    print(df.head(10))
+    df = df[['Datetime', 'Lev', 'Station', 'Value']].set_index(
+        ['Datetime', 'Station', 'Lev'] )
+
+    print('dt')
     ts = df.index.levels[0]
+    #xxx = pd.DataFrame(ts, columns=('year', 'month', 'day', 'hour',
+    #                                'minute'))
+    #print(xxx)
+    #xxx = xxx.assign(year=lambda x: x['year']+2000)
+    #print(xxx)
+    #
+    #ts = pd.to_datetime(
+    #    pd.DataFrame(
+    #        ts, 
+    #        columns=('year', 'month', 'day', 'hour', 'minute')
+    #    ).assign(
+    #        year=lambda x: x['year']+2000
+    #    ))
+    #print(ts)
+
+    print('cont')
     stations = df.index.levels[1]
     nz = len(df.index.levels[2])
     nsta = len(df.index.levels[1])
@@ -109,10 +126,9 @@ def hysplit_reader_long(f, tslice=slice(None, None), x=None, y=None, z=None,
     assert nt * nz * nsta == nrec
     print(df.columns)
 
+    print('unstack')
     df = df.unstack().unstack()
-    print(df.columns)
     df.columns = df.columns.droplevel()
-    print(df.columns)
 
     if rdx_map:
         x = rdx_map.x
