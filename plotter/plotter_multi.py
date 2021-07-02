@@ -147,7 +147,8 @@ class Plotter:
         # remember if plots were blank
         haddata = self.plotters[0].hasdata
 
-        if footnote is None or isinstance(footnotes, str) or len(footnotes) != len(self.plotters):
+        if footnotes is None or isinstance(footnotes, str) or \
+                 len(footnotes) != len(self.plotters):
             footnotes = [footnotes] * len(self.plotters)
 
         for p, fn in zip(self.plotters, footnotes):
