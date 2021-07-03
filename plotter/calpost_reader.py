@@ -110,10 +110,10 @@ def calpost_reader(f, tslice=slice(None, None), x=None, y=None, z=None,
 
     nx = max(ix)
     ny = max(iy)
-    # print(typ)
-    # print(nx, ny, nx*ny)
-    # print(len(x), len(y), len(x)*len(y))
-    # print(nx == len(x)*len(y))
+    print(typ)
+    print(nx, ny, nx*ny)
+    print(len(x), len(y), len(x)*len(y))
+    print(nx == len(x)*len(y))
     is_subregion = False
     map_subregion = None
     if len(x) == nx and len(y) == ny:
@@ -131,10 +131,15 @@ def calpost_reader(f, tslice=slice(None, None), x=None, y=None, z=None,
 
             nx = len(x)
             ny = len(y)
+            print('len(xr), len(x)', len(xr), len(x))
+            print('len(yr), len(y)', len(yr), len(y))
+            print('nz', nz)
+            print('len(xr)/nz', len(xr)/nz)
+            print('len(yr)/nz', len(yr)/nz)
 
             is_subregion = True
-            idx = [(_ == x).argmax() for _ in xr[:nx]]
-            jdx = [(_ == y).argmax() for _ in yr[:ny]]
+            idx = [(_ == x).argmax() for _ in xr[:int(len(xr)/nz)]]
+            jdx = [(_ == y).argmax() for _ in yr[:int(len(yr)/nz)]]
             map_subregion = [(j, i) for (j, i) in zip(jdx, idx)]
 
         else:
