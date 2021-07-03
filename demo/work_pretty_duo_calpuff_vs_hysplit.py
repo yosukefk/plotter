@@ -100,7 +100,7 @@ assert data[0]['units'] == 'g/m**3'
 # mwt g/mol
 # molar volume m3/mol
 arrays[0] = arrays[0] / 16.043 * 0.024465403697038 * 1e9
-# we just trust
+# we just trust Hysplit outputs in ppb
 # assert data[1]['units'] == 'ppb'
 
 

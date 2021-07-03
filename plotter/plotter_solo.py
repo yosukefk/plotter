@@ -44,7 +44,7 @@ class Plotter:
                 idx = plotter_options.pop('idx', None)
                 jdx = plotter_options.pop('jdx', None)
                 self.plotter = pv.PlotterVprof(array,
-                                               tstamps,projection=projection, extent=extent, 
+                                               tstamps, projection=projection, extent=extent,
                                                x=x, y=y, z=z, idx=idx, jdx=jdx,
                                                plotter_options=plotter_options)
 

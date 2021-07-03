@@ -84,7 +84,7 @@ class Plotter:
                             plotter_options[i]['imshow_options'].copy()
 
         # one figure to hold all plots
-        self.fig = plt.figure(**{k:v for k,v in self.figure_options.items() if k not
+        self.fig = plt.figure(**{k: v for k, v in self.figure_options.items() if k not
                                  in self.figure_options_for_plotter})
 
         self.footnote = figure_options.get('footnote', None)
@@ -148,7 +148,8 @@ class Plotter:
         # remember if plots were blank
         haddata = self.plotters[0].hasdata
 
-        if footnote is None or isinstance(footnotes, str) or len(footnotes) != len(self.plotters):
+        if footnotes is None or isinstance(footnotes, str) or \
+                 len(footnotes) != len(self.plotters):
             footnotes = [footnotes] * len(self.plotters)
 
         for p, fn in zip(self.plotters, footnotes):
@@ -166,6 +167,8 @@ class Plotter:
                 if self.nplot <= 2:
                     my_shrink = .7
                 elif self.nplot >= 3:
+                    my_shrink = .5
+                else:
                     my_shrink = .5
 
                 self.fig.colorbar(
@@ -189,6 +192,8 @@ class Plotter:
                     my_ypos = .2
                 elif self.nplot >= 3:
                     my_ypos = .3
+                else:
+                    my_ypos = .3
                 self.footnote = self.fig.text(0.5, my_ypos, footnote,
                                               ha='center', va='top')
         else:
@@ -209,8 +214,7 @@ class Plotter:
             #     suptitle = {'t': suptitle,
             #                 }
             # self.fig.suptitle(**suptitle)
-            my_suptitle = {'x': .1, 'y': .8, 
-                        'fontsize': 'large'}
+            my_suptitle = {'x': .1, 'y': .8, 'fontsize': 'large'}
             if isinstance(suptitle, dict):
                 my_suptitle.update(suptitle)
             else:
