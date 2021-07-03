@@ -32,17 +32,24 @@ from pathlib import Path
 from importlib import reload
 reload(pr)
 
+ddir = Path(plotterdir) / 'data'
+resourcedir = Path(plotterdir) / 'resources'
+
 
 # grid def...
-rname_toy = '../../scripts/toy_model_allstations.txt'
+#rname_toy = '../../scripts/toy_model_allstations.txt'
+rname_toy = resourcedir / 'toy_model_allstations.txt'
 grid_toy = {'x0': -464.4, 'y0': -906.7,
              'nx': 34, 'ny': 47,
              'dx': 0.1, 'dy': 0.1}
 hsc_toy = hsc.HysplitReceptorCoords(rname_toy, grid_toy, pu.LambertConformalTCEQ())
 
-fname_calpuff = '/scratch1/00576/yosuke/projects/astra/calpuff/work_yk/toy_mmif/calpost/tseries/tseries_ch4_1min_conc_toy_min_onesrc_3d_byweek_20190925_20190927.dat'
+#fname_calpuff = '/scratch1/00576/yosuke/projects/astra/calpuff/work_yk/toy_mmif/calpost/tseries/tseries_ch4_1min_conc_toy_min_onesrc_3d_byweek_20190925_20190927.dat'
+#fname_hysplit = [
+#    f'../../scripts/outconc.S2.const.hrrr.2m75kghr.3d.station_{_+1}.txt' for _ in range(11)]
+fname_calpuff = ddir / 'tseries_ch4_1min_conc_toy_min_onesrc_3d_byweek_20190925_20190927.dat'
 fname_hysplit = [
-    f'../../scripts/outconc.S2.const.hrrr.2m75kghr.3d.station_{_+1}.txt' for _ in range(11)]
+    ddir / f'outconc.S2.const.hrrr.2m75kghr.3d.station_{_+1}.txt' for _ in range(11)]
 
 pt_s2 = (-101.8762665,31.7313145)
 

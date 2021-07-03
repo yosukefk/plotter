@@ -25,8 +25,11 @@ import numpy as np
 from itertools import chain
 from pathlib import Path
 
-fname = '../calpost/tseries/tseries_ch4_1min_conc_toy_min_onesrc_3d_byweek_20190925_20190927.dat'
-fname0 = '../calpost/tseries/tseries_ch4_1min_conc_toy_min_sys1_onesrc_byweek_20190925_20190927.dat'
+ddir = Path(plotterdir) / 'data'
+
+#fname = '../calpost/tseries/tseries_ch4_1min_conc_toy_min_onesrc_3d_byweek_20190925_20190927.dat'
+#fname0 = '../calpost/tseries/tseries_ch4_1min_conc_toy_min_sys1_onesrc_byweek_20190925_20190927.dat'
+fname = ddir / 'tseries_ch4_1min_conc_toy_min_onesrc_3d_byweek_20190925_20190927.dat'
 
 oname = 'vprof_test.mp4'
 

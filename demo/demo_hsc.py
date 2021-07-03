@@ -20,10 +20,11 @@ reload(hsc)
 reload(hsr)
 
 ddir = Path(plotterdir) / 'data'
+resourcedir = Path(plotterdir)  / 'resources'
 
 #rname_toy = '../../scripts/toy_model_allstations.txt'
-rname_toy = ddir / 'toy_model_allstations.txt'
-rname_pilot = ddir / 'receptor_200m.all.txt'
+rname_toy = resourcedir / 'toy_model_allstations.txt'
+rname_pilot = resourcedir / 'receptor_200m.all.txt'
 grid_toy = {'x0': -464.4,
              'y0': -906.7,
              'nx': 34,
