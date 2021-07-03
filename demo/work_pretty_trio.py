@@ -29,7 +29,7 @@ import sys
 mpl.rcParams['savefig.dpi'] = 300
 
 # input directory/file names
-ddir = Path('../data')
+ddir = Path(plotterdir) / 'data'
 
 # input file names
 if len(sys.argv) > 1:

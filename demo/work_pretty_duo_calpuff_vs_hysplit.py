@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 import sys
 
-sys.path.insert(0, '..')
+plotterdir = '..'
+sys.path.insert(0, plotterdir)
 
 from plotter import hysplit_reader
 from plotter import calpost_reader
@@ -27,7 +28,7 @@ import socket
 mpl.rcParams['savefig.dpi'] = 300
 
 # input directory/file names
-ddir = Path('../data')
+ddir = Path(plotterdir) / 'data'
 # input file name
 fnames = [ 
         'tseries_ch4_1min_conc_un_pu_s2.dat',
@@ -99,7 +100,8 @@ assert data[0]['units'] == 'g/m**3'
 # mwt g/mol
 # molar volume m3/mol
 arrays[0] = arrays[0] / 16.043 * 0.024465403697038 * 1e9
-#assert data[1]['units'] == 'ppb'
+# we just trust Hysplit outputs in ppb
+# assert data[1]['units'] == 'ppb'
 
 
 # Mrinali/Gary's surfer color scale

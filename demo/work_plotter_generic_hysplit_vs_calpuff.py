@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 import sys
-plotterdir = './repo/plotter'
+
+plotterdir = '..'
+#plotterdir = './repo/plotter'
 sys.path.insert(0, plotterdir)
 
-from plotter.reader import reader, get_format
+from plotter.plotter_reader import reader, get_format
 
 import plotter.plotter_multi as plotter_multi
 from plotter.plotter_util import LambertConformalHRRR
@@ -29,8 +31,16 @@ import numpy as np
 from pathlib import Path
 
 import argparse
+import re
 
-import get_receptor_coords
+ddir = Path(plotterdir) / 'data'
+resourcedir = Path(plotterdir) / 'resources'
+
+#import get_receptor_coords
+# receptors coords for hysplit
+df_recep = pd.read_csv(resourcedir / 'receptor_res200m.csv')
+df_recep = df_recep.loc[df_recep.keep==1,:].reset_index(drop=True)
+df_recep['id'] = np.arange(len(df_recep.index)) + 1
 
 
 def read_what_to_do():
@@ -64,9 +74,9 @@ def read_what_to_do():
                    type=str,
                    )
 
-
     args = p.parse_args()
     return args
+
 
 # read command line options
 args = read_what_to_do()
@@ -77,17 +87,18 @@ title = args.title
 
 
 fmts = [get_format(fn) for fn in fnames]
+fmts0 = [re.sub('_.*$', '', _) for _ in fmts]
 
-titles = [{'calpost': 'Calpuff', 'hysplit': 'Hysplit'}[_] for _ in fmts]
+titles = [{'calpost': 'Calpuff', 'hysplit': 'Hysplit'}[_] for _ in fmts0]
 
 # calpost knows location but hysplit needt to be told
-xs = [{'calpost': None, 'hysplit': get_receptor_coords.df.x}[_] for _ in
-      fmts]
-ys = [{'calpost': None, 'hysplit': get_receptor_coords.df.y}[_] for _ in
-      fmts]
+xs = [{'calpost': None, 'hysplit': df_recep.x}[_] for _ in
+      fmts0]
+ys = [{'calpost': None, 'hysplit': df_recep.y}[_] for _ in
+      fmts0]
 
 dats = [reader(fn, x=x, y=y,)
-        for fn,x,y in zip(fnames, xs, ys)]
+        for fn, x, y in zip(fnames, xs, ys)]
 
 # find common time period
 tstamps = [_['ts'] for _ in dats]
@@ -142,9 +153,9 @@ y = dats[0]['y'] * 1000
 
 # conversion factors
 convfacs = [{'calpost': 1. / 16.043 * 0.024465403697038 * 1e9, 
-             'hysplit': 1., }[_] for _ in fmts]
+             'hysplit': 1., }[_] for _ in fmts0]
 
-arrays = [arr*cf for arr,cf in zip(arrays, convfacs)]
+arrays = [arr*cf for arr, cf in zip(arrays, convfacs)]
 
 # array has nan, so mask them
 arrays = [np.ma.masked_invalid(arr) for arr in arrays]

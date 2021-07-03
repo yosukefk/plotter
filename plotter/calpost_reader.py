@@ -19,7 +19,8 @@ def Reader(f, tslice=slice(None, None), x=None, y=None, z=None):
     return calpost_reader(f, tslice, x, y)
 
 
-def calpost_reader(f, tslice=slice(None, None), x=None, y=None, z=None):
+def calpost_reader(f, tslice=slice(None, None), x=None, y=None, z=None,
+                   rdx_map=None):
     """reads calpost tseries output file (gridded recep), returns dict of numpy arrays
 
     :param FileIO f: either (1) opened calpost tseries file, (2) calpost tseries file name or (3) list of (1) or (2)
@@ -34,11 +35,11 @@ def calpost_reader(f, tslice=slice(None, None), x=None, y=None, z=None):
     # assume file name passed if 'f' is string
     if isinstance(f, (str, Path)):
         with open(f) as ff:
-            return calpost_reader(ff, tslice, x, y, z)
+            return calpost_reader(ff, tslice, x, y, z, rdx_map)
 
     # read each input, and then cat
     if isinstance(f, list):
-        dat = [calpost_reader(_, slice(None, None), x, y, z) for _ in f]
+        dat = [calpost_reader(_, slice(None, None), x, y, z, rdx_map) for _ in f]
         dat = calpost_cat(dat)
         print('ts.shp=', dat['ts'].shape)
         print('v.shp=', dat['v'].shape)
@@ -77,6 +78,13 @@ def calpost_reader(f, tslice=slice(None, None), x=None, y=None, z=None):
     typ = np.array(re.split(' +', typ[16:].strip()))
     ix = np.fromstring(ix[16:], dtype=int, sep=' ')
     iy = np.fromstring(iy[16:], dtype=int, sep=' ')
+
+    if rdx_map:
+        if x is None:
+            x = rdx_map.x
+        if y is None:
+            y = rdx_map.y
+
     # read x,y from file but, can be overwritten if user provide
     if any(_ is None for _ in (x, y)):
         x = np.fromstring(xx[16:], dtype=float, sep=' ')
@@ -102,10 +110,10 @@ def calpost_reader(f, tslice=slice(None, None), x=None, y=None, z=None):
 
     nx = max(ix)
     ny = max(iy)
-    # print(typ)
-    # print(nx, ny, nx*ny)
-    # print(len(x), len(y), len(x)*len(y))
-    # print(nx == len(x)*len(y))
+    print(typ)
+    print(nx, ny, nx*ny)
+    print(len(x), len(y), len(x)*len(y))
+    print(nx == len(x)*len(y))
     is_subregion = False
     map_subregion = None
     if len(x) == nx and len(y) == ny:
@@ -123,10 +131,15 @@ def calpost_reader(f, tslice=slice(None, None), x=None, y=None, z=None):
 
             nx = len(x)
             ny = len(y)
+            print('len(xr), len(x)', len(xr), len(x))
+            print('len(yr), len(y)', len(yr), len(y))
+            print('nz', nz)
+            print('len(xr)/nz', len(xr)/nz)
+            print('len(yr)/nz', len(yr)/nz)
 
             is_subregion = True
-            idx = [(_ == x).argmax() for _ in xr[:nx]]
-            jdx = [(_ == y).argmax() for _ in yr[:ny]]
+            idx = [(_ == x).argmax() for _ in xr[:int(len(xr)/nz)]]
+            jdx = [(_ == y).argmax() for _ in yr[:int(len(yr)/nz)]]
             map_subregion = [(j, i) for (j, i) in zip(jdx, idx)]
 
         else:

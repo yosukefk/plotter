@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 import sys
 
-plotterdir = './repo/plotter'
+plotterdir = '..'
+#plotterdir = './repo/plotter'
 sys.path.insert(0, plotterdir)
 
-from plotter.reader import reader, get_format
+from plotter.plotter_reader import reader, get_format
 
 from plotnine import (
     ggplot, aes, geom_point, stat_smooth, geom_smooth, labs,
@@ -20,11 +21,19 @@ p9.options.dpi = 300
 
 import pandas as pd
 import numpy as np
-# from pathlib import Path
+from pathlib import Path
 
 import argparse
+import re
 
-import get_receptor_coords
+ddir = Path(plotterdir) / 'data'
+resourcedir = Path(plotterdir) / 'resources'
+
+#import get_receptor_coords
+# receptors coords for hysplit
+df_recep = pd.read_csv(resourcedir / 'receptor_res200m.csv')
+df_recep = df_recep.loc[df_recep.keep==1,:].reset_index(drop=True)
+df_recep['id'] = np.arange(len(df_recep.index)) + 1
 
 
 def read_what_to_do():
@@ -74,14 +83,15 @@ if title is None:
     title = ''
 
 fmts = [get_format(fn) for fn in fnames]
+fmts0 = [re.sub('_.*$', '', _) for _ in fmts]
 
-titles = [{'calpost': 'Calpuff', 'hysplit': 'Hysplit'}[_] for _ in fmts]
+titles = [{'calpost': 'Calpuff', 'hysplit': 'Hysplit'}[_] for _ in fmts0]
 
 # calpost knows location but hysplit needt to be told
-xs = [{'calpost': None, 'hysplit': get_receptor_coords.df.x}[_] for _ in
-      fmts]
-ys = [{'calpost': None, 'hysplit': get_receptor_coords.df.y}[_] for _ in
-      fmts]
+xs = [{'calpost': None, 'hysplit': df_recep.x}[_] for _ in
+      fmts0]
+ys = [{'calpost': None, 'hysplit': df_recep.y}[_] for _ in
+      fmts0]
 
 dats = [reader(fn, x=x, y=y,)
         for fn, x, y in zip(fnames, xs, ys)]
@@ -121,19 +131,23 @@ assert np.all(tstamps[0][s0:e0] == tstamps[1][s1:e1])
 def arr2df(arrays, ts, tags, n=None):
     # take arr, ts from reader, return dataframe for ggplot
 
+    print('shpin',[_.shape for _ in arrays])
     vs = [arr.reshape(arr.shape[0], -1) for arr in arrays]
 
-    v = vs[0]
+    print('vs',[_.shape for _ in vs])
+    print('nan', [sum(np.isnan(_)) for _ in vs])
 
-    # drop nans
-    vs = [v[:, ~np.isnan(v[0, :])] for v in vs]
+    ## drop nans
+    #vs = [v[:, ~np.isnan(v[0, :])] for v in vs]
+    #print('vs',[_.shape for _ in vs])
 
-    v = vs[0]
-    nn = v.shape[-1]
+    nn = [_.shape[-1] for _ in vs]
+    print(nn)
+    nn = nn[0]
     if n is None:
         n = nn
     sel = sorted(np.random.choice(np.arange(nn), n, replace=False))
-    # print(sel)
+    #print(sel)
 
     dfs = []
     for v, tag in zip(vs, tags):
@@ -159,7 +173,7 @@ ts = tstamps[0][s0:e0]
 
 # conversion factors
 convfacs = [{'calpost': 1. / 16.043 * 0.024465403697038 * 1e9, 
-             'hysplit': 1., }[_] for _ in fmts]
+             'hysplit': 1., }[_] for _ in fmts0]
 
 arrays = [arr*cf for arr, cf in zip(arrays, convfacs)]
 

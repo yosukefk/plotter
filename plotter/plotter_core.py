@@ -80,6 +80,8 @@ class PlotterCore:
         if 'custimize_after' in plotter_options:
             warnings.warn('i dont think you need this', DeprecationWarning)
         self.customize_after = plotter_options.get('customize_after', None)
+        #self.customize_once = plotter_options.get('customize_once', None)
+        #print(self.customize_once)
 
         # data's extent
         self.extent = extent
@@ -226,6 +228,10 @@ class PlotterCore:
             if self.footnote != '':
                 self.footnote_manager = pf.FootnoteManager(self, self.footnote,
                                                         self.footnote_options)
+
+#            # other customizations
+#            if self.customize_once:
+#                self.customize(self.customize_once)
 
             self.hasdata = True
 

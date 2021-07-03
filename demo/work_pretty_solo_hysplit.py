@@ -2,7 +2,7 @@
 import sys
 
 plotterdir = '..'
-sys.path.append(plotterdir)
+sys.path.insert(0, plotterdir)
 
 from plotter import hysplit_reader
 import plotter.plotter_solo as plotter_solo
@@ -27,7 +27,7 @@ import socket
 mpl.rcParams['savefig.dpi'] = 300
 
 # input directory/file names
-ddir = Path('../data')
+ddir = Path(plotterdir) / 'data'
 # input file name
 fname = 'outconc.S2.pulse.NAM.txt'
 
