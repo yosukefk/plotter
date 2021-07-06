@@ -117,7 +117,7 @@ class PlotterVprof:
         if hor is not None:
 
             self.ax.set_xticks([hor.min(), hor.max()])
-            self.ax.set_xticklabels([0, hor[-1]-hor[0]+hor[1]-hor[0]])
+            self.ax.set_xticklabels([0, hor[-1]-hor[0]])
             self.ax.set_xlabel(xlab)
             self.ax.set_ylabel('height')
 
