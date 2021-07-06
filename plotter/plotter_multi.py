@@ -113,7 +113,11 @@ class Plotter:
         else:
             self.plotters = []
             for arr, po in zip(arrays, plotter_options):
-                if 'kdx' in po:
+                if arr is None:
+                    self.plotters.append(
+                        pc.PlotterEmpty(None, tstamps, plotter_options=po)
+                    )
+                elif 'kdx' in po:
                     kdx = po.pop('kdx', None)
                     self.plotters.append(
                         pc.PlotterCore(arr[:, kdx, :, :], tstamps, projection=projection, 
