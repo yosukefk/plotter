@@ -67,13 +67,42 @@ def calpost_reader(f, tslice=slice(None, None), x=None, y=None, z=None,
     m = re.search(r'\((.*)\)', units)
     assert m
     units = m[1]
-    for i in range(3):
+    nrec = next(f)
+    m = re.search(r'(\d+)\s+ Receptors', nrec)
+    assert m
+    nrec = m[1]
+    nrec = int(nrec)
+    row_per_rec = 1 + nrec // 10000 # calpost has hard-wired max ncol
+    print('nr, row_per_rec', nrec, row_per_rec)
+    for i in range(2):
         next(f)
-    typ = next(f)
-    ix = next(f)
-    iy = next(f)
-    xx = next(f)
-    yy = next(f)
+
+    # calpost tseries file may have multiple line for one record
+    class multiline:
+        def __init__(self, f,nlines):
+            self.f = f
+            self.nlines = nlines
+        def __iter__(self):
+            return self
+        def __next__(self):
+            if self.nlines == 1:
+                return next(self.f)
+            buf = [next(self.f).rstrip('\n')  for _ in range(self.nlines)]
+            buf[1:] = [_[16:] for _ in buf[1:]]
+            return ''.join(buf) + '\n'
+            
+        def waste(self):
+            return next(self.f)
+
+
+
+    ff = multiline(f, row_per_rec)
+
+    typ = next(ff)
+    ix = next(ff)
+    iy = next(ff)
+    xx = next(ff)
+    yy = next(ff)
 
     typ = np.array(re.split(' +', typ[16:].strip()))
     ix = np.fromstring(ix[16:], dtype=int, sep=' ')
@@ -90,6 +119,7 @@ def calpost_reader(f, tslice=slice(None, None), x=None, y=None, z=None,
         x = np.fromstring(xx[16:], dtype=float, sep=' ')
         y = np.fromstring(yy[16:], dtype=float, sep=' ')
     print('len():', len(ix), len(iy), len(x), len(y))
+    print('len()*nz:', len(ix), len(iy), len(x)*nz, len(y)*nz)
     ptid = pd.DataFrame.from_dict({
         'ix': ix,
         'iy': iy,
@@ -148,7 +178,9 @@ def calpost_reader(f, tslice=slice(None, None), x=None, y=None, z=None,
             raise RuntimeError('non gridded data...')
 
     for i in range(3):
-        next(f)
+        #next(f)
+        ff.waste()
+    
 
     dx = x[1] - x[0]
     dy = y[1] - y[0]
@@ -158,7 +190,7 @@ def calpost_reader(f, tslice=slice(None, None), x=None, y=None, z=None,
 
     lst_v = []
     lst_ts = []
-    for i, line in islice(enumerate(f), tslice.start, tslice.stop):
+    for i, line in islice(enumerate(ff), tslice.start, tslice.stop):
         ts = datetime.datetime.strptime(line[:16], ' %Y %j %H%M ')
         ts = ts.replace(tzinfo=pytz.utc).astimezone(pytz.timezone('Etc/GMT+6'))
 
