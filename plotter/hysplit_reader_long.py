@@ -47,13 +47,15 @@ def hysplit_reader_long(f, tslice=slice(None, None), x=None, y=None, z=None,
                                  _.MN1).replace(tzinfo=pytz.utc).astimezone(pytz.timezone('Etc/GMT+6'))
                for _ in lines]
         df_fnames = pd.DataFrame({'fname': f, 'datetime': dtes})
+        df_fnames.to_csv('fnames.csv')
 
         # group the file names by the datetime
         dct_fnames = {}
         for fn,dte in zip(f, dtes):
             dct_fnames.setdefault(dte, []).append(fn)
 
-        print(dct_fnames)
+
+        file_dates = list(dct_fnames.keys())
 
         dat = []
         for dte,fnames in dct_fnames.items():
@@ -61,7 +63,8 @@ def hysplit_reader_long(f, tslice=slice(None, None), x=None, y=None, z=None,
             df = pd.concat(dfs)
             dat.append(  hysplit_reader_long(df, tslice, x, y, z, rdx_map) )
 
-        dat = calpost_cat(dat)
+        dat = calpost_cat(dat, use_later_files=True)
+
         dat['ts'] = dat['ts'][tslice]
         dat['v'] = dat['v'][tslice]
         return dat
@@ -117,9 +120,14 @@ def hysplit_reader_long(f, tslice=slice(None, None), x=None, y=None, z=None,
     nz = len(df.index.levels[2])
     nsta = len(df.index.levels[1])
     nt = len(df.index.levels[0])
-    print(nt, nz, nsta, nrec)
-    assert nt * nz * nsta == nrec
-    print(df.columns)
+    print('nt,nz,nsta,nrec=', nt, nz, nsta, nrec)
+    # ........ bad idea
+    #assert nt * nz * nsta == nrec
+    if not nt * nz * nsta == nrec:
+        print(f'expected {nt*nz*nsta} rec, got {nrec}, short by {nt*nz*nsta-nrec}')
+        print('  f:', f)
+        print('  rng:', df.index.levels[0][0], df.index.levels[0][-1])
+        
 
     print('unstack')
     df = df.unstack().unstack()
@@ -156,8 +164,10 @@ def hysplit_reader_long(f, tslice=slice(None, None), x=None, y=None, z=None,
     else:
         raise ValueError('rdx_map is mandatory for now')
 
-    dct = {'v': v, 'ts': ts, 'units': units, 'df': f, 'name': None}
+    #dct = {'v': v, 'ts': ts, 'units': units, 'df': f, 'name': None}
+    dct = {'v': v, 'ts': ts, 'units': units,          'name': None}
     dct.update(  {'x': x, 'y': y, 'grid': grid, })
+    del df
     return dct
     
 

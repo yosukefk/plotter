@@ -226,7 +226,7 @@ def calpost_reader(f, tslice=slice(None, None), x=None, y=None, z=None,
             'x': x, 'v': v, 'ptid': ptid}
 
 
-def calpost_cat(lst):
+def calpost_cat(lst, use_later_files=False):
     """
     concatenates list of calpost data, assuming they are continuous time series
 
@@ -304,19 +304,43 @@ def calpost_cat(lst):
 
     # v and ts need to be overwritten by concatenated array
 
-    chop = [None if _ == 0 else _ for _ in overlaps]
+    print('overlaps:', overlaps)
+    if use_later_files:
+        chop = [None if _ == len(overlaps) else _ for _ in overlaps]
 
-    dat['ts'] = np.concatenate(
-        [lst[0]['ts']] +
-        [d['ts'][o:] for d, o in
-         zip(lst[1:], chop)]
-    )
+        print('file trange:', [d['ts'][::(len(d['ts'])-1)] for d in lst])
 
-    dat['v'] = np.concatenate(
-        [lst[0]['v']] +
-        [d['v'][o:] for d, o in
-         zip(lst[1:], chop)]
-    )
+        print('piked trange:', 
+              [ d['ts'][:-o][::(-o-1)] for d, o in
+             zip(lst[:-1], chop)] 
+              + [ lst[-1]['ts'][::(len(lst[-1]['ts'])-1)] ] )
+
+        dat['ts'] = np.concatenate(
+            [d['ts'][:-o] for d, o in
+             zip(lst[:-1], chop)]
+            + [lst[-1]['ts']]
+        )
+
+        dat['v'] = np.concatenate(
+            [d['v'][:-o] for d, o in
+             zip(lst[:-1], chop)] +
+            [lst[-1]['v']]
+        )
+        
+    else:
+        chop = [None if _ == 0 else _ for _ in overlaps]
+
+        dat['ts'] = np.concatenate(
+            [lst[0]['ts']] +
+            [d['ts'][o:] for d, o in
+             zip(lst[1:], chop)]
+        )
+
+        dat['v'] = np.concatenate(
+            [lst[0]['v']] +
+            [d['v'][o:] for d, o in
+             zip(lst[1:], chop)]
+        )
     return dat
 
 
