@@ -41,7 +41,8 @@ class Plotter:
 
         # everython but these are passed to plt.figure()
         self.figure_options_for_plotter = [
-            'footnote', 'footnote_options', 'colorbar_options', 'suptitle', 
+            'footnote', 'footnote_options', 'colorbar_options', 'suptitle',
+            'nrow', 'ncol', 
         ]
 
         if figure_options is None:
@@ -92,16 +93,27 @@ class Plotter:
         self.footnote_manager = None
         self.suptitle = figure_options.get('suptitle', None)
 
-        # specify the subplot positions
-        if self.nplot < 4:
-            nrow = 1
-            ncol = self.nplot
-        elif self.nplot < 9:
-            nrow = 2
-            ncol = (self.nplot + 1) // nrow
+        # specify nrow/ncol of subplots
+        nrow = figure_options.get('nrow', None)
+        ncol = figure_options.get('ncol', None)
+        if ncol is None:
+            if nrow is None:
+                if self.nplot < 4:
+                    nrow = 1
+                elif self.nplot < 9:
+                    nrow = 2
+                else:
+                    nrow = 3
+            ncol = (self.nplot + nrow - 1) // nrow
         else:
-            nrow = 3
-            ncol = (self.nplot + 2) // nrow
+            if nrow is None:
+                print('np, ncol', self.nplot, ncol)
+                nrow=  (self.nplot + ncol  - 1) // ncol  
+        self.nrow = nrow
+        self.ncol = ncol
+        print('ncol', ncol, 'nrow', nrow)
+
+        # specify the subplot positions
         for i in range(self.nplot):
             plotter_options[i]['fig'] = self.fig
             plotter_options[i]['pos'] = (nrow, ncol, i + 1)
