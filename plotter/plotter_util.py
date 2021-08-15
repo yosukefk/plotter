@@ -178,3 +178,48 @@ class _saveone:
 
     def __call__(self, i):
         self.p.savefig(self.png_fmt.format(i), tidx=i)
+
+
+def calc_plot_extent( x, y, data_proj, plot_proj):
+    """calculate plot_extent"""
+
+    # corner coords of data grid
+    data_corners = np.array( [(x[p], y[q]) for (p,q) in
+                    [(0,0),(0,-1),(-1,-1),(-1,0),(0,0)]] )
+    print('data_corners:', data_corners)
+
+
+    # reproject the corners into plot's projection
+    plot_corners = plot_proj.transform_points(data_proj, 
+                                   data_corners[:, 0], 
+                                   data_corners[:, 1],
+                                   )[:, :2] 
+    print('plot_corners:', plot_corners)
+
+
+    # add buffer and take floor/ceil
+    decfloor = lambda a, decimals: np.floor(a * (10 ** decimals)) / (10**decimals)
+    decceil = lambda a, decimals: np.ceil(a * (10 ** decimals)) / (10**decimals)
+
+    nx, ny = len(x), len(y)
+    #bufx = (plot_corners[2][0] - plot_corners[0][0]) / len(x) 
+    #bufy = (plot_corners[2][1] - plot_corners[0][1]) / len(y) 
+    bufx = (plot_corners[2][0] - plot_corners[0][0]) / 100
+    bufy = (plot_corners[2][1] - plot_corners[0][1]) / 100
+
+    print(nx, ny, bufx, bufy)
+
+    buf = min(bufx, bufy)
+    scl =  - int(np.round(np.log10(buf), 0))
+    print('buf, scl:', buf, scl)
+
+    plot_extent = [
+        decfloor(plot_corners[0][0] - bufx, scl),
+        decfloor(plot_corners[2][0] + bufx, scl),
+        decceil( plot_corners[0][1] - bufy, scl),
+        decceil( plot_corners[2][1] + bufy, scl),
+    ]
+    print('plot_extent:', plot_extent)
+
+    return plot_extent
+
