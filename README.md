@@ -12,6 +12,10 @@ Grab code from git repo
 
 `git clone https://github.com/yosukefk/plotter.git`
 
+Go into main directory
+
+`cd plotter`
+
 Grab required pacages
 
 `conda install -c conda-forge --file requirements.txt`
@@ -20,7 +24,7 @@ Install to your python path
 
 `pip install .`
 
-Now you should be able to `import plotter` to use the tool.
+Now you should be able to `import plotter` to use the tool, from python environment (either python script, or python interactive session).
 
 ## Usage
 
@@ -32,8 +36,8 @@ Working example, can take it as a starting point for your work
 
 `python work_pretty_trio.py`
 
-Unittest, when things broke run this test if part of tool is broken.
+~~Unittest, when things broke run this test if part of tool is broken.~~ (i think it has been broken)
 
-`cd unittest`
+~~`cd unittest`~~
 
-`python tests.py`
+~~`python tests.py`~~
