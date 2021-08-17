@@ -12,6 +12,10 @@ Grab code from git repo
 
 `git clone https://github.com/yosukefk/plotter.git`
 
+Go into main directory
+
+`cd plotter`
+
 Grab required pacages
 
 `conda install -c conda-forge --file requirements.txt`
