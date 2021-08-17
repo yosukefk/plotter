@@ -215,8 +215,8 @@ def calc_plot_extent( x, y, data_proj, plot_proj):
 
     plot_extent = [
         decfloor(plot_corners[0][0] - bufx, scl),
-        decfloor(plot_corners[2][0] + bufx, scl),
-        decceil( plot_corners[0][1] - bufy, scl),
+        decceil(plot_corners[2][0] + bufx, scl),
+        decfloor( plot_corners[0][1] - bufy, scl),
         decceil( plot_corners[2][1] + bufy, scl),
     ]
     print('plot_extent:', plot_extent)
