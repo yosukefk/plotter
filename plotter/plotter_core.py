@@ -284,7 +284,14 @@ class PlotterCore:
                         # not super accurate, off by half pixel
                         self.extent = [np.min(self.x), np.max(self.x), np.min(self.y), np.max(self.y)]
 
-                self.im = self.ax.imshow(arr, extent=self.extent, transform=self.projection, **kwds)
+                if 'origin' not in kwds and self.y is not None and self.y[0] < self.y[-1]:
+                    # y is ascending order, not typical gis raster.
+                    origin = 'lower'
+                else:
+                    origin = 'upper'
+
+                self.im = self.ax.imshow(arr, extent=self.extent, origin =
+                                         origin, transform=self.projection, **kwds)
                 self.mappable = self.im
 
             if self.contour_options is not None:
