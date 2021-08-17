@@ -36,8 +36,8 @@ Working example, can take it as a starting point for your work
 
 `python work_pretty_trio.py`
 
-Unittest, when things broke run this test if part of tool is broken.
+~~Unittest, when things broke run this test if part of tool is broken.~~ (i think it has been broken)
 
-`cd unittest`
+~~`cd unittest`~~
 
-`python tests.py`
+~~`python tests.py`~~
