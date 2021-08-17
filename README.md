@@ -24,7 +24,7 @@ Install to your python path
 
 `pip install .`
 
-Now you should be able to `import plotter` to use the tool.
+Now you should be able to `import plotter` to use the tool, from python environment (either python script, or python interactive session).
 
 ## Usage
 
