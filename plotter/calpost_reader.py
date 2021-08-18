@@ -168,9 +168,17 @@ def calpost_reader(f, tslice=slice(None, None), x=None, y=None, z=None,
         x = np.sort(x)
         y = np.sort(y)
         # * even better yet, allow non-grid data as input
-        print(x[1:] - x[:-1])
-        print(y[1:] - y[:-1])
-        is_subregion = True
+        xd = x[1:] - x[:-1]
+        yd = y[1:] - y[:-1]
+        print(xd.max(), xd.min(), xd.max()-xd.min(), xd.mean(), xd.mean()*.01)
+        print(yd.max(), yd.min(), yd.max()-yd.min(), yd.mean(),
+              yd.mean()*.01)
+        
+        is_subregion = (
+            ((xd.max() - xd.min()) < xd.mean() * .001) and 
+            ((yd.max() - yd.min()) < yd.mean() * .001)
+        )
+        #is_subregion = True
 
         if is_subregion:
 
