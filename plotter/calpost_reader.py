@@ -157,7 +157,22 @@ def calpost_reader(f, tslice=slice(None, None), x=None, y=None, z=None,
 
     else:
         # see if the data is subset of array
-        if len(x) * len(y) * .1 < nx / nz:
+        # if len(x) * len(y) * .1  < nx / nz:
+        # TODO
+        # better test would be needed.
+        # * deal with precision of float for x,y coords, to reconstruct
+        #   grid.
+        # * if selected x, y are approximately evenly spqced, and if not
+        #   interpolat
+        # * or allow user to specify extent
+        x = np.sort(x)
+        y = np.sort(y)
+        # * even better yet, allow non-grid data as input
+        print(x[1:] - x[:-1])
+        print(y[1:] - y[:-1])
+        is_subregion = True
+
+        if is_subregion:
 
             nx = len(x)
             ny = len(y)
@@ -167,7 +182,6 @@ def calpost_reader(f, tslice=slice(None, None), x=None, y=None, z=None,
             print('len(xr)/nz', len(xr)/nz)
             print('len(yr)/nz', len(yr)/nz)
 
-            is_subregion = True
             idx = [(_ == x).argmax() for _ in xr[:int(len(xr)/nz)]]
             jdx = [(_ == y).argmax() for _ in yr[:int(len(yr)/nz)]]
             map_subregion = [(j, i) for (j, i) in zip(jdx, idx)]
@@ -175,6 +189,8 @@ def calpost_reader(f, tslice=slice(None, None), x=None, y=None, z=None,
         else:
             print('len(x),len(y)=', len(x), len(y))
             print('nx,ny=', nx, ny)
+            print(len(x)*len(y), nx/nz)
+            print(len(x)*len(y)*.1, nx/nz)
             raise RuntimeError('non gridded data...')
 
     for i in range(3):
