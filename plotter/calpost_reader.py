@@ -7,6 +7,7 @@ import datetime
 import re
 import pytz
 import warnings
+from . import plotter_util as pu
 
 
 class cprValueError(ValueError):
@@ -144,6 +145,7 @@ def calpost_reader(f, tslice=slice(None, None), x=None, y=None, z=None,
     print(nx, ny, nx*ny)
     print(len(x), len(y), len(x)*len(y))
     print(nx == len(x)*len(y))
+    is_gridded = True
     is_subregion = False
     map_subregion = None
     if len(x) == nx and len(y) == ny:
@@ -195,22 +197,36 @@ def calpost_reader(f, tslice=slice(None, None), x=None, y=None, z=None,
             map_subregion = [(j, i) for (j, i) in zip(jdx, idx)]
 
         else:
+            is_gridded = False
             print('len(x),len(y)=', len(x), len(y))
             print('nx,ny=', nx, ny)
             print(len(x)*len(y), nx/nz)
             print(len(x)*len(y)*.1, nx/nz)
-            raise RuntimeError('non gridded data...')
+            #raise RuntimeError('non gridded data...')
+            warnings.warn('non gridded data', pu.PlotterWarning)
+
+            # restore x and y as in original order
+            x = xr
+            y = yr
 
     for i in range(3):
         #next(f)
         ff.waste()
     
 
-    dx = x[1] - x[0]
-    dy = y[1] - y[0]
-    x0 = x[0] - .5 * dx
-    y0 = y[0] - .5 * dy
-    grid = {'x0': x0, 'y0': y0, 'nx': nx, 'ny': ny, 'dx': dx, 'dy': dy}
+    if is_gridded:
+        dx = x[1] - x[0]
+        dy = y[1] - y[0]
+        x0 = x[0] - .5 * dx
+        y0 = y[0] - .5 * dy
+        grid = {'x0': x0, 'y0': y0, 'nx': nx, 'ny': ny, 'dx': dx, 'dy': dy}
+    else:
+        x0 = x[0]
+        y0 = y[0]
+        x1 = x[-1]
+        y1 = y[-1]
+        grid = {'x0': x0, 'y0': y0, 'x1': x1, 'y1': y1}
+
 
     lst_v = []
     lst_ts = []
@@ -223,7 +239,14 @@ def calpost_reader(f, tslice=slice(None, None), x=None, y=None, z=None,
 
         v = np.fromstring(line[16:], dtype=float, sep=' ')
 
-        if is_subregion:
+        if not is_gridded:
+            if nz > 1:
+                vv = v.reshape(nz, -1)
+            else:
+                vv = v
+
+
+        elif is_subregion:
             # TODO
             if nz > 1:
                 vv = np.empty((nz, ny, nx))
