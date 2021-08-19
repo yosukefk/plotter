@@ -15,6 +15,7 @@ except ImportError:
     has_rasterio = True
 
 
+import matplotlib as mpl
 import numpy as np
 from multiprocessing import Pool
 import shlex
@@ -166,13 +167,21 @@ class _saveone:
         self.p = p
         self.is_multi = is_multi
         # rasterio cannot be pickled, so drop it
+        # also, tricontouf has TriContourGenerator that cannot be pickled,
+        # and we dont need them anyway, i think
         if is_multi:
             for plotter in self.p.plotters:
                 if hasattr(plotter, 'background_manager'):
                     plotter.background_manager.purge_bgfile_hook()
+                if hasattr(plotter, 'cnt'):
+                    if hasattr(self.p.plotter, 'cppContourGenerator'):
+                        del plotter.cnt.cppContourGenerator
         else:
             if hasattr(self.p.plotter, 'background_manager'):
                 self.p.plotter.background_manager.purge_bgfile_hook()
+            if hasattr(self.p.plotter, 'cnt'):
+                if hasattr(self.p.plotter.cnt, 'cppContourGenerator'):
+                    del self.p.plotter.cnt.cppContourGenerator
 
         self.png_fmt = png_fmt
 
@@ -180,12 +189,39 @@ class _saveone:
         self.p.savefig(self.png_fmt.format(i), tidx=i)
 
 
-def calc_plot_extent( x, y, data_proj, plot_proj):
+def calc_plot_extent( x=None, y=None, extent=None, data_proj=None,
+                     plot_proj=None):
     """calculate plot_extent"""
 
-    # corner coords of data grid
-    data_corners = np.array( [(x[p], y[q]) for (p,q) in
+
+    if data_proj is None or not isinstance(data_proj, ccrs.Projection):
+        raise ValueError(
+            f'data_proj has to be carotpy Projection: {repr(data_proj)}')
+
+    if plot_proj is None or not isinstance(plot_proj, ccrs.Projection):
+        raise ValueError(
+            f'plot_proj has to be carotpy Projection: {repr(plot_proj)}')
+
+
+
+    if extent is None:
+
+        # corner coords of data grid
+        #data_corners = np.array( [(x[p], y[q]) for (p,q) in
+        #                [(0,0),(0,-1),(-1,-1),(-1,0),(0,0)]] )
+        #data_corners = np.array( [(x[p], y[q]) for (p,q) in
+        #                [(0,0),(0,-1),(-1,-1),(-1,0),(0,0)]] )
+        # be robust!
+        xrng = [x.min(), x.max()]
+        yrng = [y.min(), y.max()]
+    else:
+        xrng = extent[0:2]
+        yrng = extent[2:4]
+
+    data_corners = np.array( [(xrng[p], yrng[q]) for (p,q) in
                     [(0,0),(0,-1),(-1,-1),(-1,0),(0,0)]] )
+
+
     print('data_corners:', data_corners)
 
 
@@ -201,13 +237,13 @@ def calc_plot_extent( x, y, data_proj, plot_proj):
     decfloor = lambda a, decimals: np.floor(a * (10 ** decimals)) / (10**decimals)
     decceil = lambda a, decimals: np.ceil(a * (10 ** decimals)) / (10**decimals)
 
-    nx, ny = len(x), len(y)
+    #nx, ny = len(x), len(y)
     #bufx = (plot_corners[2][0] - plot_corners[0][0]) / len(x) 
     #bufy = (plot_corners[2][1] - plot_corners[0][1]) / len(y) 
     bufx = (plot_corners[2][0] - plot_corners[0][0]) / 100
     bufy = (plot_corners[2][1] - plot_corners[0][1]) / 100
 
-    print(nx, ny, bufx, bufy)
+    #print(nx, ny, bufx, bufy)
 
     buf = min(bufx, bufy)
     scl =  - int(np.round(np.log10(buf), 0))
