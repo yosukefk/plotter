@@ -135,19 +135,35 @@ class PlotterCore:
 
         self.arr = array
         self.tstamps = tstamps
+        self.is_gridded = True
+
+        if len(self.arr.shape) < 3:
+            if x is None or y is None:
+                raise RuntimeError(
+                    'x and y are mandartory arguments for non-gridded data')
+            
+            if self.arr.shape[-1] != len(x) or self.arr.shape[-1] != len(y):
+                raise RuntimeError(
+                    f'size dosent mactch, arr.shape[-1], len(x), len(y) = {self.arr.shape}, {len(x)}, {len(y)}'
+                )
+            self.is_gridded = False
+                
 
         self.subdomain = plotter_options.get('subdomain', None)
-        if self.subdomain is None:
-            self.jslice = slice(None)
-            self.islice = slice(None)
-            self.i0 = 1
-            self.j0 = array.shape[-2]
+        if self.is_gridded:
+            if self.subdomain is None:
+                self.jslice = slice(None)
+                self.islice = slice(None)
+                self.i0 = 1
+                self.j0 = array.shape[-2]
+            else:
+                raise NotImplementedError('subdomain need QA')
+                self.jslice = slice((self.subdomain[1] - 1), self.subdomain[3])
+                self.islice = slice((self.subdomain[0] - 1), self.subdomain[2])
+                self.i0 = self.subdomain[0]
+                self.j0 = self.subdomain[1]
         else:
-            raise NotImplementedError('subdomain need QA')
-            self.jslice = slice((self.subdomain[1] - 1), self.subdomain[3])
-            self.islice = slice((self.subdomain[0] - 1), self.subdomain[2])
-            self.i0 = self.subdomain[0]
-            self.j0 = self.subdomain[1]
+            self.islice = slice(None)
 
         # if neither imshow or contour are specified, default to use imshow
         # user can inteitionally not plot by making both to None
@@ -249,8 +265,11 @@ class PlotterCore:
         :param str title:  title overwrite
         """
         if tidx is None: tidx = 0
-        # get 2d array to plot
-        idx = [tidx, self.jslice, self.islice]
+        if self.is_gridded:
+            # get 2d array to plot
+            idx = [tidx, self.jslice, self.islice]
+        else:
+            idx = [tidx, self.islice]
 
         arr = self.arr[tuple(idx)]
 
@@ -268,8 +287,12 @@ class PlotterCore:
                 for c in self.cnt.collections:
                     c.remove()
                 kwds = self.contour_options
-                self.cnt = self.ax.contourf(self.x, self.y, arr,
-                                            extent=self.extent, transform=self.projection, **kwds)
+                if self.is_gridded:
+                    self.cnt = self.ax.contourf(self.x, self.y, arr,
+                                                extent=self.extent, transform=self.projection, **kwds)
+                else:
+                    self.cnt = self.ax.tricontourf(self.x, self.y, arr,
+                                                extent=self.extent, transform=self.projection, **kwds)
 
             if self.footnote_manager is not None:
                 self.footnote_manager(footnote)
@@ -296,19 +319,23 @@ class PlotterCore:
 
             if self.contour_options is not None:
                 kwds = self.contour_options
-                if self.x is None:
-                    if self.extent is None:
-                        self.x = np.arange(arr.shape[1])
-                        self.y = np.arange(arr.shape[0])
-                    else:
-                        self.x = np.linspace(self.extent[0], self.extent[1], arr.shape[1], endpoint=False)
-                        self.y = np.linspace(self.extent[3], self.extent[2], arr.shape[0], endpoint=False)
-                        self.x = self.x + .5 * (self.x[1] - self.x[0])
-                        self.y = self.y + .5 * (self.y[1] - self.y[0])
-                    # print(self.x)
-                    # print(self.y)
-                self.cnt = self.ax.contourf(self.x, self.y, arr, extent=self.extent, transform=self.projection, **kwds)
-                self.mappable = self.cnt
+                if self.is_gridded:
+                    if self.x is None:
+                        if self.extent is None:
+                            self.x = np.arange(arr.shape[1])
+                            self.y = np.arange(arr.shape[0])
+                        else:
+                            self.x = np.linspace(self.extent[0], self.extent[1], arr.shape[1], endpoint=False)
+                            self.y = np.linspace(self.extent[3], self.extent[2], arr.shape[0], endpoint=False)
+                            self.x = self.x + .5 * (self.x[1] - self.x[0])
+                            self.y = self.y + .5 * (self.y[1] - self.y[0])
+                        # print(self.x)
+                        # print(self.y)
+                    self.cnt = self.ax.contourf(self.x, self.y, arr, extent=self.extent, transform=self.projection, **kwds)
+                    self.mappable = self.cnt
+                else:
+                    self.cnt = self.ax.tricontourf(self.x, self.y, arr, extent=self.extent, transform=self.projection, **kwds)
+                    self.mappable = self.cnt
 
             if self.colorbar_options is not None:
                 kwds = self.colorbar_options
