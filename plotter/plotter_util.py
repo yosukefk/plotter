@@ -174,7 +174,7 @@ class _saveone:
                 if hasattr(plotter, 'background_manager'):
                     plotter.background_manager.purge_bgfile_hook()
                 if hasattr(plotter, 'cnt'):
-                    if hasattr(self.p.plotter, 'cppContourGenerator'):
+                    if hasattr(plotter.cnt, 'cppContourGenerator'):
                         del plotter.cnt.cppContourGenerator
         else:
             if hasattr(self.p.plotter, 'background_manager'):

@@ -20,7 +20,7 @@ mpl.use('Agg')
 
 class Plotter:
     def __init__(self, arrays, tstamps, projection=None, extent=None,
-                 x=None, y=None, z=None, plotter_options=None, figure_options=None):
+                 x=None, y=None, xs=None, ys=None, z=None, plotter_options=None, figure_options=None):
         """
         Wrappter for multple PlotterCore, allows savefig() and savemp4()
 
@@ -118,13 +118,21 @@ class Plotter:
             plotter_options[i]['fig'] = self.fig
             plotter_options[i]['pos'] = (nrow, ncol, i + 1)
 
+        if x is None and xs is not None:
+            use_xs = True
+        else:
+            use_xs = False
+            xs = [x] * len(arrays)
+            ys = [y] * len(arrays)
+
         # create plots
         if z is None:
             self.plotters = [pc.PlotterCore(arr, tstamps, projection=projection, extent=extent,
-                                            x=x, y=y, plotter_options=po) for arr, po in zip(arrays, plotter_options)]
+                                                x=x, y=y, plotter_options=po) 
+                                 for arr, po, x, y in zip(arrays, plotter_options, xs, ys)]
         else:
             self.plotters = []
-            for arr, po in zip(arrays, plotter_options):
+            for arr, po, x, y  in zip(arrays, plotter_options, xs, ys):
                 if arr is None:
                     self.plotters.append(
                         pc.PlotterEmpty(None, tstamps, plotter_options=po)
