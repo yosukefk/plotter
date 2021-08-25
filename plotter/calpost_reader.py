@@ -149,13 +149,16 @@ def calpost_reader(f, tslice=slice(None, None), x=None, y=None, z=None,
     is_subregion = False
     map_subregion = None
     if len(x) == nx and len(y) == ny:
+        print('is grid')
         # this is good, gridded data, 2D
         # print('GRID')
         pass
     elif len(x) * len(y) == nx / nz:
+        print('is grid')
         # print('DESC')
         nx = len(x)
         ny = len(y)
+
 
     else:
         # see if the data is subset of array
@@ -183,6 +186,7 @@ def calpost_reader(f, tslice=slice(None, None), x=None, y=None, z=None,
         #is_subregion = True
 
         if is_subregion:
+            print('is subregion')
 
             nx = len(x)
             ny = len(y)
@@ -197,6 +201,7 @@ def calpost_reader(f, tslice=slice(None, None), x=None, y=None, z=None,
             map_subregion = [(j, i) for (j, i) in zip(jdx, idx)]
 
         else:
+            print('not gridded')
             is_gridded = False
             print('len(x),len(y)=', len(x), len(y))
             print('nx,ny=', nx, ny)
@@ -220,6 +225,35 @@ def calpost_reader(f, tslice=slice(None, None), x=None, y=None, z=None,
         x0 = x[0] - .5 * dx
         y0 = y[0] - .5 * dy
         grid = {'x0': x0, 'y0': y0, 'nx': nx, 'ny': ny, 'dx': dx, 'dy': dy}
+
+        if not is_subregion:
+            # make sure that x, y are i expected order...
+            if np.isclose(xr[1] - xr[0], dx) and (yr[1] - yr[0]) < dy * .001:
+                print('c-order')
+                is_corder = True
+                print(yr[nx-1], yr[nx], yr[nx+1])
+                y1 = yr[nx]
+            elif np.isclose(yr[1] - yr[0], dy) and (xr[1] - xr[0]) < dy * .001:
+                print('f-order')
+                is_corder = False
+                y1 = yr[1]
+            else:
+                raise RuntimeError('Neither C-order or F-order?')
+
+            if np.isclose(y1 - yr[0], -dy):
+                # image order
+                print('image-order')
+                is_imageorder = True
+            elif np.isclose(y1 - y[0], dy):
+                # math order (i.e. upside down)
+                print('math-order')
+                is_imageorder = False
+            else:
+                raise RuntimeError(f'Neither image-order or math-order..?  {y[0]}, {y1}, {dy}')
+
+            
+
+        
     else:
         x0 = x[0]
         y0 = y[0]
@@ -263,14 +297,26 @@ def calpost_reader(f, tslice=slice(None, None), x=None, y=None, z=None,
         else:
             if nz > 1:
                 vv = v.reshape(nz, ny, nx)
+                if not is_corder:
+                    vv = vv.tranpose((0, 2, 1))
+                if is_imageorder:
+                    # default to math order, since that's what tseries file
+                    # with "GRID" recptor has
+                    vv = vv[:, ::-1, :]
             else:
                 vv = v.reshape(ny, nx)
+                if not is_corder:
+                    vv = vv.tranpose()
+                if is_imageorder:
+                    # default to math order, since that's what tseries file
+                    # with "GRID" recptor has
+                    vv = vv[::-1, :]
         # print(v)
         lst_v.append(vv)
     ts = np.array(lst_ts)
     v = np.stack(lst_v, axis=0)
     return {'name': name, 'units': units, 'ts': ts, 'grid': grid, 'y': y,
-            'x': x, 'v': v, 'ptid': ptid}
+            'x': x, 'v': v, 'ptid': ptid, 'z': z, 'yr': yr, 'xr': xr}
 
 
 def calpost_cat(lst, use_later_files=False):
