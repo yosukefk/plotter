@@ -133,7 +133,16 @@ def savemp4(p, wdir=None, nthreads=None, odir='.', oname='animation.mp4'):
     is_multi = isinstance(p, PlotterMulti)
 
     if is_multi:
-        adjust_width = '-vf scale=1920:-2'
+        # set width to be linked to matplotlib...
+        # default is 6.4x4.8 inch image, dpi=100
+        # so 640x480 pixel
+        # somehow i got the idea that i want to raise dpi=300
+        # whic make 1920x1440.  i think this 1920 default width comes from
+        # this value
+        # so, instead of hard wire 1920 here, i equate this to number of
+        # pixel in the image
+        png_w = mpl.pyplot.rcParams['figure.figsize'][0] * mpl.pyplot.rcParams['figure.dpi']
+        adjust_width = f'-vf scale={png_w}:-2'
     else:
         adjust_width = ''
 
