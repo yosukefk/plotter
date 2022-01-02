@@ -116,7 +116,10 @@ def savemp4(p, wdir=None, nthreads=None, odir='.', oname='animation.mp4'):
             nthreads = 24
         elif 'stampede2' in hn:
             nthreads = 24
+        elif 'ls6' in hn:
+            nthreads = 64
         else:
+            warnings.warn('unknon hostname: %s' % hn)
             nthreads = 1
 
     # except that you are on TACC login node
