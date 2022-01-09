@@ -119,6 +119,11 @@ def calpost_reader(f, tslice=slice(None, None), x=None, y=None, z=None,
     if any(_ is None for _ in (x, y)):
         x = np.fromstring(xx[16:], dtype=float, sep=' ')
         y = np.fromstring(yy[16:], dtype=float, sep=' ')
+        if nz > 1:
+            assert len(x) % nz == 0
+
+            x = x[:int(len(x)/nz)]
+            y = y[:int(len(y)/nz)]
     print('len():', len(ix), len(iy), len(x), len(y))
     print('len()*nz:', len(ix), len(iy), len(x)*nz, len(y)*nz)
     ptid = pd.DataFrame.from_dict({
@@ -269,8 +274,13 @@ def calpost_reader(f, tslice=slice(None, None), x=None, y=None, z=None,
         lst_v.append(vv)
     ts = np.array(lst_ts)
     v = np.stack(lst_v, axis=0)
-    return {'name': name, 'units': units, 'ts': ts, 'grid': grid, 'y': y,
+    o = {'name': name, 'units': units, 'ts': ts, 'grid': grid, 'y': y,
             'x': x, 'v': v, 'ptid': ptid}
+    if nz > 1:
+        o.update({'z': np.array(z)})
+
+    return o
+
 
 
 def calpost_cat(lst, use_later_files=False):
