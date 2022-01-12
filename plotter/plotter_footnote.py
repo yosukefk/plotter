@@ -48,9 +48,14 @@ class FootnoteManager:
             myopts.update({k: v for k, v in footnote_options.items() if k not in
                            keys_to_extract})
 
-            if mpl.__version__ < '3.3' and 'text' in myopts:
-                myopts['s'] = myopts['text']
-                del myopts['text']
+            if mpl.__version__ < '3.3':
+                if 'text' in myopts:
+                    myopts['s'] = myopts['text']
+                    del myopts['text']
+            else:
+                if 's' in myopts:
+                    myopts['text'] = myopts['s']
+                    del myopts['s']
 
             self.footnote = self.plotter.ax.annotate(**myopts)
             self()

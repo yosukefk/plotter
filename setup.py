@@ -8,6 +8,7 @@ setup(
         license='MIT',
         packages=['plotter'], 
         install_requires=[
-            'cartopy>=0.18'
+            'cartopy>=0.18', 
+            'pandas>=1.1.4',
             ],
         )
