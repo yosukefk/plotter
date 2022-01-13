@@ -133,7 +133,9 @@ def add_image(ax3d, im, zbase):
     zz = np.ones_like(xx) * zbase
 
     # https://stackoverflow.com/questions/37478460/add-background-image-to-3d-plot
-    ax3d.plot_surface(xx, yy, zz, rstride=1, cstride=1, facecolors=im0)
+    srf = ax3d.plot_surface(xx, yy, zz, rstride=1, cstride=1, facecolors=im0)
+    srf.__class__ = FixZorderPoly3DCollection
+    srf._zorder = -1000
 
 
 def add_trisurf(ax, arr, x, y, z, iso_val, **kwds):
@@ -243,8 +245,8 @@ class PlotterTrisurf:
         self.ax.set_xlim(self.x1d[0], self.x1d[-1])
         self.ax.set_ylim(self.y1d[0], self.y1d[-1])
 
-        #self.ax.set_xticks([])
-        #self.ax.set_yticks([])
+        self.ax.set_xticks([])
+        self.ax.set_yticks([])
 
 
         if zlim is None: 
