@@ -1,9 +1,11 @@
 try:
     from . import plotter_core as pc
     from . import plotter_vprof as pv
+    from . import plotter_trisurf as pt
 except ImportError:
     import plotter_core as pc
     import plotter_vprof as pv
+    import plotter_trisurf as pt
 
 import matplotlib.pyplot as plt
 import matplotlib as mpl
@@ -43,7 +45,14 @@ class Plotter:
             else:
                 idx = plotter_options.pop('idx', None)
                 jdx = plotter_options.pop('jdx', None)
-                self.plotter = pv.PlotterVprof(array,
+                if idx is None and jdx is None:
+                    zlim = plotter_options.pop('zlim', None)
+                    self.plotter = pt.PlotterTrisurf(array,
+                                               tstamps, projection=projection, extent=extent,
+                                               x=x, y=y, z=z, zlim=zlim,
+                                               plotter_options=plotter_options)
+                else:
+                    self.plotter = pv.PlotterVprof(array,
                                                tstamps, projection=projection, extent=extent,
                                                x=x, y=y, z=z, idx=idx, jdx=jdx,
                                                plotter_options=plotter_options)

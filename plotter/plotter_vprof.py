@@ -16,6 +16,9 @@ class PlotterVprof:
         :rtype: PlotterVprof
         :param np.ndarray array: 4-d array of data values, dimensions(t, z, y, x), or 2+ d array of data values, dimensions(t, ...)
         :param np.ndarray tstamps: 1-d array of datetime, dimensions(t)
+        :param np.ndarray z: 1-d array of z coordinate of data
+        :param np.ndarray idx: idx to slice the data vertically
+        :param np.ndarray jdx: idx to slice the data vertically
         :param ccrs.CRS projection: projection of xy coordinate of data
         :param list extent: xy extent of data, with with coordinate of projection
         :param np.ndarray x: x coordinate of data, with shape matching (...) part of array
