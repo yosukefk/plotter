@@ -176,6 +176,9 @@ class PlotterDwprof:
         arr = self.arr[tidx]
         arr2d = self.arr2d[tidx]
 
+        self.current_arr = arr
+        self.current_tstamp = self.tstamps[tidx]
+
         # find direction of maximum on the circle
         fnc = interp2d(self.x, self.y, arr2d)
         c_v = np.array([fnc(_x, _y)[0] for _x, _y in zip(self.c_x, self.c_y)])

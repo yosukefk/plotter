@@ -2,10 +2,12 @@ try:
     from . import plotter_core as pc
     from . import plotter_vprof as pv
     from . import plotter_trisurf as pt
+    from . import plotter_dwprof as pw
 except ImportError:
     import plotter_core as pc
     import plotter_vprof as pv
     import plotter_trisurf as pt
+    from . import plotter_dwprof as pw
 
 import matplotlib.pyplot as plt
 import matplotlib as mpl
@@ -37,21 +39,41 @@ class Plotter:
                                           extent=extent, x=x, y=y, plotter_options=plotter_options)
         else:
             if 'kdx' in plotter_options:
+                # plan view plot
                 kdx = plotter_options.pop('kdx', None)
                 print(array.shape)
                 print(array[:, kdx, :, :].shape)
                 self.plotter = pc.PlotterCore(array[:, kdx, :, :], tstamps, projection=projection,
                                               extent=extent, x=x, y=y, plotter_options=plotter_options)
+            elif 'downwind_options' in plotter_options:
+                downwind_options = plotter_options.pop('downwind_options')
+                if downwind_options['kind'] == 'planview':
+                    self.plotter = pw.PlotterDwprofPlanview(array, tstamps, projection=projection, extent=extent, 
+                                               x=x, y=y, z=z, 
+                                               origin=downwind_options['origin'], 
+                                               distance=downwind_options['distance'], 
+                                               kind=downwind_options['kind'], 
+                                               plotter_options=plotter_options)
+                else:
+                    self.plotter = pw.PlotterDwprof(array, tstamps, projection=projection, extent=extent, 
+                                               x=x, y=y, z=z, 
+                                               origin=downwind_options['origin'], 
+                                               distance=downwind_options['distance'], 
+                                               kind=downwind_options['kind'], 
+                                               plotter_options=plotter_options)
+
             else:
                 idx = plotter_options.pop('idx', None)
                 jdx = plotter_options.pop('jdx', None)
                 if idx is None and jdx is None:
+                    # 3d isosurface plot
                     zlim = plotter_options.pop('zlim', None)
                     self.plotter = pt.PlotterTrisurf(array,
                                                tstamps, projection=projection, extent=extent,
                                                x=x, y=y, z=z, zlim=zlim,
                                                plotter_options=plotter_options)
                 else:
+                    # vertical profile
                     self.plotter = pv.PlotterVprof(array,
                                                tstamps, projection=projection, extent=extent,
                                                x=x, y=y, z=z, idx=idx, jdx=jdx,
