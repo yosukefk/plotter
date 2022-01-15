@@ -82,7 +82,7 @@ class FootnoteManager:
             myopts.update({k: v for k, v in footnote_options.items() if k not in
                            keys_to_extract})
             myopts['s'] = myopts.pop('text', myopts['s'])
-            print(myopts)
+            # print(myopts)
 
             self.footnote = self.plotter.fig.text(**myopts)
         else:
@@ -105,7 +105,7 @@ class FootnoteManager:
         if hasattr(self.plotter, 'ax'):
             my_plotter = self.plotter
         else:
-            my_plotter = self.plotter.plotters[0]
+            my_plotter = self.plotter.first_nonempty_plotter
 
         arr = my_plotter.current_arr
         tstamp = my_plotter.current_tstamp

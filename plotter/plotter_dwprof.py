@@ -23,11 +23,13 @@ class PlotterDwprofPlanview(pc.PlotterCore):
         super().update(tidx=tidx, footnote=footnote, title=title)
         self.pdw.update(tidx)
         x0, y0, radius, theta, x1, y1 = self.pdw.update(tidx)
-        if hasattr(self, 'ray'): 
-            self.ray.remove()
+        if hasattr(self, 'footprints'): 
+            for x in self.footprints:
+                x.remove()
         #self.ax.add_patch(plt.Circle((x0,y0), radius, fill=False, color='black', lw=.6))
-        self.ax.add_patch(mpl.patches.Arc((x0,y0), radius*2, radius*2, angle=theta/np.pi*180, theta1=-self.pdw.half_angle, theta2=self.pdw.half_angle,  color='black', lw=.6))
-        self.ray = self.ax.add_line(mpl.lines.Line2D((x0,x1), (y0, y1), color='black', lw=.6))
+        arc = self.ax.add_patch(mpl.patches.Arc((x0,y0), radius*2, radius*2, angle=theta/np.pi*180, theta1=-self.pdw.half_angle, theta2=self.pdw.half_angle,  color='black', lw=.6))
+        ray = self.ax.add_line(mpl.lines.Line2D((x0,x1), (y0, y1), color='black', lw=.6))
+        self.footprints = [arc, ray]
 
 class PlotterDwprof:
     def __init__(self, array, tstamps, z, origin=None, distance=None, half_angle=None, kind=None,
@@ -257,9 +259,9 @@ class PlotterDwprof:
 
             # None => default?  or '' => nothing?
             if self.footnote != '':
-                print('here')
-                print(self.footnote)
-                print(self.footnote_options)
+                #print('here')
+                #print(self.footnote)
+                #print(self.footnote_options)
                 self.footnote_manager = pf.FootnoteManager(self, self.footnote,
                                                         footnote_options=self.footnote_options)
 

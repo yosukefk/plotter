@@ -195,6 +195,11 @@ class Plotter:
                                                    plotter_options=po)
                         )
         self.axes = [p.ax for p in self.plotters]
+        for pp in self.plotters:
+            if not isinstance(pp, pc.PlotterEmpty):
+                self.first_nonempty_plotter= pp
+                break
+
 
     def savefig(self, oname, tidx=None, footnote=None, suptitle=None,
                 titles=None, footnotes=None, *args, **kwargs):
@@ -237,7 +242,7 @@ class Plotter:
                     my_shrink = .5
 
                 self.fig.colorbar(
-                    mappable=self.plotters[0].mappable,
+                    mappable=self.first_nonempty_plotter.mappable,
                     ax=self.axes,
                     use_gridspec=True,
                     **{'shrink': my_shrink, **cbopt})
