@@ -2,12 +2,12 @@ try:
     from . import plotter_core as pc
     from . import plotter_vprof as pv
     from . import plotter_trisurf as pt
-    from . import plotter_dwprof as pw
+    #from . import plotter_dwprof as pw
 except ImportError:
     import plotter_core as pc
     import plotter_vprof as pv
     import plotter_trisurf as pt
-    from . import plotter_dwprof as pw
+    #import plotter_dwprof as pw
 
 import matplotlib.pyplot as plt
 import matplotlib as mpl
@@ -46,6 +46,11 @@ class Plotter:
                 self.plotter = pc.PlotterCore(array[:, kdx, :, :], tstamps, projection=projection,
                                               extent=extent, x=x, y=y, plotter_options=plotter_options)
             elif 'downwind_options' in plotter_options:
+                # delayed import
+                try:
+                    from . import plotter_dwprof as pw
+                except ImportError:
+                    import plotter_dwprof as pw
                 downwind_options = plotter_options.pop('downwind_options')
                 if downwind_options['kind'] == 'planview':
                     self.plotter = pw.PlotterDwprofPlanview(array, tstamps, projection=projection, extent=extent, 

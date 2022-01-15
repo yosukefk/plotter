@@ -134,7 +134,9 @@ class PlotterDwprof:
         self.c_x = np.cos(theta) * self.distance + self.x0
         self.c_y = np.sin(theta) * self.distance + self.y0
         self.c_s = - np.pi * theta   # s goes from 0 to positive
-        self.c_mm = int(np.ceil(len(self.c_theta) / 6)) # 60 degree both side of center
+        #self.c_mm = int(np.ceil(len(self.c_theta) / 6)) # 60 degree both side of center
+        #self.c_mm = int(np.ceil(len(self.c_theta) / 8)) # 45 degree both side of center
+        self.c_mm = int(np.ceil(len(self.c_theta) / 12)) # 30 degree both side of center
         self.c_nn = 2*self.c_mm + 1
         self.c_hor = np.linspace(self.distance * np.pi * dtheta * self.c_nn, - self.distance * np.pi * dtheta * self.c_nn, 2*self.c_nn + 1)
 
