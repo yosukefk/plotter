@@ -9,14 +9,14 @@ import numpy as np
 from scipy.interpolate import interp2d
 
 class PlotterDwprofPlanview(pc.PlotterCore):
-    def __init__(self, array, tstamps, z, origin=None, distance=None, kind=None,
+    def __init__(self, array, tstamps, z, origin=None, distance=None, half_angle=None, kind=None,
                  projection=None, extent=None, x=None, y=None, plotter_options=None):
 
         super().__init__( array[:,0,:,:], tstamps, 
                  projection=projection, extent=extent, x=x, y=y, plotter_options=plotter_options)
 
         
-        self.pdw = PlotterDwprof( array, tstamps, z, origin=origin, distance=distance, kind='skelton',
+        self.pdw = PlotterDwprof( array, tstamps, z, origin=origin, distance=distance, half_angle=half_angle, kind='skelton',
                  projection=projection, extent=extent, x=x, y=y, plotter_options={k:v for k,v in plotter_options.items() if k != 'customize_once'})
 
     def update(self, tidx=None, footnote=None, title=None):
@@ -25,11 +25,12 @@ class PlotterDwprofPlanview(pc.PlotterCore):
         x0, y0, radius, theta, x1, y1 = self.pdw.update(tidx)
         if hasattr(self, 'ray'): 
             self.ray.remove()
-        self.ax.add_patch(plt.Circle((x0,y0), radius, fill=False, color='black', lw=.6))
+        #self.ax.add_patch(plt.Circle((x0,y0), radius, fill=False, color='black', lw=.6))
+        self.ax.add_patch(mpl.patches.Arc((x0,y0), radius*2, radius*2, angle=theta/np.pi*180, theta1=-self.pdw.half_angle, theta2=self.pdw.half_angle,  color='black', lw=.6))
         self.ray = self.ax.add_line(mpl.lines.Line2D((x0,x1), (y0, y1), color='black', lw=.6))
 
 class PlotterDwprof:
-    def __init__(self, array, tstamps, z, origin=None, distance=None, kind=None,
+    def __init__(self, array, tstamps, z, origin=None, distance=None, half_angle=None, kind=None,
                  projection=None, extent=None, x=None, y=None, plotter_options=None):
         """
         Manages mpl.Axes with a vertical profile plot
@@ -60,6 +61,8 @@ class PlotterDwprof:
            
         self.x0, self.y0 = origin
         self.distance = distance 
+        if half_angle is None: half_angle = 30
+        self.half_angle = half_angle
         self.kind = kind
         if self.kind != 'skelton':
             # i have to know the axes being used, even user wants default
@@ -136,7 +139,8 @@ class PlotterDwprof:
         self.c_s = - np.pi * theta   # s goes from 0 to positive
         #self.c_mm = int(np.ceil(len(self.c_theta) / 6)) # 60 degree both side of center
         #self.c_mm = int(np.ceil(len(self.c_theta) / 8)) # 45 degree both side of center
-        self.c_mm = int(np.ceil(len(self.c_theta) / 12)) # 30 degree both side of center
+        #self.c_mm = int(np.ceil(len(self.c_theta) / 12)) # 30 degree both side of center
+        self.c_mm = int(np.ceil(len(self.c_theta) * self.half_angle / 360)) # half_angle degree both side of center
         self.c_nn = 2*self.c_mm + 1
         self.c_hor = np.linspace(self.distance * np.pi * dtheta * self.c_nn, - self.distance * np.pi * dtheta * self.c_nn, 2*self.c_nn + 1)
 
@@ -189,7 +193,7 @@ class PlotterDwprof:
 
         if self.kind == 'skelton':
             # simply return the ray
-            return self.x0, self.y0, self.distance, self.c_theta, self.r_x[hdx, -1], self.r_y[hdx, -1]
+            return self.x0, self.y0, self.distance, self.c_theta[hdx], self.r_x[hdx, -1], self.r_y[hdx, -1]
 
         if self.kind == 'cross':
             c_x = np.roll(self.c_x, -(hdx - self.c_nn))[0:(2*self.c_nn+1)]
