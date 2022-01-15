@@ -162,13 +162,13 @@ def add_trisurfs(ax, arr, x, y, z, contour_options):
         else:
             c = cmap.colors[len(bdry)-1-i]
         if i == 0:
-            a = .5
+            a = .8
         elif i == 1:
-            a = .2
+            a = .4
         elif i == 2:
-            a = .1
+            a = .2
         else:
-            a = .05
+            a = .02
         if amax > b:
             psurf = add_trisurf(ax, arr, x, y, z, b, color=c, alpha=a)
             surfs.append(psurf)
