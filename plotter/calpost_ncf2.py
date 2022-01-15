@@ -1,4 +1,5 @@
 # this still doens read by IDV correctly, something wrong following CF convention
+# https://gist.github.com/julienchastang/2129368a26ce0d85cff13cf0bc05cbf4
 import netCDF4
 import pyproj
 import numpy as np
@@ -73,7 +74,8 @@ def create(dat, fname):
     longitude.coordinates = "latitude longitude"
     longitude[:] = lons
 
-    lambert_conformal_conic = ds.createVariable('lambert_conformal_conic', np.byte, ())
+    #lambert_conformal_conic = ds.createVariable('lambert_conformal_conic', np.byte, ())
+    lambert_conformal_conic = ds.createVariable('lambert_conformal_conic', 'S1', ())
     lambert_conformal_conic.earth_radius = 637000.
     lambert_conformal_conic.grid_mapping_name = "lambert_conformal_conic"
     lambert_conformal_conic.standard_parallel = (38.5, 38.5 )
