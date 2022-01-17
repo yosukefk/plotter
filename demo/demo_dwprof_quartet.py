@@ -3,6 +3,7 @@ sys.path.insert(0, './repo/plotter')
 
 from plotter import calpost_reader as cpr
 import plotter.plotter_solo as plotter_solo
+import plotter.plotter_multi as plotter_multi
 from plotter.plotter_util import LambertConformalHRRR
 from plotter.plotter_background import BackgroundManager
 
@@ -15,6 +16,10 @@ import cartopy.io.shapereader as shpreader
 from cartopy.feature import ShapelyFeature
 
 import numpy as np
+
+import matplotlib as mpl
+
+mpl.rcParams['savefig.dpi'] = 300
 
 projHRRR = LambertConformalHRRR()
 
@@ -64,11 +69,6 @@ arr = arr / 16.043 * 0.024465403697038 * 1e9
 # array has nan, so mask them
 arr = np.ma.masked_invalid(arr)
 
-
-
-### create 2d plot to steal stuff
-
-
 title = 'test'
 
 # Mrinali/Gary's surfer color scale
@@ -101,11 +101,18 @@ receptor_corners = df_corners.loc[df_corners['box'] == 'receptor', ['lon','lat']
 
 shp_soft = shpreader.Reader('data/SoftLaunch_alt.shp')
 
+figure_options = {
+#    'suptitle': title,
+    'colorbar_options': {
+        'label': r'$CH_4$ (ppbV)',
+    },
+    'footnote_options': {'text': "{tstamp}", 'y':.01},
+}
 plotter_options = {
-    'background_manager': BackgroundManager(
-        add_image_options=[cimgt.GoogleTiles(style='satellite'), 13],
-        ),
-    'title': title,
+#    'background_manager': BackgroundManager(
+#        add_image_options=[cimgt.GoogleTiles(style='satellite'), 13],
+#        ),
+#    'title': title,
     'contour_options': {
         'levels': bndry,
         'cmap': cmap,
@@ -113,9 +120,44 @@ plotter_options = {
         'alpha': .5,
         'extend': 'max',
     },
-    'colorbar_options': {
-        'label': r'$CH_4$ (ppbV)',
-    },
+    'colorbar_options': None,
+    'footnote': '',
+    'customize_once': [
+#        # add recetptor box
+#        lambda p: p.ax.add_geometries(
+#            [Polygon([_ for _ in receptor_corners])],  # four corners into polygon
+#            crs = ccrs.PlateCarree(),  # projection is unprojected ("PlateCarre")
+#            facecolor='none', edgecolor='black', lw=.6,  # plot styles
+#            ),
+        # add softlaunch box
+        # ridiculously complicated...
+#        lambda p: p.ax.add_feature(
+#            ShapelyFeature(
+#                shp_soft.geometries(),
+#                crs=ccrs.PlateCarree(),
+#            facecolor='none', 
+#            #edgecolor='black', 
+#            edgecolor='#BDEDFC',
+#            lw=.6,  # plot styles
+#            )),
+
+    ],
+}
+downwind_options = {
+'origin' : (-436491, -727712),
+'distance' : 500,
+'kind' : 'cross',
+}
+
+plotter_options_multi = [plotter_options.copy() for _ in range(3) ]
+plotter_options_multi[0]['downwind_options'] = (downwind_options | {'kind': 'planview'}) 
+plotter_options_multi[1]['downwind_options'] = (downwind_options | {'kind': 'cross'})
+plotter_options_multi[2]['downwind_options'] = (downwind_options | {'kind': 'along'})
+plotter_options_multi[0].update(
+{
+    'background_manager': BackgroundManager(
+        add_image_options=[cimgt.GoogleTiles(style='satellite'), 13],
+        ),
     'customize_once': [
 #        # add recetptor box
 #        lambda p: p.ax.add_geometries(
@@ -135,15 +177,47 @@ plotter_options = {
             lw=.6,  # plot styles
             )),
 
-    ]}
+    ],
+}
+)
+plotter_options_multi[1].update({
+'customize_once': [
+        lambda q: q.ax.text(.05, .95, f'cross wind',
+                            ha='left', va='top',
+                            transform=q.ax.transAxes),
+        lambda q: q.ax.set_ylabel('height (m AGL)'), 
+        lambda q: q.ax.set_xlabel('from plume center (m)'),
+        lambda q: q.ax.xaxis.set_tick_params(labelsize='small'),
+]
+
+})
+plotter_options_multi[2].update({
+'customize_once': [
+        lambda q: q.ax.text(.05, .95, f'along wind',
+                            ha='left', va='top',
+                            transform=q.ax.transAxes),
+        lambda q: q.ax.set_yticks([]),
+        lambda q: q.ax.set_xlabel('from source (m)'),
+        lambda q: q.ax.xaxis.set_tick_params(labelsize='small'),
+]
+
+})
+
+arrays = [arr]*3
+
+plotter_options_multi.insert(1, {'footnote':''})
+arrays.insert(1, None)
+
+
+#print(plotter_options_multi)
+
 
 # make a plot template
-p = plotter_solo.Plotter(array=arr, tstamps=tstamps, 
+p = plotter_multi.Plotter(arrays=arrays, tstamps=tstamps, 
                          x=x, y=y, z=z, projection=LambertConformalHRRR(),
-                         plotter_options=plotter_options)
+                         plotter_options=plotter_options_multi,
+                        figure_options = figure_options)
 
-# want to load the extra stuff, incl background
-# dont know why ipdate dowsnt work....
+p.savefig('dwprof_all.png', tidx=60)
 
-p.savefig('wish_me_luck.png', tidx=60)
-p.savemp4('wish_me_luck.mp4',wdir='./wdir2',nthreads=24)
+p.savemp4('dwprof_all.mp4',)

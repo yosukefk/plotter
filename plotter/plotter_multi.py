@@ -1,11 +1,15 @@
 try:
     from . import plotter_core as pc
     from . import plotter_vprof as pv
+    from . import plotter_trisurf as pt
+    #from . import plotter_dwprof as pw
     from . import plotter_util as pu
     from . import plotter_footnote as pf
 except ImportError:
     import plotter_core as pc
     import plotter_vprof as pv
+    import plotter_trisurf as pt
+    #import plotter_dwprof as pw
     import plotter_util as pu
     import plotter_footnote as pf
 
@@ -143,17 +147,59 @@ class Plotter:
                         pc.PlotterCore(arr[:, kdx, :, :], tstamps, projection=projection, 
                                        extent=extent, x=x, y=y, plotter_options=po) 
                     )
+                elif 'downwind_options' in po:
+                    # delayed import
+                    try:
+                        from . import plotter_dwprof as pw
+                    except ImportError:
+                        import plotter_dwprof as pw
+                    downwind_options = po.pop('downwind_options')
+                    if downwind_options['kind'] == 'planview':
+                        self.plotters.append(
+                                    pw.PlotterDwprofPlanview(arr, tstamps, projection=projection, extent=extent, 
+                                                   x=x, y=y, z=z, 
+                                                   origin=downwind_options['origin'], 
+                                                   distance=downwind_options['distance'], 
+                                                   kind=downwind_options['kind'], 
+                                                   plotter_options=po)
+                        )
+                    else:
+                        self.plotters.append( 
+                                    pw.PlotterDwprof(arr, tstamps, projection=projection, extent=extent, 
+                                                   x=x, y=y, z=z, 
+                                                   origin=downwind_options['origin'], 
+                                                   distance=downwind_options['distance'], 
+                                                   kind=downwind_options['kind'], 
+                                                   plotter_options=po)
+                        )
+
                 else:
                     idx = po.pop('idx', None)
                     jdx = po.pop('jdx', None)
-                    self.plotters.append(
-                        pv.PlotterVprof(arr, 
-                                        tstamps,projection=projection, extent=extent, 
-                                        x=x, y=y, # passing x,y coordinate in map unit
-                                        z=z, idx=idx, jdx=jdx,
-                                               plotter_options=po)
-                    )
+                    if idx is None and jdx is None:
+                        # 3d isosurface plot
+                        zlim = po.pop('zlim', None)
+                        self.plotters.append(   
+                                        pt.PlotterTrisurf(arr,
+                                                   tstamps, projection=projection, extent=extent,
+                                                   x=x, y=y, z=z, zlim=zlim,
+                                                   plotter_options=po)
+                        )
+                    else:
+                        # vertical profile
+                        self.plotters.append(
+                            pv.PlotterVprof(arr, 
+                                            tstamps,projection=projection, extent=extent, 
+                                            x=x, y=y, # passing x,y coordinate in map unit
+                                            z=z, idx=idx, jdx=jdx,
+                                                   plotter_options=po)
+                        )
         self.axes = [p.ax for p in self.plotters]
+        for pp in self.plotters:
+            if not isinstance(pp, pc.PlotterEmpty):
+                self.first_nonempty_plotter= pp
+                break
+
 
     def savefig(self, oname, tidx=None, footnote=None, suptitle=None,
                 titles=None, footnotes=None, *args, **kwargs):
@@ -196,7 +242,7 @@ class Plotter:
                     my_shrink = .5
 
                 self.fig.colorbar(
-                    mappable=self.plotters[0].mappable,
+                    mappable=self.first_nonempty_plotter.mappable,
                     ax=self.axes,
                     use_gridspec=True,
                     **{'shrink': my_shrink, **cbopt})
