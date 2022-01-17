@@ -159,6 +159,9 @@ def savemp4(p, wdir=None, nthreads=None, odir='.', oname='animation.mp4'):
                     pool.map(saveone, range(nframes))
                 break
             except (OSError, MemoryError):
+                # reduce # of proc and retry
+                # TODO can I instead use pyTable to put array to disk?
+                # see this https://stackoverflow.com/questions/1053928/very-large-matrices-using-python-and-numpy
                 nthreads_new = int(nthreads / 2)
                 print('dropping nthreads from {} to {}'.format(nthreads, nthreads_new))
                 nthreads = nthreads_new
