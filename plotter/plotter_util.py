@@ -153,8 +153,17 @@ def savemp4(p, wdir=None, nthreads=None, odir='.', oname='animation.mp4'):
     saveone = _saveone(p, os.path.join(wdir, png_fmt_py), is_multi)
 
     if nthreads > 1:
-        with Pool(nthreads) as pool:
-            pool.map(saveone, range(nframes))
+        while True:
+            try:
+                with Pool(nthreads) as pool:
+                    pool.map(saveone, range(nframes))
+                break
+            except (OSError, MemoryError):
+                nthreads_new = int(nthreads / 2)
+                print('dropping nthreads from {} to {}'.format(nthreads, nthreads_new))
+                nthreads = nthreads_new
+                if nthreads < 2: 
+                    raise 
         opt_threads = f'-threads {min(16, nthreads)}'  # ffmpeg says that dont use more than 16 threads
     else:
         # serial processing
