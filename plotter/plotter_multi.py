@@ -154,12 +154,15 @@ class Plotter:
                     except ImportError:
                         import plotter_dwprof as pw
                     downwind_options = po.pop('downwind_options')
+                    #print(downwind_options)
                     if downwind_options['kind'] == 'planview':
                         self.plotters.append(
                                     pw.PlotterDwprofPlanview(arr, tstamps, projection=projection, extent=extent, 
                                                    x=x, y=y, z=z, 
                                                    origin=downwind_options['origin'], 
-                                                   distance=downwind_options['distance'], 
+                                                   distance=downwind_options.get('distance',None), 
+                                                   distance_to_plot=downwind_options.get('distance_to_plot',None), 
+                                                   distance_for_direction=downwind_options.get('distance_to_plot',None), 
                                                    kind=downwind_options['kind'], 
                                                    plotter_options=po)
                         )
@@ -168,7 +171,9 @@ class Plotter:
                                     pw.PlotterDwprof(arr, tstamps, projection=projection, extent=extent, 
                                                    x=x, y=y, z=z, 
                                                    origin=downwind_options['origin'], 
-                                                   distance=downwind_options['distance'], 
+                                                   distance=downwind_options.get('distance',None), 
+                                                   distance_to_plot=downwind_options.get('distance_to_plot',None), 
+                                                   distance_for_direction=downwind_options.get('distance_to_plot',None), 
                                                    kind=downwind_options['kind'], 
                                                    plotter_options=po)
                         )
