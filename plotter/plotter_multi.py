@@ -120,7 +120,7 @@ class Plotter:
         # specify the subplot positions
         for i in range(self.nplot):
             plotter_options[i]['fig'] = self.fig
-            plotter_options[i]['pos'] = (nrow, ncol, i + 1)
+            plotter_options[i].setdefault('pos', (nrow, ncol, i + 1))
 
         if x is None and xs is not None:
             use_xs = True
