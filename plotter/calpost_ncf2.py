@@ -44,30 +44,30 @@ def create(dat, fname):
         z.long_name = 'height'
         z[:] = dat['z']
 
-    y = ds.createVariable('y', np.float32, ('y',))
+    y = ds.createVariable('y', np.float64, ('y',))
     y.standard_name = 'projection_y_coordinate'
     y.units = 'meters'
     y.long_name = 'projection_y_coordinate'
-    y[:] = dat['y']
+    y[:] = dat['y'] * 1000
 
-    x = ds.createVariable('x', np.float32, ('x',))
+    x = ds.createVariable('x', np.float64, ('x',))
     x.standard_name = 'projection_x_coordinate'
     x.units = 'meters'
     x.long_name = 'projection_x_coordinate'
-    x[:] = dat['x']
+    x[:] = dat['x'] * 1000
 
     ys, xs = np.meshgrid(dat['y'], dat['x'])
     p = pyproj.Proj('+proj=lcc +lon_0=-97.5 +lat_0=38.5 +lat_1=38.5 +lat_2=38.5 +R=6370000')
     lats, lons = p(ys, xs, inverse=True)
 
-    latitude = ds.createVariable('latitude', np.float32, ('y', 'x'))
+    latitude = ds.createVariable('latitude', np.float64, ('y', 'x'))
     latitude.standard_name = 'latitude'
     latitude.units = 'degrees_north'
     latitude.long_name = 'latitude'
     latitude.coordinates = "latitude longitude"
     latitude[:] = lats
 
-    longitude = ds.createVariable('longitude', np.float32, ('y', 'x'))
+    longitude = ds.createVariable('longitude', np.float64, ('y', 'x'))
     longitude.standard_name = 'longitude'
     longitude.units = 'degrees_east'
     longitude.long_name = 'longitude'
@@ -75,7 +75,7 @@ def create(dat, fname):
     longitude[:] = lons
 
     #lambert_conformal_conic = ds.createVariable('lambert_conformal_conic', np.byte, ())
-    lambert_conformal_conic = ds.createVariable('lambert_conformal_conic', 'S1', ())
+    lambert_conformal_conic = ds.createVariable('lambert_conformal_conic', np.int32, ())
     lambert_conformal_conic.earth_radius = 637000.
     lambert_conformal_conic.grid_mapping_name = "lambert_conformal_conic"
     lambert_conformal_conic.standard_parallel = (38.5, 38.5 )
@@ -93,9 +93,21 @@ def create(dat, fname):
     methane.standard_name = 'mass_concentration_of_methane_in_air'
     methane.units = 'kg m-3'
     methane.long_name = 'mass_concentration_of_methane_in_air'
-    methane.coordinates = "time z latitude longitude"
-    #methane.grid_mapping = "lambert_conformal_conic"
-    #methane.coordinates = "time z y x"
+    if True:
+        # primitive
+        # time axis is still CF compient.  But giving up geolocation
+        # for paraview probably this is all we need
+        methane.coordinates = "time z y x"
+    else:
+        # cf compilent, 
+        # https://cfconventions.org/cf-conventions/cf-conventions.html#grid-mappings-and-projections
+        #but
+        # i still dont get idv to understand this, and
+        # paraveiw maybe taking degree for horizontal, meters for vertical, lookig very weirdo
+        # for until i find correct way i stick with above
+        #methane.coordinates = "time z latitude longitude"
+        methane.coordinates = "latitude longitude"
+        methane.grid_mapping = "lambert_conformal_conic"
     methane[...] = dat['v']
     
 
@@ -109,4 +121,5 @@ def tester():
 '2 5 10 20 30 40 50 65 80 100 120 180 250 500'.split()
 )
     create(dat, 'xxx.nc')
-tester()
+if __name__ == '__main__':
+    tester()
