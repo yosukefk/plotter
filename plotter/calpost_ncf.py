@@ -6,7 +6,7 @@ import numpy as np
 
 import plotter.calpost_reader as cpr
 
-def create(dat, fname):
+def create(dat, fname, grid_mapping=False):
     """creates cf-python Field object
 
     :param dict dat: calpost_reader generated dict of data
@@ -93,12 +93,7 @@ def create(dat, fname):
     methane.standard_name = 'mass_concentration_of_methane_in_air'
     methane.units = 'kg m-3'
     methane.long_name = 'mass_concentration_of_methane_in_air'
-    if True:
-        # primitive
-        # time axis is still CF compient.  But giving up geolocation
-        # for paraview probably this is all we need
-        methane.coordinates = "time z y x"
-    else:
+    if grid_mapping:
         # cf compilent, 
         # https://cfconventions.org/cf-conventions/cf-conventions.html#grid-mappings-and-projections
         #but
@@ -108,6 +103,11 @@ def create(dat, fname):
         #methane.coordinates = "time z latitude longitude"
         methane.coordinates = "latitude longitude"
         methane.grid_mapping = "lambert_conformal_conic"
+    else:
+        # primitive
+        # time axis is still CF compient.  But giving up geolocation
+        # for paraview probably this is all we need
+        methane.coordinates = "time z y x"
     methane[...] = dat['v']
     
 
