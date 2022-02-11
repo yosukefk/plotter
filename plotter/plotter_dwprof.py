@@ -9,14 +9,14 @@ import numpy as np
 from scipy.interpolate import interp2d
 
 class PlotterDwprofPlanview(pc.PlotterCore):
-    def __init__(self, array, tstamps, z, origin=None, distance=None, half_angle=None, kind=None,
+    def __init__(self, array, tstamps, z, origin=None, distance=None, distance_to_plot=None, distance_for_direction=None, half_angle=None, kind=None,
                  projection=None, extent=None, x=None, y=None, plotter_options=None):
 
         super().__init__( array[:,0,:,:], tstamps, 
                  projection=projection, extent=extent, x=x, y=y, plotter_options=plotter_options)
 
         
-        self.pdw = PlotterDwprof( array, tstamps, z, origin=origin, distance=distance, half_angle=half_angle, kind='skelton',
+        self.pdw = PlotterDwprof( array, tstamps, z, origin=origin, distance=distance, distance_to_plot=distance_to_plot, distance_for_direction=distance_for_direction, half_angle=half_angle, kind='skelton',
                  projection=projection, extent=extent, x=x, y=y, plotter_options={k:v for k,v in plotter_options.items() if k != 'customize_once'})
 
     def update(self, tidx=None, footnote=None, title=None):
@@ -27,12 +27,15 @@ class PlotterDwprofPlanview(pc.PlotterCore):
             for x in self.footprints:
                 x.remove()
         #self.ax.add_patch(plt.Circle((x0,y0), radius, fill=False, color='black', lw=.6))
-        arc = self.ax.add_patch(mpl.patches.Arc((x0,y0), radius*2, radius*2, angle=theta/np.pi*180, theta1=-self.pdw.half_angle, theta2=self.pdw.half_angle,  color='black', lw=.6))
+        self.footprints = []
+        for rad in radius:
+            arc = self.ax.add_patch(mpl.patches.Arc((x0,y0), rad*2, rad*2, angle=theta/np.pi*180, theta1=-self.pdw.half_angle, theta2=self.pdw.half_angle,  color='black', lw=.6))
+            self.footprints.append(arc)
         ray = self.ax.add_line(mpl.lines.Line2D((x0,x1), (y0, y1), color='black', lw=.6))
-        self.footprints = [arc, ray]
+        self.footprints.append(ray)
 
 class PlotterDwprof:
-    def __init__(self, array, tstamps, z, origin=None, distance=None, half_angle=None, kind=None,
+    def __init__(self, array, tstamps, z, origin=None, distance=None, distance_to_plot=None, distance_for_direction=None, half_angle=None, kind=None,
                  projection=None, extent=None, x=None, y=None, plotter_options=None):
         """
         Manages mpl.Axes with a vertical profile plot
@@ -58,13 +61,22 @@ class PlotterDwprof:
         self.arr = array
         self.tstamps = tstamps
 
-        if origin is None or distance is None:
-            raise ValueError('both origin and distnace requered')
+        if distance_to_plot is None:
+            distance_to_plot = distance
+
+        if origin is None or distance_to_plot is None:
+            raise ValueError('both origin and distnace requered: distance={}, distance_to_plot={}'.format(distance, distance_to_plot))
            
         self.x0, self.y0 = origin
-        self.distance = distance 
+        self.distance_to_plot = np.atleast_1d( distance_to_plot)
+        if distance_for_direction is None:
+            self.distance_for_direction = self.distance_to_plot.min()
+        else:
+            self.distance_for_direction = distance_for_direction
+
         if half_angle is None: half_angle = 30
         self.half_angle = half_angle
+
         self.kind = kind
         if self.kind != 'skelton':
             # i have to know the axes being used, even user wants default
@@ -125,35 +137,53 @@ class PlotterDwprof:
 
         # prepare circle and ray
         # circumference 
-        circ = 2 * np.pi * self.distance # circumference
+        circ = 2 * np.pi * self.distance_to_plot # circumference
         # resolution (half of data' resolution)
         dx = .5 * (self.x[-1] - self.x[0]) / (len(self.x) - 1)
         # count of nodes on circle
-        ndiv = int(np.round( circ / dx ))
+        ndiv = np.round( circ / dx ).astype(int)
+        #print(ndiv)
 
-        # generate coordinates for circle
+        # generate coordinates for circle(s)
+        dtheta = - 2*np.pi / ndiv  # lets go reverse, since decrease in theta goes to right in profile
+        #print(dtheta)
+
+        self.circles = []
+
+        for dst, nd, dth in zip(self.distance_to_plot, ndiv, dtheta):
+            dct = {}
+
+            theta = np.arange(nd) * dth
+            dct['theta'] = theta
+            dct['x'] = np.cos(theta) * dst + self.x0
+            dct['y'] = np.sin(theta) * dst + self.y0
+            dct['s'] = - np.pi * theta   # s goes from 0 to positive
+            dct['m'] = int(np.ceil(len(theta) * self.half_angle / 360)) # half_angle degree both side of center
+            dct['n'] = 2 * dct['m'] + 1
+            dct['hor'] = np.linspace(dst * np.pi * dth * dct['n'], - dst * np.pi * dth * dct['n'], 2*dct['n'] + 1)
+
+            self.circles.append(dct)
+
+        circ = 2 * np.pi * self.distance_for_direction # circumference
+        ndiv = np.round( circ / dx ).astype(int)
         dtheta = - 2*np.pi / ndiv  # lets go reverse, since decrease in theta goes to right in profile
         theta = np.arange(ndiv) * dtheta
 
-        self.c_theta = theta
-        self.c_x = np.cos(theta) * self.distance + self.x0
-        self.c_y = np.sin(theta) * self.distance + self.y0
-        self.c_s = - np.pi * theta   # s goes from 0 to positive
-        #self.c_mm = int(np.ceil(len(self.c_theta) / 6)) # 60 degree both side of center
-        #self.c_mm = int(np.ceil(len(self.c_theta) / 8)) # 45 degree both side of center
-        #self.c_mm = int(np.ceil(len(self.c_theta) / 12)) # 30 degree both side of center
-        self.c_mm = int(np.ceil(len(self.c_theta) * self.half_angle / 360)) # half_angle degree both side of center
-        self.c_nn = 2*self.c_mm + 1
-        self.c_hor = np.linspace(self.distance * np.pi * dtheta * self.c_nn, - self.distance * np.pi * dtheta * self.c_nn, 2*self.c_nn + 1)
+        self.circle_for_direction = {}
+        self.circle_for_direction['theta'] = theta
+        self.circle_for_direction['x'] = np.cos(theta) * self.distance_for_direction + self.x0
+        self.circle_for_direction['y'] = np.sin(theta) * self.distance_for_direction + self.y0
 
         # for each direction, prepare coordinates for ray
-        xr = 1.5 * np.cos(theta) * self.distance + self.x0
-        yr = 1.5 * np.sin(theta) * self.distance + self.y0
-        nr = int( np.round( self.distance * 1.5 / dx ) )
-        self.r_x = np.linspace(self.x0, xr, nr).T  # sereis of x for each theta
-        self.r_y = np.linspace(self.y0, yr, nr).T
-        self.r_nn = nr
-        self.r_hor = np.linspace(0, self.distance * 1.5, self.r_nn)
+        xr = 1.2 * np.cos(theta) * self.distance_to_plot.max() + self.x0
+        yr = 1.2 * np.sin(theta) * self.distance_to_plot.max() + self.y0
+        nr = int( np.round( self.distance_to_plot.max() * 1.2 / dx ) )
+        self.ray = {}
+        self.ray['theta'] = theta
+        self.ray['x'] = np.linspace(self.x0, xr, nr).T  # sereis of x for each theta
+        self.ray['y'] = np.linspace(self.y0, yr, nr).T
+        self.ray['n'] = nr
+        self.ray['hor'] = np.linspace(0, self.distance_to_plot.max() * 1.2, self.ray['n'])
 
         # column sum of array
         self.arr2d = self.arr.transpose(0, 2, 3, 1).dot(z)
@@ -189,17 +219,19 @@ class PlotterDwprof:
 
         # find direction of maximum on the circle
         fnc = interp2d(self.x, self.y, arr2d)
-        c_v = np.array([fnc(_x, _y)[0] for _x, _y in zip(self.c_x, self.c_y)])
+        c_v = np.array([fnc(_x, _y)[0] for _x, _y in zip(self.circle_for_direction['x'], self.circle_for_direction['y'])])
 
         hdx = c_v.argmax()
 
         if self.kind == 'skelton':
             # simply return the ray
-            return self.x0, self.y0, self.distance, self.c_theta[hdx], self.r_x[hdx, -1], self.r_y[hdx, -1]
+            #return self.x0, self.y0, self.distance, self.c_theta[hdx], self.r_x[hdx, -1], self.r_y[hdx, -1]
+            return self.x0, self.y0, self.distance_to_plot, self.ray['theta'][hdx], self.ray['x'][hdx, -1], self.ray['y'][hdx, -1]
 
         if self.kind == 'cross':
-            c_x = np.roll(self.c_x, -(hdx - self.c_nn))[0:(2*self.c_nn+1)]
-            c_y = np.roll(self.c_y, -(hdx - self.c_nn))[0:(2*self.c_nn+1)]
+            
+            c_x = np.roll(self.circles[0]['x'], -(hdx - self.circles[0]['n']))[0:(2*self.circles[0]['n']+1)]
+            c_y = np.roll(self.circles[0]['y'], -(hdx - self.circles[0]['n']))[0:(2*self.circles[0]['n']+1)]
 
             c_v = np.empty([len(self.z), len(c_x), ])
             for k in range(len(self.z)):
@@ -208,21 +240,21 @@ class PlotterDwprof:
                 c_v[k,:] = [fnc(_x, _y)[0] for _x, _y in zip(c_x, c_y)]
             
 
-            self.hor = self.c_hor
+            self.hor = self.circles[0]['hor']
 
             self.current_arr = c_v
             self.cuttent_tstamp = self.tstamps[tidx]
 
         elif self.kind == 'along':
-            r_x = self.r_x[hdx]
-            r_y = self.r_y[hdx]
+            r_x = self.ray['x'][hdx]
+            r_y = self.ray['y'][hdx]
 
             r_v = np.empty([len(self.z), len(r_x)])
             for k in range(len(self.z)):
                 fnc = interp2d(self.x, self.y, arr[k])
                 r_v[k,:] = [fnc(_x, _y)[0] for _x, _y in zip(r_x, r_y)]
 
-            self.hor = self.r_hor
+            self.hor = self.ray['hor']
             self.current_arr = r_v
             self.cuttent_tstamp = self.tstamps[tidx]
 

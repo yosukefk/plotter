@@ -106,6 +106,22 @@ class PlotterEmpty:
             # update the title
             self.ax.set_title(title)
 
+    def customize(self, fnc):
+        """
+        apply function to self.ax
+
+        :param function, list fnc:
+        """
+
+        # no arguments
+        if callable(fnc):
+            fnc(self)
+        elif '__len__' in dir(fnc):
+            for fn in fnc:
+                fn(self)
+        else:
+            raise ValueError(f'fnc is not callable: {fnc}')
+
 class PlotterCore:
     def __init__(self, array, tstamps, projection=None, extent=None, x=None, y=None,
                  plotter_options=None):

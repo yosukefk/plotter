@@ -220,6 +220,8 @@ class PlotterTrisurf:
         self.title = plotter_options.get('title', None)
         self.title_options = plotter_options.get('title_options', None)
 
+        self.plotter_options_3d = plotter_options.pop('plotter_options_3d', {})
+
         # data's extent
         self.extent = extent
         self.x = x
@@ -247,6 +249,7 @@ class PlotterTrisurf:
 
         self.ax.set_xticks([])
         self.ax.set_yticks([])
+        
 
 
         if zlim is None: 
@@ -294,6 +297,10 @@ class PlotterTrisurf:
             ttlopt = {'loc': 'center'}
             ttlopt.update(self.title_options)
             self.ax.set_title(**ttlopt)
+
+        # other customizations
+        if 'customize_once' in self.plotter_options_3d:
+            self.customize(self.plotter_options_3d['customize_once'])
 
         self.hasdata = False
         self.srf = []
@@ -345,5 +352,12 @@ class PlotterTrisurf:
 
         :param function, list fnc:
         """ 
-        raise NotImplementedError('do i need this?')
+        # no arguments
+        if callable(fnc):
+            fnc(self)
+        elif '__len__' in dir(fnc):
+            for fn in fnc:
+                fn(self)
+        else:
+            raise ValueError(f'fnc is not callable: {fnc}')
 
