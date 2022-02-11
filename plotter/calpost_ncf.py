@@ -1,37 +1,19 @@
-# this cf was tedious to work with, so i wrote capost_ncf2, which uses plan netCDF4 package.
-# it is still not following CF convention, seems like, it doesnt read by IDV correctly
-import cf
+# this still doens read by IDV correctly, something wrong following CF convention
+# https://gist.github.com/julienchastang/2129368a26ce0d85cff13cf0bc05cbf4
+import netCDF4
+import pyproj
 import numpy as np
 
-from plotter import calpost_reader as reader
+import plotter.calpost_reader as cpr
 
-
-def save(v, fname, compress=5, **kwds):
-    """save to file
-
-    :param cf.Field v: cf.Field to save
-    :param str fname: filename
-    :param int compress: 0-9
-    """
-
-    cf.write(v, fname, compress=compress, **kwds)
-
-def create(dat):
+def create(dat, fname):
     """creates cf-python Field object
 
     :param dict dat: calpost_reader generated dict of data
 
     :return: cf.Field
     """
-
-    v = cf.Field(
-        properties={
-            'standard_name': 'mass_concentration_of_methane_in_air',
-            'units': 'kg m-3',
-        })
-
-    v.set_data(dat['v'] / 1000)
-    v.nc_set_variable('methane')
+    ds = netCDF4.Dataset(fname, mode='w')
 
     if len(dat['v'].shape) == 4:
         nt, nz, ny, nx = dat['v'].shape
@@ -41,101 +23,103 @@ def create(dat):
         nt, ny, nx = dat['v'].shape
         has_z = False
 
-    print('a')
+    dim_t = ds.createDimension('time', nt)
+    if has_z:
+        dim_z = ds.createDimension('z', nz)
+    dim_y = ds.createDimension('y', ny)
+    dim_x = ds.createDimension('x', nx)
 
-    domain_axisT = cf.DomainAxis(nt)
-    domain_axisT.nc_set_unlimited(True)
-    domain_axisY = cf.DomainAxis(ny)
-    domain_axisX = cf.DomainAxis(nx)
-
-
-    domain_axisT.nc_set_dimension('time')
-    domain_axisY.nc_set_dimension('y')
-    domain_axisX.nc_set_dimension('x')
-
-    axisT = v.set_construct(domain_axisT)
-    axisY = v.set_construct(domain_axisY)
-    axisX = v.set_construct(domain_axisX)
+    time = ds.createVariable('time', np.float64, ('time',))
+    time.standard_name = 'time'
+    time.units = 'days since ' + dat['ts'][0].date().strftime('%Y-%m-%d 00:00:00    ')
+    time.long_name = 'time'
+    time.calendar = 'gregorian'
+    ts = dat['ts']
+    time[:] = [_.days + _.seconds / 86400 for _ in (ts - ts[0])]
 
     if has_z:
-        domain_axisZ = cf.DomainAxis(nz)
-        domain_axisZ.nc_set_dimension('z')
-        axisZ = v.set_construct(domain_axisZ)
-    print(type(domain_axisY))
-    print(dir(domain_axisY))
-    print(domain_axisY.identity())
+        z = ds.createVariable('z', np.float32, ('z',))
+        z.standard_name = 'height'
+        z.units = 'meters'
+        z.long_name = 'height'
+        z[:] = dat['z']
 
-    print('b')
+    y = ds.createVariable('y', np.float64, ('y',))
+    y.standard_name = 'projection_y_coordinate'
+    y.units = 'meters'
+    y.long_name = 'projection_y_coordinate'
+    y[:] = dat['y'] * 1000
 
-    x = dat['x']
-    y = dat['y']
+    x = ds.createVariable('x', np.float64, ('x',))
+    x.standard_name = 'projection_x_coordinate'
+    x.units = 'meters'
+    x.long_name = 'projection_x_coordinate'
+    x[:] = dat['x'] * 1000
 
-    dimX = cf.DimensionCoordinate(data=x * 1000,
-                                  properties={
-                                      'standard_name': 'projection_x_coordinate',
-                                      'units': 'meters'})
-    dimY = cf.DimensionCoordinate(data=y * 1000,
-                                  properties={
-                                      'standard_name': 'projection_y_coordinate',
-                                      'units': 'meters'
-                                  })
-    dimT = cf.DimensionCoordinate(data=dat['ts'],
-)
+    ys, xs = np.meshgrid(dat['y'], dat['x'])
+    p = pyproj.Proj('+proj=lcc +lon_0=-97.5 +lat_0=38.5 +lat_1=38.5 +lat_2=38.5 +R=6370000')
+    lats, lons = p(ys, xs, inverse=True)
 
-    dimT.nc_set_variable('time')
-    dimY.nc_set_variable('y')
-    dimX.nc_set_variable('x')
+    latitude = ds.createVariable('latitude', np.float64, ('y', 'x'))
+    latitude.standard_name = 'latitude'
+    latitude.units = 'degrees_north'
+    latitude.long_name = 'latitude'
+    latitude.coordinates = "latitude longitude"
+    latitude[:] = lats
+
+    longitude = ds.createVariable('longitude', np.float64, ('y', 'x'))
+    longitude.standard_name = 'longitude'
+    longitude.units = 'degrees_east'
+    longitude.long_name = 'longitude'
+    longitude.coordinates = "latitude longitude"
+    longitude[:] = lons
+
+    #lambert_conformal_conic = ds.createVariable('lambert_conformal_conic', np.byte, ())
+    lambert_conformal_conic = ds.createVariable('lambert_conformal_conic', np.int32, ())
+    lambert_conformal_conic.earth_radius = 637000.
+    lambert_conformal_conic.grid_mapping_name = "lambert_conformal_conic"
+    lambert_conformal_conic.standard_parallel = (38.5, 38.5 )
+    lambert_conformal_conic.longitude_of_central_meridian = -97.5
+    lambert_conformal_conic.latitude_of_projection_origin = 38.5
+
+#    longitude = ds.createVariable(
+
 
     if has_z:
-        z = dat['z']
-        dimZ = cf.DimensionCoordinate(data=z,
-                                  properties={
-                                      'standard_name': 'height',
-                                      'units': 'meters'
-                                  })
-        dimZ.nc_set_variable('z')
-    print('c')
-
-    dim_t = v.set_construct(dimT, axes=domain_axisT.identity())
-    dim_y = v.set_construct(dimY, axes=domain_axisY.identity())
-    dim_x = v.set_construct(dimX, axes=domain_axisX.identity())
-    if has_z:
-        v.set_construct(dimZ, axes=domain_axisZ.identity())
-
-    print('d')
-
-    if has_z:
-        v.set_data_axes([axisT, axisZ, axisY, axisX])
+        data_dim = ('time', 'z', 'y', 'x')
     else:
-        v.set_data_axes([axisT, axisY, axisX])
-
-
-    datum = cf.Datum(parameters={'earth_radius': 637000.0})
-
-    coordinate_conversion_h = cf.CoordinateConversion(
-        parameters={'grid_mapping_name': 'lambert_conformal_conic',
-        'standard_parallel': (38.5, 38.5),
-        'longitude_of_central_meridian': -97.5,
-        'latitude_of_projection_origin': 38.5,
-        })
-
-
-    horizontal_crs = cf.CoordinateReference(
-        datum=datum,
-        coordinate_conversion=coordinate_conversion_h,
-        coordinates=[dim_x, dim_y])
-
-    v.set_construct(horizontal_crs)
-
+        data_dim = ('time', 'y', 'x')
+    methane = ds.createVariable('methane', np.float32, data_dim, zlib=True, complevel=5)
+    methane.standard_name = 'mass_concentration_of_methane_in_air'
+    methane.units = 'kg m-3'
+    methane.long_name = 'mass_concentration_of_methane_in_air'
+    if True:
+        # primitive
+        # time axis is still CF compient.  But giving up geolocation
+        # for paraview probably this is all we need
+        methane.coordinates = "time z y x"
+    else:
+        # cf compilent, 
+        # https://cfconventions.org/cf-conventions/cf-conventions.html#grid-mappings-and-projections
+        #but
+        # i still dont get idv to understand this, and
+        # paraveiw maybe taking degree for horizontal, meters for vertical, lookig very weirdo
+        # for until i find correct way i stick with above
+        #methane.coordinates = "time z latitude longitude"
+        methane.coordinates = "latitude longitude"
+        methane.grid_mapping = "lambert_conformal_conic"
+    methane[...] = dat['v']
     
 
-    return v
+    ds.Conventions = 'CF-1.6'
+
 
 def tester():
+    dat = cpr.calpost_reader('tseries/tseries_ch4_1min_conc_pilot_min_emis_f0003_recep_25_xto_f0003_14lvl_fmt_1_dsp_3_tur_3_prf_1_byday_20190224.dat', 
+    z = 
 
-    dat = reader.tester()
-
-    o = create(dat)
-    save(o, 'test.nc')
-
-
+'2 5 10 20 30 40 50 65 80 100 120 180 250 500'.split()
+)
+    create(dat, 'xxx.nc')
+if __name__ == '__main__':
+    tester()
