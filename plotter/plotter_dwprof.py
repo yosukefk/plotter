@@ -97,6 +97,7 @@ class PlotterDwprof:
             self.distance_for_direction = distance_for_direction
 
         half_stretch = None
+        self.user_half_arclen = half_arclen
         if half_angle is None: 
             if half_arclen is None:
                 #half_angle = 30
@@ -115,6 +116,7 @@ class PlotterDwprof:
                     raise ValueError("# of 'distance_to_plot' and 'half_angle' incosistent: {}, {}".format(self.distance_to_plot, half_angle))
 
             if half_arclen is None:
+                circ = 2 * np.pi * self.distance_to_plot # circumference
                 half_arclen =  circ * half_angle / 360.
             else:
                 half_arclen = np.atleast_1d(half_arclen)
@@ -365,7 +367,7 @@ class PlotterDwprof:
                 self.mappable = self.cnt
 #                print(self.kind)
 #                print(self.half_arclen)
-                if self.kind == 'cross':
+                if self.kind == 'cross' and self.user_half_arclen:
                     self.ax.set_xlim(left=-self.half_arclen, right=+self.half_arclen)
 
             if self.colorbar_options is not None:
