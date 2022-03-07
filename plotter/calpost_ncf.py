@@ -5,6 +5,7 @@ import pyproj
 import numpy as np
 
 import plotter.calpost_reader as cpr
+import datetime
 
 def create(dat, fname, grid_mapping=False):
     """creates cf-python Field object
@@ -31,11 +32,18 @@ def create(dat, fname, grid_mapping=False):
 
     time = ds.createVariable('time', np.float64, ('time',))
     time.standard_name = 'time'
-    time.units = 'days since ' + dat['ts'][0].date().strftime('%Y-%m-%d 00:00:00    ')
+    # time in utc, starting from begingin of the day, units in days
+    ts0 = dat['ts'][0].astimezone(datetime.timezone.utc)
+    ts0 = datetime.datetime.combine(
+        ts0.date(), 
+        datetime.time(0),
+        tzinfo=ts0.tzinfo)
+
+    time.units = 'days since ' + ts0.strftime('%Y-%m-%d %H:%M:%S')
     time.long_name = 'time'
     time.calendar = 'gregorian'
     ts = dat['ts']
-    time[:] = [_.days + _.seconds / 86400 for _ in (ts - ts[0])]
+    time[:] = [_.days + _.seconds / 86400 for _ in (ts - ts0)]
 
     if has_z:
         z = ds.createVariable('z', np.float32, ('z',))
