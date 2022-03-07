@@ -5,8 +5,9 @@ import pyproj
 import numpy as np
 
 import plotter.calpost_reader as cpr
+import datetime
 
-def create(dat, fname):
+def create(dat, fname, grid_mapping=False):
     """creates cf-python Field object
 
     :param dict dat: calpost_reader generated dict of data
@@ -31,11 +32,18 @@ def create(dat, fname):
 
     time = ds.createVariable('time', np.float64, ('time',))
     time.standard_name = 'time'
-    time.units = 'days since ' + dat['ts'][0].date().strftime('%Y-%m-%d 00:00:00    ')
+    # time in utc, starting from begingin of the day, units in days
+    ts0 = dat['ts'][0].astimezone(datetime.timezone.utc)
+    ts0 = datetime.datetime.combine(
+        ts0.date(), 
+        datetime.time(0),
+        tzinfo=ts0.tzinfo)
+
+    time.units = 'days since ' + ts0.strftime('%Y-%m-%d %H:%M:%S')
     time.long_name = 'time'
     time.calendar = 'gregorian'
     ts = dat['ts']
-    time[:] = [_.days + _.seconds / 86400 for _ in (ts - ts[0])]
+    time[:] = [_.days + _.seconds / 86400 for _ in (ts - ts0)]
 
     if has_z:
         z = ds.createVariable('z', np.float32, ('z',))
@@ -93,12 +101,7 @@ def create(dat, fname):
     methane.standard_name = 'mass_concentration_of_methane_in_air'
     methane.units = 'kg m-3'
     methane.long_name = 'mass_concentration_of_methane_in_air'
-    if True:
-        # primitive
-        # time axis is still CF compient.  But giving up geolocation
-        # for paraview probably this is all we need
-        methane.coordinates = "time z y x"
-    else:
+    if grid_mapping:
         # cf compilent, 
         # https://cfconventions.org/cf-conventions/cf-conventions.html#grid-mappings-and-projections
         #but
@@ -108,6 +111,11 @@ def create(dat, fname):
         #methane.coordinates = "time z latitude longitude"
         methane.coordinates = "latitude longitude"
         methane.grid_mapping = "lambert_conformal_conic"
+    else:
+        # primitive
+        # time axis is still CF compient.  But giving up geolocation
+        # for paraview probably this is all we need
+        methane.coordinates = "time z y x"
     methane[...] = dat['v']
     
 
