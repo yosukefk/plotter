@@ -163,6 +163,8 @@ class Plotter:
                                                    distance=downwind_options.get('distance',None), 
                                                    distance_to_plot=downwind_options.get('distance_to_plot',None), 
                                                    distance_for_direction=downwind_options.get('distance_to_plot',None), 
+                                                   half_angle=downwind_options.get('half_angle',None), 
+                                                   half_arclen=downwind_options.get('half_arclen',None), 
                                                    kind=downwind_options['kind'], 
                                                    plotter_options=po)
                         )
@@ -174,6 +176,8 @@ class Plotter:
                                                    distance=downwind_options.get('distance',None), 
                                                    distance_to_plot=downwind_options.get('distance_to_plot',None), 
                                                    distance_for_direction=downwind_options.get('distance_to_plot',None), 
+                                                   half_angle=downwind_options.get('half_angle',None), 
+                                                   half_arclen=downwind_options.get('half_arclen',None), 
                                                    kind=downwind_options['kind'], 
                                                    plotter_options=po)
                         )
