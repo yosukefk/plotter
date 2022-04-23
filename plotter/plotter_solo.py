@@ -35,7 +35,20 @@ class Plotter:
         self.tstamps = tstamps
 
         if z is None:
-            self.plotter = pc.PlotterCore(array, tstamps, projection=projection,
+            if array is None:
+                self.plotter = pc.PlotterEmpty(array, tstamps, projection=projection,
+                                          extent=extent, x=x, y=y, plotter_options=plotter_options)
+            elif 'quiver_options' in plotter_options:
+                try:
+                    from . import plotter_vector as pq
+                except ImportError:
+                    import plotter_vector as pq
+                quiver_options = plotter_options.get('quiver_options', {})
+                assert len(array) == 2
+                self.plotter = pq.PlotterVector(array[0], array[1], tstamps, projection=projection,
+                        extent=extent, x=x, y=y, plotter_options=plotter_options)
+            else:
+                self.plotter = pc.PlotterCore(array, tstamps, projection=projection,
                                           extent=extent, x=x, y=y, plotter_options=plotter_options)
         else:
             if 'kdx' in plotter_options:
