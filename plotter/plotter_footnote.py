@@ -130,8 +130,12 @@ class FootnoteManager:
             jmn = -99
             imx = -99
             jmx = -99
-            vmn = arr.min()
-            vmx = arr.max()
+            try:
+                vmn = arr.min()
+                vmx = arr.max()
+            except:
+                vmn = -9
+                vmx = -9
         # vmn,vmx = [fnf.format(_) for _ in (vmn, vmx)]
         current_text = self.footnote_template.format(**locals())
         return current_text
