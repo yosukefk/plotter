@@ -340,6 +340,9 @@ class PlotterCore:
         else:
             if self.imshow_options is not None:
                 kwds = self.imshow_options
+                if 'norm' not in kwds:
+                    # if user didnt explicitly specify norm, i use entire range of data to bound color
+                    kwds['norm'] = mpl.colors.Normalize(vmin=self.arr.min(), vmax=self.arr.max())
                 if self.extent is None:
                     if self.x is None:
                         pass
@@ -359,6 +362,9 @@ class PlotterCore:
 
             if self.contour_options is not None:
                 kwds = self.contour_options
+                if 'norm' not in kwds:
+                    # if user didnt explicitly specify norm, i use entire range of data to bound color
+                    kwds['norm'] = mpl.colors.Normalize(vmin=self.arr.min(), vmax=self.arr.max())
                 if self.is_gridded:
                     if self.x is None:
                         if self.extent is None:
@@ -380,9 +386,7 @@ class PlotterCore:
             if self.colorbar_options is not None:
                 kwds = self.colorbar_options
                 if not self.mappable is None:
-                    if 'norm' not in kwds:
-                        # if user didnt explicitly specify norm, i use entire range of data to bound color
-                        self.mappable.set_clim(vmin=self.arr.min(), vmax=self.arr.max())
+
 
                     self.cb = plt.colorbar(mappable=self.mappable, ax=self.ax,
                                            **kwds)
