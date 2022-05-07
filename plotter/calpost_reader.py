@@ -20,6 +20,8 @@ def Reader(f, tslice=slice(None, None), x=None, y=None, z=None):
     return calpost_reader(f, tslice, x, y)
 
 
+
+
 def calpost_reader(f, tslice=slice(None, None), x=None, y=None, z=None,
                    rdx_map=None):
     """reads calpost tseries output file (gridded recep), returns dict of numpy arrays
@@ -33,9 +35,52 @@ def calpost_reader(f, tslice=slice(None, None), x=None, y=None, z=None,
     :rtype: dict
     """
 
+    # https://stackoverflow.com/a/23796737/1013786
+    class ConfidentialFile():
+        # behave like a while but cut first 13 chars from each rows if
+        # it is confidential file
+        #
+        # sample usage
+        #
+        # with ConfidentialFile(fname) as f:
+        #     for i in range(14):
+        #         sys.stdout.write(next(f))
+
+        def __init__(self, *args,**kwds):
+            self.args = args
+            self.kwds = kwds
+            self.file_obj = open(*self.args, **self.kwds)
+            firstline = next(self.file_obj)
+            if 'CONFIDENTIAL' in firstline:
+                print('confidential!!')
+                self.confidential = True
+            else:
+                print('not !!')
+                self.confidential = False
+            self.file_obj.seek(0)
+
+
+        def __enter__(self):
+            return self
+        def __exit__(self, *args, **kwds):
+            return
+
+        def __next__(self):
+            line = next(self.file_obj)
+            if self.confidential:
+                line = line[13:]
+            return line
+
+        def __iter__(self):
+            return iter(self.file_obj)
+        def __getattr__(self, attr):
+            return gettatr(self.file_obj, attr)
+
+
     # assume file name passed if 'f' is string
     if isinstance(f, (str, Path)):
-        with open(f) as ff:
+        #with open(f) as ff:
+        with ConfidentialFile(f) as ff:
             return calpost_reader(ff, tslice, x, y, z, rdx_map)
 
     # read each input, and then cat
@@ -62,9 +107,12 @@ def calpost_reader(f, tslice=slice(None, None), x=None, y=None, z=None,
     else:
         nz = 1
 
+
     name = next(f)[31:]
+    print(name)
     next(f)
     units = next(f)
+    print(units)
     m = re.search(r'\((.*)\)', units)
     assert m
     units = m[1]
@@ -177,14 +225,15 @@ def calpost_reader(f, tslice=slice(None, None), x=None, y=None, z=None,
         # * even better yet, allow non-grid data as input
         xd = x[1:] - x[:-1]
         yd = y[1:] - y[:-1]
-        print(xd.max(), xd.min(), xd.max()-xd.min(), xd.mean(), xd.mean()*.01)
-        print(yd.max(), yd.min(), yd.max()-yd.min(), yd.mean(),
-              yd.mean()*.01)
+        print('dmax, dmin, drng, dmean, dmean*.01, drng<dmean*.01')
+        print(xd.max(), xd.min(), xd.max()-xd.min(), xd.mean(), xd.mean()*.01, (xd.max()-xd.min()) < (xd.mean()*.01))
+        print(yd.max(), yd.min(), yd.max()-yd.min(), yd.mean(), yd.mean()*.01, (yd.max()-yd.min()) < (yd.mean()*.01))
         
         is_subregion = (
-            ((xd.max() - xd.min()) < xd.mean() * .001) and 
-            ((yd.max() - yd.min()) < yd.mean() * .001)
+            ((xd.max() - xd.min()) < (xd.mean() * .01)) and 
+            ((yd.max() - yd.min()) < (yd.mean() * .01))
         )
+        print('is_subregion=', is_subregion)
         #is_subregion = True
 
         if is_subregion:
