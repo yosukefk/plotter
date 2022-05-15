@@ -20,6 +20,21 @@ mpl.use('Agg')
 class PlotterEmpty:
     def __init__(self, array, tstamps, projection=None, extent=None, x=None, y=None,
                  plotter_options=None):
+        """
+        Manages mpl.Axes without actually making plot
+
+        :rtype: PlotterEmpty
+        :param np.ndarray array: has to be None
+        :param np.ndarray tstamps: 1-d array of datetime, dimensions(t)
+        :param ccrs.CRS projection: projection of xy coordinate of data
+        :param list extent: xy extent of data, with with coordinate of projection
+        :param np.ndarray x: x coordinate of data, with shape matching (...) part of array
+        :param np.ndarray y: y coordinate of data, with shape matching (...) part of array
+        :param dict plotter_options: all the arguments passed to plotter
+        """
+
+        if plotter_options is None: plotter_options = {}
+
         self.fig = plotter_options.get('fig', plt.figure())
         pos = plotter_options.get('pos', None)
 
@@ -38,6 +53,31 @@ class PlotterEmpty:
 
         self.title = plotter_options.get('title', None)
         self.title_options = plotter_options.get('title_options', None)
+
+        # data's extent
+        self.extent = extent
+        self.x = x
+        self.y = y
+        if self.extent is None and not (self.x is None or self.y is None):
+            self.extent = [self.x[0], self.x[-1], self.y[0], self.y[-1]]
+
+        # data's projection
+        # assume TCEQ's lambert for the data array
+        if projection is None:
+            warnings.warn("Assume TCEQ's Lambert Conformal Proection",
+                          pu.PlotterWarning)
+            projection = pu.LambertConformalTCEQ()
+        self.projection = projection
+
+        # background
+        self.background_manager = plotter_options.get('background_manager', None)
+        # plot's extent/project grab from background_manager or arguments or from the data
+        if self.background_manager is None:
+            plot_extent = plotter_options.get('extent', self.extent)
+            plot_projection = plotter_options.get('projection', self.projection)
+        else:
+            plot_extent = self.background_manager.extent if self.background_manager.extent else self.extent
+            plot_projection = self.background_manager.projection if self.background_manager.projection else self.projection
 
         # create plots (GeoAxes)
         if pos:
@@ -316,6 +356,9 @@ class PlotterCore:
         else:
             if self.imshow_options is not None:
                 kwds = self.imshow_options
+                if 'norm' not in kwds:
+                    # if user didnt explicitly specify norm, i use entire range of data to bound color
+                    kwds['norm'] = mpl.colors.Normalize(vmin=self.arr.min(), vmax=self.arr.max())
                 if self.extent is None:
                     if self.x is None:
                         pass
@@ -335,6 +378,9 @@ class PlotterCore:
 
             if self.contour_options is not None:
                 kwds = self.contour_options
+                if 'norm' not in kwds:
+                    # if user didnt explicitly specify norm, i use entire range of data to bound color
+                    kwds['norm'] = mpl.colors.Normalize(vmin=self.arr.min(), vmax=self.arr.max())
                 if self.is_gridded:
                     if self.x is None:
                         if self.extent is None:
@@ -356,6 +402,8 @@ class PlotterCore:
             if self.colorbar_options is not None:
                 kwds = self.colorbar_options
                 if not self.mappable is None:
+
+
                     self.cb = plt.colorbar(mappable=self.mappable, ax=self.ax,
                                            **kwds)
                 else:
