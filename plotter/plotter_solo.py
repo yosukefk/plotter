@@ -38,7 +38,7 @@ class Plotter:
             if array is None:
                 self.plotter = pc.PlotterEmpty(array, tstamps, projection=projection,
                                           extent=extent, x=x, y=y, plotter_options=plotter_options)
-            elif 'quiver_options' in plotter_options:
+            elif 'quiver_options'in plotter_options or 'streamplot_options' in plotter_options:
                 try:
                     from . import plotter_vector as pq
                 except ImportError:
