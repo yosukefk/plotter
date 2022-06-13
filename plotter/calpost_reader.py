@@ -19,7 +19,50 @@ def Reader(f, tslice=slice(None, None), x=None, y=None, z=None):
     warnings.warn('use calpost_reader()', DeprecationWarning)
     return calpost_reader(f, tslice, x, y)
 
+def arr2df(arrays, ts, tags=None, n=None):
+    # take arr, ts from reader, return dataframe for ggplot
 
+    if isinstance(arrays, np.ndarray):
+        arrays = [arrays]
+    if tags is None:
+        tags = [None] * len(arrays)
+
+    print('shpin',[_.shape for _ in arrays])
+    vs = [arr.reshape(arr.shape[0], -1) for arr in arrays]
+
+    print('vs',[_.shape for _ in vs])
+    print('nan', [sum(np.isnan(_)) for _ in vs])
+
+    ## drop nans
+    #vs = [v[:, ~np.isnan(v[0, :])] for v in vs]
+    #print('vs',[_.shape for _ in vs])
+
+    nn = [_.shape[-1] for _ in vs]
+    print('nn', nn)
+    nn = nn[0]
+    if n is None:
+        n = nn
+    sel = sorted(np.random.choice(np.arange(nn), n, replace=False))
+    print('sel', sel)
+
+    dfs = []
+    for v, tag in zip(vs, tags):
+        print('tag', tag)
+        df = pd.DataFrame( 
+            dict( 
+                tag=tag,
+                t=np.repeat(ts, n),
+                v=v[:, sel].reshape(-1),
+            ))
+        df['hr'] = (df['t'] - df['t'][0]).dt.total_seconds() / 3600
+        dfs.append(df)
+
+    df = pd.concat(dfs, axis=0)
+    return df
+
+def calpost_df(f, tslice=slice(None, None), x=None, y=None, z=None,
+                   rdx_map=None):
+    dat = calpost_reader(f, tslice, x, y, z, rdx_map)
 
 
 def calpost_reader(f, tslice=slice(None, None), x=None, y=None, z=None,
@@ -329,6 +372,7 @@ def calpost_reader(f, tslice=slice(None, None), x=None, y=None, z=None,
         o.update({'z': np.array(z)})
 
     return o
+
 
 
 
