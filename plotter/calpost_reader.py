@@ -237,23 +237,26 @@ def calpost_reader(f, tslice=slice(None, None), x=None, y=None, z=None,
 
     nx = max(ix)
     ny = max(iy)
-    print(typ)
-    print(nx, ny, nx*ny)
-    print(len(x), len(y), len(x)*len(y))
-    print(nx == len(x)*len(y))
+    print('typ:', typ)
+    print('nx,ny,nx*ny:', nx, ny, nx*ny)
+    print('len(x),len(y),len(x)*len(y)', len(x), len(y), len(x)*len(y))
+    print('nx==len(x)*len(y):', nx == len(x)*len(y))
     is_gridded = True
     is_subregion = False
     map_subregion = None
     if len(x) == nx and len(y) == ny:
+        print('gridded 2d')
         # this is good, gridded data, 2D
         # print('GRID')
         pass
     elif len(x) * len(y) == nx / nz:
+        print('gridded 3d')
         # print('DESC')
         nx = len(x)
         ny = len(y)
 
     else:
+        print('discrete')
         # see if the data is subset of array
         # if len(x) * len(y) * .1  < nx / nz:
         # TODO
@@ -274,12 +277,13 @@ def calpost_reader(f, tslice=slice(None, None), x=None, y=None, z=None,
         
         is_subregion = (
             ((xd.max() - xd.min()) < (xd.mean() * .01)) and 
-            ((yd.max() - yd.min()) < (yd.mean() * .01))
+            ((yd.max() - yd.min()) < (yd.mean() * .021))
         )
         print('is_subregion=', is_subregion)
         #is_subregion = True
 
         if is_subregion:
+            print('is_subregion')
 
             nx = len(x)
             ny = len(y)
@@ -294,6 +298,7 @@ def calpost_reader(f, tslice=slice(None, None), x=None, y=None, z=None,
             map_subregion = [(j, i) for (j, i) in zip(jdx, idx)]
 
         else:
+            print('not is_subregion')
             is_gridded = False
             print('len(x),len(y)=', len(x), len(y))
             print('nx,ny=', nx, ny)
