@@ -136,6 +136,13 @@ class FootnoteManager:
             except:
                 vmn = -9
                 vmx = -9
+        if hasattr(my_plotter, 'table'):
+            tbl = my_plotter.table
+            for col in tbl.columns:
+                #print('adding:', col)
+                locals()[col] = tbl[col][my_plotter.tidx]
+        #print('locals:', locals())
+                
         # vmn,vmx = [fnf.format(_) for _ in (vmn, vmx)]
         current_text = self.footnote_template.format(**locals())
         return current_text

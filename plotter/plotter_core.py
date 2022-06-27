@@ -332,6 +332,7 @@ class PlotterCore:
         ts = self.tstamps[tidx]
         self.current_arr = arr
         self.current_tstamp = ts
+        self.tidx = tidx
 
         if self.hasdata:
             if self.imshow_options is not None:
