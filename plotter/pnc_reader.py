@@ -7,9 +7,16 @@ try:
 except ImportError:
     warnings.warn('no cartopy', ImportWarning)
     has_cartopy = False
+try:
+    import PseudoNetCDF as pnc
+except ImportError:
+    warnings.warn('no PseudoNetCDF', ImportWarning)
+    has_pnc = False
+
 import numpy as np
 import pytz
 import datetime
+from pathlib import Path
 
 
 
@@ -31,11 +38,16 @@ def iotf2dt(iotf,itzon=0):
 
 def Reader(f, vname=None, tslice=slice(None, None)):
 
+    if isinstance(f, str) or isinstance(f, Path):
+        print(f'opening: {f}')
+        f = pnc.pncopen(f)
+
     if vname is None:
         for vn in iter(f.variables.keys()):
             if vn in ('O3', 'MDA8O3', 'MDA1O3', 'PM25', 'A24PM25'):
                 vname = vn
                 break
+
 
     o = {}
     o['name'] = vname
