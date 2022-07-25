@@ -267,14 +267,18 @@ class Plotter:
             # if footnote is not None:
             else:
                 # no clue why, but y=0.2 puts text nicely below the plots, for pair case...
-                if self.nplot <= 2:
-                    my_ypos = .2
-                elif self.nplot >= 3:
-                    my_ypos = .3
-                else:
-                    my_ypos = .3
-                self.footnote = self.fig.text(0.5, my_ypos, footnote,
-                                              ha='center', va='top')
+                #if self.nplot <= 2:
+                #    my_ypos = .2
+                #elif self.nplot >= 3:
+                #    my_ypos = .3
+                #else:
+                #    my_ypos = .3
+                #self.footnote = self.fig.text(0.5, my_ypos, footnote,
+                #                              ha='center', va='top')
+
+                self.footnote_manager = pf.FootnoteManager(self, self.footnote,
+                                                           self.footnote_options)
+                self.footnote_manager()
         else:
             if self.footnote_manager is not None:
                 # print('setting fn {footnote}')
@@ -293,7 +297,12 @@ class Plotter:
             #     suptitle = {'t': suptitle,
             #                 }
             # self.fig.suptitle(**suptitle)
-            my_suptitle = {'x': .1, 'y': .8, 'fontsize': 'large'}
+
+            # top left
+            #my_suptitle = {'x': .1, 'y': .8, 'fontsize': 'large'}
+            # centered
+            my_suptitle = {'x': .5, 'y': .95, 'fontsize': 'large', 'ha': 'center'}
+
             if isinstance(suptitle, dict):
                 my_suptitle.update(suptitle)
             else:
@@ -304,7 +313,10 @@ class Plotter:
             for ax, ttle in zip(self.axes, titles):
                 ax.set_title(ttle)
 
-        self.fig.savefig(oname, bbox_inches='tight', *args, **kwargs)
+        #self.fig.savefig(oname, bbox_inches='tight', *args, **kwargs)
+
+        kwargs.setdefault('bbox_inches', 'tight')
+        self.fig.savefig(oname, *args, **kwargs)
 
     def __call__(self, oname, *args, **kwargs):
         """savefig()"""
