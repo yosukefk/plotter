@@ -66,7 +66,7 @@ def calpost_df(f, tslice=slice(None, None), x=None, y=None, z=None,
 
 
 def calpost_reader(f, tslice=slice(None, None), x=None, y=None, z=None,
-                   rdx_map=None):
+                   rdx_map=None, is_subregion=None):
     """reads calpost tseries output file (gridded recep), returns dict of numpy arrays
 
     :param FileIO f: either (1) opened calpost tseries file, (2) calpost tseries file name or (3) list of (1) or (2)
@@ -124,11 +124,11 @@ def calpost_reader(f, tslice=slice(None, None), x=None, y=None, z=None,
     if isinstance(f, (str, Path)):
         #with open(f) as ff:
         with ConfidentialFile(f) as ff:
-            return calpost_reader(ff, tslice, x, y, z, rdx_map)
+            return calpost_reader(ff, tslice, x, y, z, rdx_map, is_subregion)
 
     # read each input, and then cat
     if isinstance(f, list):
-        dat = [calpost_reader(_, slice(None, None), x, y, z, rdx_map) for _ in f]
+        dat = [calpost_reader(_, slice(None, None), x, y, z, rdx_map, is_subregion) for _ in f]
         dat = calpost_cat(dat)
         print('ts.shp=', dat['ts'].shape)
         print('v.shp=', dat['v'].shape)
@@ -242,7 +242,6 @@ def calpost_reader(f, tslice=slice(None, None), x=None, y=None, z=None,
     print('len(x),len(y),len(x)*len(y)', len(x), len(y), len(x)*len(y))
     print('nx==len(x)*len(y):', nx == len(x)*len(y))
     is_gridded = True
-    is_subregion = False
     map_subregion = None
     if len(x) == nx and len(y) == ny:
         print('gridded 2d')
@@ -266,19 +265,21 @@ def calpost_reader(f, tslice=slice(None, None), x=None, y=None, z=None,
         # * if selected x, y are approximately evenly spqced, and if not
         #   interpolat
         # * or allow user to specify extent
-        x = np.sort(x)
-        y = np.sort(y)
-        # * even better yet, allow non-grid data as input
-        xd = x[1:] - x[:-1]
-        yd = y[1:] - y[:-1]
-        print('dmax, dmin, drng, dmean, dmean*.05, drng<dmean*.05')
-        print(xd.max(), xd.min(), xd.max()-xd.min(), xd.mean(), xd.mean()*.05, (xd.max()-xd.min()) < (xd.mean()*.05))
-        print(yd.max(), yd.min(), yd.max()-yd.min(), yd.mean(), yd.mean()*.05, (yd.max()-yd.min()) < (yd.mean()*.05))
-        
-        is_subregion = (
-            ((xd.max() - xd.min()) < (xd.mean() * .05)) and 
-            ((yd.max() - yd.min()) < (yd.mean() * .05))
-        )
+        print('is_subregion=', is_subregion)
+        if is_subregion is None:
+            x = np.sort(x)
+            y = np.sort(y)
+            # * even better yet, allow non-grid data as input
+            xd = x[1:] - x[:-1]
+            yd = y[1:] - y[:-1]
+            print('dmax, dmin, drng, dmean, dmean*.05, drng<dmean*.05')
+            print(xd.max(), xd.min(), xd.max()-xd.min(), xd.mean(), xd.mean()*.05, (xd.max()-xd.min()) < (xd.mean()*.05))
+            print(yd.max(), yd.min(), yd.max()-yd.min(), yd.mean(), yd.mean()*.05, (yd.max()-yd.min()) < (yd.mean()*.05))
+            
+            is_subregion = (
+                ((xd.max() - xd.min()) < (xd.mean() * .05)) and 
+                ((yd.max() - yd.min()) < (yd.mean() * .05))
+            )
         print('is_subregion=', is_subregion)
         #is_subregion = True
 
