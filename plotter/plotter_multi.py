@@ -322,13 +322,14 @@ class Plotter:
         """savefig()"""
         self.savefig(oname, *args, **kwargs)
 
-    def savemp4(self, oname, wdir=None, nthreads=None, odir='.'):
+    def savemp4(self, oname, wdir=None, nthreads=None, fps=None, odir='.'):
         """
         Save MP4 animation
 
         :param str oname: output MP4 file name
         :param str wdir: dir to save intermediate PNG files (None will use Temporary dir)
         :param int nthreads: number of threads to use on parallel machine
+        :param float fps: frames per second
         :param str odir: dir to save output file
         """
         pc.pu.savemp4(self, oname=oname, wdir=wdir, nthreads=nthreads,
