@@ -1,16 +1,24 @@
 try:
     from . import plotter_core as pc
-    from . import plotter_vprof as pv
-    from . import plotter_trisurf as pt
-    #from . import plotter_dwprof as pw
-    from . import plotter_util as pu
-    from . import plotter_footnote as pf
 except ImportError:
     import plotter_core as pc
+try:
+    from . import plotter_vprof as pv
+except ImportError:
     import plotter_vprof as pv
-    import plotter_trisurf as pt
+try:
+    from . import plotter_trisurf as pt
+except ImportError:
+     import plotter_trisurf as pt
+try:
+    #from . import plotter_dwprof as pw
+    from . import plotter_util as pu
+except ImportError:
     #import plotter_dwprof as pw
     import plotter_util as pu
+try:
+    from . import plotter_footnote as pf
+except ImportError:
     import plotter_footnote as pf
 
 import matplotlib.pyplot as plt
