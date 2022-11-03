@@ -8,6 +8,10 @@ except ImportError:
     import plotter_vprof as pv
     import plotter_trisurf as pt
     #import plotter_dwprof as pw
+try:
+    from . import plotter_empty as pe
+except ImportError:
+    import plotter_empty as pe
 
 import matplotlib.pyplot as plt
 import matplotlib as mpl
@@ -36,7 +40,7 @@ class Plotter:
 
         if z is None:
             if array is None:
-                self.plotter = pc.PlotterEmpty(array, tstamps, projection=projection,
+                self.plotter = pe.PlotterEmpty(array, tstamps, projection=projection,
                                           extent=extent, x=x, y=y, plotter_options=plotter_options)
             elif plotter_options and ('quiver_options'in plotter_options or 'streamplot_options' in plotter_options):
                 try:

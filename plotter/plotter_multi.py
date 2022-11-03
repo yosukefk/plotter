@@ -21,6 +21,11 @@ try:
 except ImportError:
     import plotter_footnote as pf
 
+try:
+    from . import plotter_empty as pe
+except ImportError:
+    import plotter_empty as pe
+
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 import warnings
@@ -147,7 +152,7 @@ class Plotter:
             for arr, po, x, y  in zip(arrays, plotter_options, xs, ys):
                 if arr is None:
                     self.plotters.append(
-                        pc.PlotterEmpty(None, tstamps, plotter_options=po)
+                        pe.PlotterEmpty(None, tstamps, plotter_options=po)
                     )
                 elif 'kdx' in po:
                     kdx = po.pop('kdx', None)
@@ -213,7 +218,7 @@ class Plotter:
                         )
         self.axes = [p.ax for p in self.plotters]
         for pp in self.plotters:
-            if not isinstance(pp, pc.PlotterEmpty):
+            if not isinstance(pp, pe.PlotterEmpty):
                 self.first_nonempty_plotter= pp
                 break
 
