@@ -69,7 +69,7 @@ class PlotterCore:
                 self.i0 = 1
                 self.j0 = array.shape[-2]
             else:
-                raise NotImplementedError('subdomain need QA')
+                warnings.warn('subdomain need QA')
                 self.jslice = slice((self.subdomain[1] - 1), self.subdomain[3])
                 self.islice = slice((self.subdomain[0] - 1), self.subdomain[2])
                 self.i0 = self.subdomain[0]
@@ -118,8 +118,30 @@ class PlotterCore:
         self.background_manager = plotter_options.get('background_manager', None)
         # plot's extent/project grab from background_manager or arguments or from the data
         if self.background_manager is None:
+
             plot_extent = plotter_options.get('extent', self.extent)
+
+            if not self.subdomain is None:
+                if not self.x is None:
+                    self.x = self.x[self.islice]
+                if not self.y is None:
+                    self.y = self.y[self.islice]
+
+                dx = (self.extent[1] - self.extent[0]) / self.arr.shape[-1]
+                dy = (self.extent[3] - self.extent[2]) / self.arr.shape[-2]
+                #print(self.extent)
+                #print(dx, dy)
+                self.extent = [
+                        self.extent[0] + dx * self.islice.start,
+                        self.extent[0] + dx * self.islice.stop ,
+                        self.extent[2] + dy * self.jslice.start,
+                        self.extent[2] + dy * self.jslice.stop ,
+                        ]
+                #print(self.extent)
+                plot_extent = self.extent
+
             plot_projection = plotter_options.get('projection', self.projection)
+
         else:
             plot_extent = self.background_manager.extent if self.background_manager.extent else self.extent
             plot_projection = self.background_manager.projection if self.background_manager.projection else self.projection
@@ -133,6 +155,21 @@ class PlotterCore:
             # In a future version, a new instance will always be created and returned.
             # Meanwhile, this warning can be suppressed, and the future behavior ensured, by passing a unique label to each axes instance.
             self.ax = self.fig.add_subplot(projection=plot_projection)
+
+        if False:
+                if not self.x is None:
+                    self.x = self.x[self.islice]
+                if not self.y is None:
+                    self.y = self.y[self.islice]
+
+                dx = (self.extent[1] - self.extent[0]) / self.arr.shape[-1]
+                dy = (self.extent[3] - self.extent[2]) / self.arr.shape[-2]
+                self.extent = [
+                        self.extent[0] + dx * self.islice.start,
+                        self.extent[1] + dx * (self.islice.stop + 1),
+                        self.extent[2] + dy * self.jslice.start,
+                        self.extent[3] + dy * (self.jslice.stop + 1),
+                        ]
 
         if not plot_extent is None:
             self.ax.set_extent(plot_extent, crs=plot_projection)
