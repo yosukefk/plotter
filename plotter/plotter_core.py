@@ -70,10 +70,12 @@ class PlotterCore:
                 self.j0 = array.shape[-2]
             else:
                 warnings.warn('subdomain need QA')
-                self.jslice = slice((self.subdomain[1] - 1), self.subdomain[3])
+                ny = self.arr.shape[-2]
+                #self.jslice = slice((self.subdomain[1] - 1), self.subdomain[3])
+                self.jslice = slice(ny -self.subdomain[3], ny - (self.subdomain[1] - 1), )
                 self.islice = slice((self.subdomain[0] - 1), self.subdomain[2])
                 self.i0 = self.subdomain[0]
-                self.j0 = self.subdomain[1]
+                self.j0 = self.subdomain[3]
         else:
             self.islice = slice(None)
 
@@ -130,12 +132,14 @@ class PlotterCore:
                 dx = (self.extent[1] - self.extent[0]) / self.arr.shape[-1]
                 dy = (self.extent[3] - self.extent[2]) / self.arr.shape[-2]
                 #print(self.extent)
+                #print(self.islice)
+                #print(self.jslice)
                 #print(dx, dy)
                 self.extent = [
                         self.extent[0] + dx * self.islice.start,
                         self.extent[0] + dx * self.islice.stop ,
-                        self.extent[2] + dy * self.jslice.start,
-                        self.extent[2] + dy * self.jslice.stop ,
+                        self.extent[3] - dy * self.jslice.stop ,
+                        self.extent[3] - dy * self.jslice.start,
                         ]
                 #print(self.extent)
                 plot_extent = self.extent
@@ -155,21 +159,6 @@ class PlotterCore:
             # In a future version, a new instance will always be created and returned.
             # Meanwhile, this warning can be suppressed, and the future behavior ensured, by passing a unique label to each axes instance.
             self.ax = self.fig.add_subplot(projection=plot_projection)
-
-        if False:
-                if not self.x is None:
-                    self.x = self.x[self.islice]
-                if not self.y is None:
-                    self.y = self.y[self.islice]
-
-                dx = (self.extent[1] - self.extent[0]) / self.arr.shape[-1]
-                dy = (self.extent[3] - self.extent[2]) / self.arr.shape[-2]
-                self.extent = [
-                        self.extent[0] + dx * self.islice.start,
-                        self.extent[1] + dx * (self.islice.stop + 1),
-                        self.extent[2] + dy * self.jslice.start,
-                        self.extent[3] + dy * (self.jslice.stop + 1),
-                        ]
 
         if not plot_extent is None:
             self.ax.set_extent(plot_extent, crs=plot_projection)
