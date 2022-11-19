@@ -129,11 +129,22 @@ class Plotter:
             xs = [x] * len(arrays)
             ys = [y] * len(arrays)
 
+        def switcher(arr, ts, *args, **kwds):
+            print(type(arr))
+            if arr is None:
+                print('empty')
+                return pc.PlotterEmpty(None, ts, *args, **kwds)
+            else:
+                print('core')
+                return pc.PlotterCore(arr, ts, *args, **kwds)
         # create plots
         if z is None:
-            self.plotters = [pc.PlotterCore(arr, tstamps, projection=projection, extent=extent,
+            self.plotters = [switcher(arr, tstamps, projection=projection, extent=extent,
                                                 x=x, y=y, plotter_options=po) 
                                  for arr, po, x, y in zip(arrays, plotter_options, xs, ys)]
+            #self.plotters = [pc.PlotterCore(arr, tstamps, projection=projection, extent=extent,
+            #                                    x=x, y=y, plotter_options=po) 
+            #                     for arr, po, x, y in zip(arrays, plotter_options, xs, ys)]
         else:
             self.plotters = []
             for arr, po, x, y  in zip(arrays, plotter_options, xs, ys):
