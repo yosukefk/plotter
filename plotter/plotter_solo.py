@@ -106,6 +106,7 @@ class Plotter:
                                                plotter_options=plotter_options)
 
         self.ax = self.plotter.ax
+        self.fig = self.plotter.fig
 
     def savefig(self, oname, tidx=None, footnote=None, *args, **kwargs):
         """
@@ -124,7 +125,7 @@ class Plotter:
         """savefig()"""
         self.savefig(oname, *args, **kwargs)
 
-    def savemp4(self, oname, wdir=None, nthreads=None, odir='.'):
+    def savemp4(self, oname, wdir=None, nthreads=None, odir='.', *args, **kwds):
         """
         Saves MP4 animation
 

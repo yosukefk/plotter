@@ -78,7 +78,7 @@ class background_adder:
 
 
 # create animation mp4 file
-def savemp4(p, wdir=None, nthreads=None, odir='.', oname='animation.mp4'):
+def savemp4(p, wdir=None, nthreads=None, odir='.', oname='animation.mp4', *args, **kwds):
     """save mp4
 
     :param plotter_solo.Plotter or plotter_multi.Plotter p: use savefig() to make MP4
@@ -175,7 +175,7 @@ class _saveone:
 
     # made into class in global level in order to use from mutiprocessing
     # https://stackoverflow.com/questions/62186218/python-multiprocessing-attributeerror-cant-pickle-local-object
-    def __init__(self, p, png_fmt, is_multi):
+    def __init__(self, p, png_fmt, is_multi, *args, **kwds):
         self.p = p
         self.is_multi = is_multi
         # rasterio cannot be pickled, so drop it
@@ -197,9 +197,11 @@ class _saveone:
                     del self.p.plotter.cnt.cppContourGenerator
 
         self.png_fmt = png_fmt
+        self.args = args
+        self.kwds = kwds
 
     def __call__(self, i):
-        self.p.savefig(self.png_fmt.format(i), tidx=i)
+        self.p.savefig(self.png_fmt.format(i), tidx=i, *self.args, **self.kwds)
 
 
 def calc_plot_extent( x=None, y=None, extent=None, data_proj=None,
