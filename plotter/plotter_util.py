@@ -78,12 +78,13 @@ class background_adder:
 
 
 # create animation mp4 file
-def savemp4(p, wdir=None, nthreads=None, odir='.', oname='animation.mp4', *args, **kwds):
+def savemp4(p, wdir=None, nthreads=None, fps = None, odir='.', oname='animation.mp4', *args, **kwds):
     """save mp4
 
     :param plotter_solo.Plotter or plotter_multi.Plotter p: use savefig() to make MP4
     :param str wdir: dir to save intermediate PNG files
     :param int nthreads: number of threads to use on parallel machine
+    :param float fps: frames per second
     :param odir: dir to save output file
     :param str oname: output MP4 file name
 
@@ -162,8 +163,16 @@ def savemp4(p, wdir=None, nthreads=None, odir='.', oname='animation.mp4', *args,
             saveone(i)
         opt_threads = ''
 
+    if fps is None:
+        fpsopt = ''
+    else:
+        fpsopt = f'-r {fps}'
+
     # make mp4 file
-    cmd = f'ffmpeg -i "{Path(wdir) / png_fmt_sh }" {adjust_width} -vframes {nframes} -crf 3 -vcodec libx264 -pix_fmt yuv420p -f mp4 -y {opt_threads} "{Path(odir) / oname}"'
+    #cmd = f'ffmpeg -i "{Path(wdir) / png_fmt_sh }" {adjust_width} -vframes {nframes} -framerate {fps} -crf 3 -vcodec libx264 -pix_fmt yuv420p -f mp4 -y {opt_threads} "{Path(odir) / oname}"'
+    #cmd = f'ffmpeg -i "{Path(wdir) / png_fmt_sh }" {adjust_width} -vframes {nframes} -r {fps} -crf 3 -vcodec libx264 -pix_fmt yuv420p -f mp4 -y {opt_threads} "{Path(odir) / oname}"'
+    cmd = f'ffmpeg {fpsopt} -i "{Path(wdir) / png_fmt_sh }" {adjust_width} -vframes {nframes} -crf 3 -vcodec libx264 -pix_fmt yuv420p -f mp4 -y {opt_threads} "{Path(odir) / oname}"'
+    #print('ffmpeg command', cmd)
     subprocess.run(shlex.split(cmd), check=True)
 
     if is_tempdir:

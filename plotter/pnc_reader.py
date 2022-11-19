@@ -1,6 +1,7 @@
 """facilitates passing pseudoNetCDF data"""
 
 
+import warnings
 try:
     import cartopy.crs as ccrs
     has_cartopy = True
@@ -53,7 +54,10 @@ def Reader(f, vname=None, tslice=slice(None, None)):
     o['name'] = vname
     v= f.variables[vname]
 
-    v = v.squeeze()
+    #print(v.shape)
+
+    #v = v.squeeze()
+    warnings.warn("you may need to squeeze 'v' array: {}".format(v.shape))
     v = v[..., -1::-1, :]
     #v = np.flipud(v.squeeze())
 
@@ -78,6 +82,7 @@ def Reader(f, vname=None, tslice=slice(None, None)):
     o['projection'] = proj
     o['extent'] = ext
     o['v'] = np.ma.masked_invalid(v)
+    o['pnc'] = f
     return o
 
 

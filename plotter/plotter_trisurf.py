@@ -6,7 +6,12 @@ from . import plotter_solo as psolo
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
-from skimage import measure
+try:
+    from skimage import measure
+    has_skimage = True
+except ImportError:
+    warnings.warn('no skimage', ImportWarning)
+    has_skimage = False
 
 import numpy as np
 import itertools
@@ -139,6 +144,9 @@ def add_image(ax3d, im, zbase):
 
 
 def add_trisurf(ax, arr, x, y, z, iso_val, **kwds):
+
+    if not has_skimage:
+        raise RuntimeError('need to install skimage to use plotter_trisurf')
 
     verts, faces, normals, values = measure.marching_cubes(arr, iso_val)
     verts_p = verts.copy()

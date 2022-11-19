@@ -8,6 +8,10 @@ except ImportError:
     import plotter_vprof as pv
     import plotter_trisurf as pt
     #import plotter_dwprof as pw
+try:
+    from . import plotter_empty as pe
+except ImportError:
+    import plotter_empty as pe
 
 import matplotlib.pyplot as plt
 import matplotlib as mpl
@@ -36,9 +40,9 @@ class Plotter:
 
         if z is None:
             if array is None:
-                self.plotter = pc.PlotterEmpty(array, tstamps, projection=projection,
+                self.plotter = pe.PlotterEmpty(array, tstamps, projection=projection,
                                           extent=extent, x=x, y=y, plotter_options=plotter_options)
-            elif 'quiver_options'in plotter_options or 'streamplot_options' in plotter_options:
+            elif plotter_options and ('quiver_options'in plotter_options or 'streamplot_options' in plotter_options):
                 try:
                     from . import plotter_vector as pq
                 except ImportError:
@@ -125,14 +129,15 @@ class Plotter:
         """savefig()"""
         self.savefig(oname, *args, **kwargs)
 
-    def savemp4(self, oname, wdir=None, nthreads=None, odir='.', *args, **kwds):
+    def savemp4(self, oname, wdir=None, fps=None, nthreads=None, odir='.', *args, **kwds):
         """
         Saves MP4 animation
 
         :param str, Path oname: output MP4 file name
         :param str, Path wdir: dir to save intermediate PNG files (None will use Temporary dir)
         :param int nthreads: number of threads to use on parallel machine
+        :param float fps: frames per second
         :param str, Path odir: dir to save output file
         """
-        pc.pu.savemp4(self, oname=oname, wdir=wdir, nthreads=nthreads,
+        pc.pu.savemp4(self, oname=oname, wdir=wdir, nthreads=nthreads,fps=fps,
                       odir=odir)

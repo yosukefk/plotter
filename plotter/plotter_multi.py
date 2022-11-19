@@ -1,17 +1,30 @@
 try:
     from . import plotter_core as pc
-    from . import plotter_vprof as pv
-    from . import plotter_trisurf as pt
-    #from . import plotter_dwprof as pw
-    from . import plotter_util as pu
-    from . import plotter_footnote as pf
 except ImportError:
     import plotter_core as pc
+try:
+    from . import plotter_vprof as pv
+except ImportError:
     import plotter_vprof as pv
-    import plotter_trisurf as pt
+try:
+    from . import plotter_trisurf as pt
+except ImportError:
+     import plotter_trisurf as pt
+try:
+    #from . import plotter_dwprof as pw
+    from . import plotter_util as pu
+except ImportError:
     #import plotter_dwprof as pw
     import plotter_util as pu
+try:
+    from . import plotter_footnote as pf
+except ImportError:
     import plotter_footnote as pf
+
+try:
+    from . import plotter_empty as pe
+except ImportError:
+    import plotter_empty as pe
 
 import matplotlib.pyplot as plt
 import matplotlib as mpl
@@ -150,7 +163,7 @@ class Plotter:
             for arr, po, x, y  in zip(arrays, plotter_options, xs, ys):
                 if arr is None:
                     self.plotters.append(
-                        pc.PlotterEmpty(None, tstamps, plotter_options=po)
+                        pe.PlotterEmpty(None, tstamps, plotter_options=po)
                     )
                 elif 'kdx' in po:
                     kdx = po.pop('kdx', None)
@@ -216,7 +229,7 @@ class Plotter:
                         )
         self.axes = [p.ax for p in self.plotters]
         for pp in self.plotters:
-            if not isinstance(pp, pc.PlotterEmpty):
+            if not isinstance(pp, pe.PlotterEmpty):
                 self.first_nonempty_plotter= pp
                 break
 
@@ -333,13 +346,14 @@ class Plotter:
         """savefig()"""
         self.savefig(oname, *args, **kwargs)
 
-    def savemp4(self, oname, wdir=None, nthreads=None, odir='.'):
+    def savemp4(self, oname, wdir=None, nthreads=None, fps=None, odir='.'):
         """
         Save MP4 animation
 
         :param str oname: output MP4 file name
         :param str wdir: dir to save intermediate PNG files (None will use Temporary dir)
         :param int nthreads: number of threads to use on parallel machine
+        :param float fps: frames per second
         :param str odir: dir to save output file
         """
         pc.pu.savemp4(self, oname=oname, wdir=wdir, nthreads=nthreads,
