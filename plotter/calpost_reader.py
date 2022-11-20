@@ -151,23 +151,38 @@ def calpost_reader(f, tslice=slice(None, None), x=None, y=None, z=None,
         nz = 1
 
 
-    name = next(f)[31:]
-    print(name)
+    line = next(f)
+    name_lay =line[31:] 
+    name, lay = [_.strip() for _ in (name_lay[:13], name_lay[13:])]
+    print('name: ', name)
+    print('layer: ', lay)
     next(f)
     units = next(f)
-    print(units)
     m = re.search(r'\((.*)\)', units)
     assert m
     units = m[1]
+    print('units: ', units)
     nrec = next(f)
     m = re.search(r'(\d+)\s+ Receptors', nrec)
     assert m
     nrec = m[1]
     nrec = int(nrec)
     row_per_rec = 1 + nrec // 10000 # calpost has hard-wired max ncol
-    print('nr, row_per_rec', nrec, row_per_rec)
-    for i in range(2):
-        next(f)
+    #print('nr, row_per_rec', nrec, row_per_rec)
+    next(f) # line for hour spec
+
+    line=next(f)
+    if 'Run Title' in line:
+        # modified tseries format which export calpuff run title
+        rtitle = [next(f) for _ in range(3)]
+        # and one empty rline
+        line = next(f)
+    elif line.strip() == '':
+        # original format has one empty line
+        pass
+    else:
+        raise ValueError(line)
+
 
     # calpost tseries file may have multiple line for one record
     class multiline:
