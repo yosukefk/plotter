@@ -111,7 +111,7 @@ def calpost_reader(f, tslice=slice(None, None), x=None, y=None, z=None,
         def __next__(self):
             line = next(self.file_obj)
             if self.confidential:
-                line = line[13:]
+                line = line[12:]
             return line
 
         def __iter__(self):
