@@ -179,7 +179,8 @@ def calpost_reader(f, tslice=slice(None, None), x=None, y=None, z=None,
         line = next(f)
     elif line.strip() == '':
         # original format has one empty line
-        pass
+        rtitle = None
+
     else:
         raise ValueError(line)
 
@@ -388,7 +389,7 @@ def calpost_reader(f, tslice=slice(None, None), x=None, y=None, z=None,
     ts = np.array(lst_ts)
     v = np.stack(lst_v, axis=0)
     o = {'name': name, 'units': units, 'ts': ts, 'grid': grid, 'y': y,
-            'x': x, 'v': v, 'ptid': ptid}
+            'x': x, 'v': v, 'ptid': ptid, 'cpruntitle': rtitle}
     if nz > 1:
         o.update({'z': np.array(z)})
 
