@@ -4,6 +4,7 @@ from . import plotter_util as pu
 try:
     import cartopy.crs as ccrs
     has_cartopy = True
+    from cartopy.io.img_tiles import GoogleWTS
 except ImportError:
     warnings.warn('no cartopy', ImportWarning)
     ccrs = None
@@ -197,6 +198,15 @@ class BackgroundManager:
         elif self.wms_options:
             p.ax.add_wms(**self.wms_options)
         elif self.add_image_options:
+            if len(self.add_image_options) < 2 and isinstance(self.add_image_options[0], GoogleWTS):
+                # set zoom level automatically
+                # https://gis.stackexchange.com/questions/7430/what-ratio-scales-do-google-maps-zoom-levels-correspond-to
+                
+                lv0 = 591657550.500000
+                siz = max(p.extent[1] - p.extent[0], p.extent[3]-p.extent[2])
+                z = int(np.floor(np.log2(lv0 / (siz*2))))
+                
+                self.add_image_options.append(z)
             p.ax.add_image(*self.add_image_options)
 
     def purge_bgfile_hook(self):
