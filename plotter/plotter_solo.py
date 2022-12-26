@@ -141,3 +141,7 @@ class Plotter:
         """
         pc.pu.savemp4(self, oname=oname, wdir=wdir, nthreads=nthreads,fps=fps,
                       odir=odir)
+        
+    def savewebm(self, oname, wdir=None, fps=None, nthreads=None, odir='.', *args, **kwds):
+        pc.pu.savewebm(self, oname=oname, wdir=wdir, nthreads=nthreads,fps=fps,
+                      odir=odir)

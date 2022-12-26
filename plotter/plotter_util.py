@@ -76,6 +76,114 @@ class background_adder:
     def refresh_background(self, p):
         p.background_bga.set_zorder(1)
 
+def saveanimation(p, wdir=None, fmt='mp4', nthreads=None, fps=None, odir='.', oname='animation.xxx', *args, **kwds):
+    """save animation
+
+    :param plotter_solo.Plotter or plotter_multi.Plotter p: use savefig() to make MP4
+    :param str wdir: dir to save intermediate PNG files
+    :param int nthreads: number of threads to use on parallel machine
+    :param float fps: frames per second
+    :param odir: dir to save output file
+    :param str oname: output MP4 file name
+
+    """
+
+    if wdir is None:
+        is_tempdir = True
+        tempdir = tempfile.TemporaryDirectory()
+        wdir = Path(tempdir.name)
+    else:
+        is_tempdir = False
+
+        if isinstance(wdir, str):
+            wdir = Path(wdir)
+        if wdir.exists():
+            for x in wdir.glob('*.png'):
+                x.unlink()
+        else:
+            wdir.mkdir(exist_ok=False)
+
+    # parallel processing
+    # save all frames in parallel
+    # 68 for stampede, 24 for ls5
+
+    hn = socket.getfqdn()
+    if nthreads is None:
+        if 'frontera' in hn:
+            nthreads = 56
+        elif 'ls5' in hn:
+            nthreads = 24
+        elif 'stampede2' in hn:
+            nthreads = 24
+        elif 'ls6' in hn:
+            nthreads = 64
+        else:
+            warnings.warn('unknon hostname: %s' % hn)
+            nthreads = 1
+
+    # except that you are on TACC login node
+    if hn.startswith('login') and '.tacc.' in hn:
+        nthreads = 1
+
+    nframes = len(p.tstamps)
+
+    # '{:04d}.png' for python
+    # '%04d.png' for shell
+    png_fmt_py = '{:0' + str(int(np.log10(nframes) + 1)) + 'd}.png'
+    png_fmt_sh = '%0' + str(int(np.log10(nframes) + 1)) + 'd.png'
+
+    is_multi = isinstance(p, PlotterMulti)
+
+    if is_multi:
+        # set width to be linked to matplotlib...
+        # default is 6.4x4.8 inch image, dpi=100
+        # so 640x480 pixel
+        # somehow i got the idea that i want to raise dpi=300
+        # whic make 1920x1440.  i think this 1920 default width comes from
+        # this value
+        # so, instead of hard wire 1920 here, i equate this to number of
+        # pixel in the image
+        png_w = mpl.pyplot.rcParams['figure.figsize'][0] * mpl.pyplot.rcParams['figure.dpi']
+        adjust_width = f'-vf scale={png_w}:-2'
+    else:
+        adjust_width = ''
+
+    # object that does the p.savefig()
+    saveone = _saveone(p, os.path.join(wdir, png_fmt_py), is_multi)
+
+    if nthreads > 1:
+        with Pool(nthreads) as pool:
+            pool.map(saveone, range(nframes))
+        opt_threads = f'-threads {min(16, nthreads)}'  # ffmpeg says that dont use more than 16 threads
+    else:
+        # serial processing
+        for i in range(nframes):
+            saveone(i)
+        opt_threads = ''
+
+    if fps is None:
+        fpsopt = ''
+    else:
+        fpsopt = f'-r {fps}'
+
+    if fmt == 'mp4':
+
+
+        # make mp4 file
+        #cmd = f'ffmpeg -i "{Path(wdir) / png_fmt_sh }" {adjust_width} -vframes {nframes} -framerate {fps} -crf 3 -vcodec libx264 -pix_fmt yuv420p -f mp4 -y {opt_threads} "{Path(odir) / oname}"'
+        #cmd = f'ffmpeg -i "{Path(wdir) / png_fmt_sh }" {adjust_width} -vframes {nframes} -r {fps} -crf 3 -vcodec libx264 -pix_fmt yuv420p -f mp4 -y {opt_threads} "{Path(odir) / oname}"'
+        cmd = f'ffmpeg {fpsopt} -i "{Path(wdir) / png_fmt_sh }" {adjust_width} -vframes {nframes} -crf 3 -vcodec libx264 -pix_fmt yuv420p -f mp4 -y {opt_threads} "{Path(odir) / oname}"'
+
+    elif fmt == 'webm':
+        cmd = f'ffmpeg {fpsopt} -i "{Path(wdir) / png_fmt_sh }" {adjust_width} -vframes {nframes} -c:v libvpx -b:v 1000k -pix_fmt yuv420p        -y {opt_threads} "{Path(odir) / oname}"'
+
+    subprocess.run(shlex.split(cmd), check=True)
+
+    if is_tempdir:
+        tempdir.cleanup()
+
+def savewebm(p, wdir=None, nthreads=None, fps=None, odir='.', oname='animation.webm', *args, **kwds):
+    saveanimation(p, wdir=None, fmt='webm', nthreads=nthreads, fps=fps, odir=odir, oname=oname, *args, **kwds)
 
 # create animation mp4 file
 def savemp4(p, wdir=None, nthreads=None, fps = None, odir='.', oname='animation.mp4', *args, **kwds):
