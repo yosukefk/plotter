@@ -117,22 +117,27 @@ class FootnoteManager:
             i0 = my_plotter.i0
             j0 = my_plotter.j0
             # find timestamp and min/max
-            jmn, imn = np.unravel_index(arr.argmin(), arr.shape)
-            jmx, imx = np.unravel_index(arr.argmax(), arr.shape)
-            vmn = arr[jmn, imn]
-            vmx = arr[jmx, imx]
-            imn += i0
-            imx += i0
-            jmn = j0 - jmn
-            jmx = j0 - jmx
+            try:
+                jmn, imn = np.unravel_index(np.nanargmin(arr), arr.shape)
+                jmx, imx = np.unravel_index(np.nanargmax(arr), arr.shape)
+            except ValueError:
+                jmn, imn, jmx, imx = -99, -99, -99, -99
+                vmn, vmx = -9, -9
+            if jmn != -99:
+                vmn = arr[jmn, imn]
+                vmx = arr[jmx, imx]
+                imn += i0
+                imx += i0
+                jmn = j0 - jmn
+                jmx = j0 - jmx
         else:
             imn = -99
             jmn = -99
             imx = -99
             jmx = -99
             try:
-                vmn = arr.min()
-                vmx = arr.max()
+                vmn = arr.nanmin()
+                vmx = arr.nanmax()
             except:
                 vmn = -9
                 vmx = -9
