@@ -1,24 +1,51 @@
 import pandas as pd
 import numpy as np
+import plotter.calpost_reader as cpr
 
 class cprValueError(ValueError):
     pass
 
-def aermod_reader(f, x=None, y=None, z=None, is_subregion=None):
+def aermod_reader(f, tslice=slice(None, None), x=None, y=None, z=None, rdx_map=None, is_subregion=None):
+    # read each input, and then cat
+    if isinstance(f, list):
+        dat = [aermod_reader(_, slice(None, None), x, y, z, rdx_map, is_subregion) for _ in f]
+        dat = cpr.calpost_cat(dat)
+        print('ts.shp=', dat['ts'].shape)
+        print('v.shp=', dat['v'].shape)
+        print('ts.typ=', type(dat['ts']))
+        print('v.typ=', type(dat['v']))
+        print('s=', tslice)
+        print(dat['ts'][tslice].shape)
+        print(dat['v'][tslice].shape)
+        print(dat['ts'][60:].shape)
+        print(dat['v'][60:].shape)
+        dat['ts'] = dat['ts'][tslice]
+        dat['v'] = dat['v'][tslice]
+        print('ts.shp=', dat['ts'].shape)
+        print('v.shp=', dat['v'].shape)
+        return dat
+
     if z is not None:
         nz = len(z)
     else:
         nz = 1
 
 
+
+    width=[14, 14, 14, 9, 9, 9, 8,10,10, 10]
+    colspecs = np.cumsum([0]+width)
+    colspecs = [(p,q) for p,q in zip(colspecs[:-1], colspecs[1:])]
     df = pd.read_fwf(f, 
-            width=[14, 14, 14, 9, 9, 9, 8,10,10, 10],
+            #width=[14, 14, 14, 9, 9, 9, 8,10,10, 10],
+            colspecs = colspecs,
             names = ['x', 'y', 'conc', 'zelev', 'zhill', 'zflag', 'ave', 'grp', 'datetime', 'netid'],
             skiprows=8,
             )
     df['datetime'] = pd.to_datetime(df['datetime']-1, format='%y%m%d%H') + pd.Timedelta(1, 'H')
 
     ii = (df.datetime > df.datetime[0]).idxmax()
+    if ii == 0: ii = len(df.index)
+
     dfx = df.iloc[:ii, :]
 
     print((dfx.x > dfx.x[0]).idxmax())
@@ -94,9 +121,15 @@ def aermod_reader(f, x=None, y=None, z=None, is_subregion=None):
 
     ts = df.datetime.unique()
     nt = len(ts)
+    if df['conc'].dtype.char == 'O':
+        df['conc'].loc[df.conc.str.contains('****', regex=False)] = '+Inf'
+        df['conc'] = df['conc'].astype(float)
     v = df.conc.to_numpy().reshape([nt, ny, nx])
+    #print(v.dtype.type)
+    #print(v.dtype)
+    #print(v.dtype.char)
 
-    return {'ts':ts, 'grid': grid, 'y':y, 'x':x, 'v': v}
+    return {'name': 'aermod', 'units': 'ug/m3', 'ts':ts, 'grid': grid, 'y':y, 'x':x, 'v': v}
 
 def tester(fname):
     df = aermod_reader(fname)
