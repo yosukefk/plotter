@@ -138,16 +138,18 @@ def aermod_reader(f, tslice=slice(None, None), x=None, y=None, z=None, rdx_map=N
         if nz > 1:
             vv = np.empty((nt, nz, ny, nx))
             vv[...] = np.nan
+            nxny = nx * ny
             for t in range(nt):
                 for k in range(nz):
                     for ji, val in zip(map_subregion,
-                                       v[k*nz*ny*nx:(k+1)*nz*ny*nx]):
+                                       v[t*nxny+k*nz*ny*nx:t*nxny+(k+1)*nz*ny*nx]):
                         vv[t][k][ji] = val
         else:
             vv = np.empty((nt, ny, nx))
             vv[...] = np.nan
+            nxny = nx * ny
             for t in range(nt):
-                for ji, val in zip(map_subregion, v):
+                for ji, val in zip(map_subregion, v[(t * nxny):((t+1)*nxny)]):
                     vv[t][ji] = val
     else:
         if nz > 1:
