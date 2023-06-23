@@ -1,6 +1,8 @@
 import pandas as pd
 import numpy as np
 import plotter.calpost_reader as cpr
+import warnings
+from . import plotter_util as pu
 
 class cprValueError(ValueError):
     pass
@@ -96,6 +98,8 @@ def aermod_reader(f, tslice=slice(None, None), x=None, y=None, z=None, rdx_map=N
         print('not is_subregion')
         is_gridded = False
         print('len(x),len(y)=', len(x), len(y))
+        nx = len(x)
+        ny = len(y)
         print('nx,ny=', nx, ny)
         print(len(x)*len(y), nx/nz)
         print(len(x)*len(y)*.1, nx/nz)
@@ -115,8 +119,8 @@ def aermod_reader(f, tslice=slice(None, None), x=None, y=None, z=None, rdx_map=N
     else:
         x0 = x[0]
         y0 = y[0]
-        x1 = x[-1]
-        y1 = y[-1]
+        x1 = x[len(x)-1]
+        y1 = y[len(x)-1]
         grid = {'x0': x0, 'y0': y0, 'x1': x1, 'y1': y1}
 
     ts = df.datetime.unique()
@@ -124,10 +128,38 @@ def aermod_reader(f, tslice=slice(None, None), x=None, y=None, z=None, rdx_map=N
     if df['conc'].dtype.char == 'O':
         df['conc'].loc[df.conc.str.contains('****', regex=False)] = '+Inf'
         df['conc'] = df['conc'].astype(float)
-    v = df.conc.to_numpy().reshape([nt, ny, nx])
-    #print(v.dtype.type)
-    #print(v.dtype)
-    #print(v.dtype.char)
+    v = df.conc.to_numpy()
+    if not is_gridded:
+        if nz > 1:
+            vv = v.reshape(nt, nz, -1)
+        else:
+            vv = v.reshape(nt, -1)
+    elif is_subregion:
+        if nz > 1:
+            vv = np.empty((nt, nz, ny, nx))
+            vv[...] = np.nan
+            for t in range(nt):
+                for k in range(nz):
+                    for ji, val in zip(map_subregion,
+                                       v[k*nz*ny*nx:(k+1)*nz*ny*nx]):
+                        vv[t][k][ji] = val
+        else:
+            vv = np.empty((nt, ny, nx))
+            vv[...] = np.nan
+            for t in range(nt):
+                for ji, val in zip(map_subregion, v):
+                    vv[t][ji] = val
+    else:
+        if nz > 1:
+            vv = v.reshape(nt, nz, ny, nx)
+        else:
+            vv = v.reshape(nt, ny, nx)
+    v = vv
+    print(v.shape)
+    print(v.dtype.type)
+    print(v.dtype)
+    print(v.dtype.char)
+
 
     return {'name': 'aermod', 'units': 'ug/m3', 'ts':ts, 'grid': grid, 'y':y, 'x':x, 'v': v}
 
