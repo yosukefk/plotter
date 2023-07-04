@@ -15,7 +15,7 @@ def aermod_interleave(dats, subhourly):
 
     ts = np.repeat(ts0, subhourly)
     step = 60 / subhourly
-    diff = np.array([np.timedelta64(_) for _ in np.arange(subhourly)])
+    diff = np.array([np.timedelta64(_, 'm') for _ in np.arange(subhourly)])
     diff = np.tile(diff*step, len(ts0))
     ts = ts + diff
 
