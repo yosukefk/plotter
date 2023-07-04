@@ -7,7 +7,43 @@ from . import plotter_util as pu
 class cprValueError(ValueError):
     pass
 
-def aermod_reader(f, tslice=slice(None, None), x=None, y=None, z=None, rdx_map=None, is_subregion=None):
+def aermod_interleave(dats, subhourly):
+    ts0 = [_['ts'] for _ in dats]
+    # TODO check all equal?
+    ts0 = ts0[0]
+    # TODO check hourly?
+
+    ts = np.repeat(ts0, subhourly)
+    step = 60 / subhourly
+    diff = np.array([np.timedelta64(_) for _ in np.arange(subhourly)])
+    diff = np.tile(diff*step, len(ts0))
+    ts = ts + diff
+
+    vs0 = [_['v'] for _ in dats]
+    shp0 = vs0[0].shape
+    shp = [shp0[0] * subhourly] + list(shp0[1:])
+    v = np.empty(shp, dtype=vs0[0].dtype)
+    for i, vv in enumerate(vs0):
+        v[i::subhourly, ...] = vv
+
+   
+
+
+    return {'name': dats[0]['name'], 'units': dats[0]['units'], 'ts':ts, 
+            'grid': dats[0]['grid'], 'y':dats[0]['y'], 'x': dats[0]['x'], 'v': v}
+
+
+def aermod_reader(f, tslice=slice(None, None), x=None, y=None, z=None, rdx_map=None, is_subregion=None, subhourly=None):
+
+    if subhourly is None:
+        subhourly = 1
+
+    if subhourly > 1:
+        assert isinstance(f, list) and len(f) == subhourly
+        dats = [aermod_reader(fn, tslice, x, y, z, rdx_map, is_subregion, subhourly=1) for fn in f]
+        return aermod_interleave(dats, subhourly)
+
+
     # read each input, and then cat
     if isinstance(f, list):
         dat = [aermod_reader(_, slice(None, None), x, y, z, rdx_map, is_subregion) for _ in f]
@@ -163,7 +199,7 @@ def aermod_reader(f, tslice=slice(None, None), x=None, y=None, z=None, rdx_map=N
     print(v.dtype.char)
 
 
-    return {'name': 'aermod', 'units': 'ug/m3', 'ts':ts, 'grid': grid, 'y':y, 'x':x, 'v': v}
+    return {'name': 'aermod', 'units': 'g/m3', 'ts':ts, 'grid': grid, 'y':y, 'x':x, 'v': v}
 
 def tester(fname):
     df = aermod_reader(fname)
