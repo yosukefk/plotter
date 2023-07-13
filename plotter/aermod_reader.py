@@ -19,6 +19,11 @@ def aermod_interleave(dats, subhourly):
     diff = np.tile(diff*step, len(ts0))
     ts = ts + diff
 
+    # aermod reader keeps convetion of represnting end of time period as time stamp.
+    # when we look at subhourly period, hourly time stamp is decremented by 1 hour, then the subhour time (minute) shoudl be added...
+    ts -= np.timedelta64(1, 'h')
+
+
     vs0 = [_['v'] for _ in dats]
     shp0 = vs0[0].shape
     shp = [shp0[0] * subhourly] + list(shp0[1:])
@@ -79,6 +84,10 @@ def aermod_reader(f, tslice=slice(None, None), x=None, y=None, z=None, rdx_map=N
             names = ['x', 'y', 'conc', 'zelev', 'zhill', 'zflag', 'ave', 'grp', 'datetime', 'netid'],
             skiprows=8,
             )
+    # aermod has end of time period as time stamp
+    # this code follow the convention
+    # challeng is that the last hour of day is reapresened as 24hr, which is actually 0h of next day in conventional clock
+    # for python datatime to interpret it, coode subtract 1 from the integer datehr, concert to python datetime, then add 1 hour back
     df['datetime'] = pd.to_datetime(df['datetime']-1, format='%y%m%d%H') + pd.Timedelta(1, 'H')
 
     ii = (df.datetime > df.datetime[0]).idxmax()
