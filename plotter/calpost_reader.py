@@ -259,7 +259,12 @@ def calpost_reader(f, tslice=slice(None, None), x=None, y=None, z=None,
     print('nx==len(x)*len(y):', nx == len(x)*len(y))
     is_gridded = True
     map_subregion = None
-    if len(x) == nx and len(y) == ny:
+    print('nrec=',nrec)
+    if nrec < 4:
+        # no way to be a grid
+        print('discrete, nrec = ', nrec)
+        is_gridded=False
+    elif len(x) == nx and len(y) == ny:
         print('gridded 2d')
         # this is good, gridded data, 2D
         # print('GRID')
