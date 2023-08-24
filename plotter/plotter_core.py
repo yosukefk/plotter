@@ -309,10 +309,7 @@ class PlotterCore:
             self.ax.set_title(title)
 
         # customization needed after updating data
-        if self.customize_after:
-            warnings.warn('set zorder was what you need?',
-                          DeprecationWarning)
-            self.customize(self.customize_after)
+        self.customize(self.customize_after)
 
     def __call__(self, *args, **kwargs):
         """update()"""
