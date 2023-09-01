@@ -111,18 +111,22 @@ def aermod_reader(f, tslice=slice(None, None), x=None, y=None, z=None, rdx_map=N
 
         x = np.sort(x)
         y = np.sort(y)
-        # * even better yet, allow non-grid data as input
-        xd = x[1:] - x[:-1]
-        yd = y[1:] - y[:-1]
-        print('dmax, dmin, drng, dmean, dmean*.05, drng<dmean*.05')
-        print(xd.max(), xd.min(), xd.max()-xd.min(), xd.mean(), xd.mean()*.05, (xd.max()-xd.min()) < (xd.mean()*.05))
-        print(yd.max(), yd.min(), yd.max()-yd.min(), yd.mean(), yd.mean()*.05, (yd.max()-yd.min()) < (yd.mean()*.05))
-        
-        is_subregion = (
-            ((xd.max() - xd.min()) < (xd.mean() * .05)) and 
-            ((yd.max() - yd.min()) < (yd.mean() * .05))
-        )
-        print('is_subregion=', is_subregion)
+        print(len(x), len(y))
+        if (len(x) == 1) and (len(y) == 1):
+            is_subrigion=False
+        else:
+            # * even better yet, allow non-grid data as input
+            xd = x[1:] - x[:-1]
+            yd = y[1:] - y[:-1]
+            print('dmax, dmin, drng, dmean, dmean*.05, drng<dmean*.05')
+            print(xd.max(), xd.min(), xd.max()-xd.min(), xd.mean(), xd.mean()*.05, (xd.max()-xd.min()) < (xd.mean()*.05))
+            print(yd.max(), yd.min(), yd.max()-yd.min(), yd.mean(), yd.mean()*.05, (yd.max()-yd.min()) < (yd.mean()*.05))
+            
+            is_subregion = (
+                ((xd.max() - xd.min()) < (xd.mean() * .05)) and 
+                ((yd.max() - yd.min()) < (yd.mean() * .05))
+            )
+            print('is_subregion=', is_subregion)
 
     if is_subregion:
         print('is_subregion')
