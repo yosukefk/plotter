@@ -309,7 +309,8 @@ class PlotterCore:
             self.ax.set_title(title)
 
         # customization needed after updating data
-        self.customize(self.customize_after)
+        if not self.customize_after is None:
+            self.customize(self.customize_after)
 
     def __call__(self, *args, **kwargs):
         """update()"""
