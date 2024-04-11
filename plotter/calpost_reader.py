@@ -163,10 +163,17 @@ def calpost_reader(f, tslice=slice(None, None), x=None, y=None, z=None,
     units = m[1]
     print('units: ', units)
     nrec = next(f)
-    m = re.search(r'(\d+)\s+ Receptors', nrec)
+    #m = re.search(r'(\d+)\s+ Receptors', nrec)
+    m = re.search(r'(\d+)\s+ (Receptors|Sources)', nrec)
     assert m
     nrec = m[1]
     nrec = int(nrec)
+    print(m[2])
+    if m[2] == 'Sources':
+        is_source = True
+        is_gridded = False
+    else:
+        is_source = False
     row_per_rec = 1 + nrec // 10000 # calpost has hard-wired max ncol
     #print('nr, row_per_rec', nrec, row_per_rec)
     next(f) # line for hour spec
@@ -260,7 +267,10 @@ def calpost_reader(f, tslice=slice(None, None), x=None, y=None, z=None,
     is_gridded = True
     map_subregion = None
     print('nrec=',nrec)
-    if nrec < 4:
+    if is_source:
+        # not receptor but source attribution!
+        is_gridded=False
+    elif nrec < 4:
         # no way to be a grid
         print('discrete, nrec = ', nrec)
         is_gridded=False
