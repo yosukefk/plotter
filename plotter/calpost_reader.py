@@ -475,12 +475,12 @@ def calpost_cat(lst, use_later_files=False):
     # print('overlaps=',overlaps)
     if any(_ < 0 for _ in overlaps):
         pos = ['{}/{}'.format(p, p + 1) for p in range(len(lst) - 1)]
-        msg1 = ', '.join([pos[_] for _ in overlaps if _ == -1])
-        msg2 = ', '.join([pos[_] for _ in overlaps if _ == -2])
+        msg1 = ', '.join([pos[i] for i,_ in enumerate(overlaps) if _ == -1])
+        msg2 = ', '.join([pos[i] for i,_ in enumerate(overlaps) if _ == -2])
         if msg1:
-            msg1 = 'non-advancing: ' + msg1
+            msg1 = 'non-advancing: files ' + msg1
         if msg2:
-            msg2 = 'non-contiguous: ' + msg2
+            msg2 = 'non-contiguous: files ' + msg2
         msg = '; '.join([msg1, msg2])
         raise cprValueError('incompatible time series: {}'.format(msg))
 
