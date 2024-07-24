@@ -8,6 +8,7 @@ import re
 import pytz
 import warnings
 from . import plotter_util as pu
+import logging
 
 
 class cprValueError(ValueError):
@@ -27,27 +28,27 @@ def arr2df(arrays, ts, tags=None, n=None):
     if tags is None:
         tags = [None] * len(arrays)
 
-    print('shpin',[_.shape for _ in arrays])
+    longging.debug('shpin',[_.shape for _ in arrays])
     vs = [arr.reshape(arr.shape[0], -1) for arr in arrays]
 
-    print('vs',[_.shape for _ in vs])
-    print('nan', [sum(np.isnan(_)) for _ in vs])
+    logging.debug('vs',[_.shape for _ in vs])
+    logging.debug('nan', [sum(np.isnan(_)) for _ in vs])
 
     ## drop nans
     #vs = [v[:, ~np.isnan(v[0, :])] for v in vs]
-    #print('vs',[_.shape for _ in vs])
+    #logging.debug('vs',[_.shape for _ in vs])
 
     nn = [_.shape[-1] for _ in vs]
-    print('nn', nn)
+    logging.debug('nn', nn)
     nn = nn[0]
     if n is None:
         n = nn
     sel = sorted(np.random.choice(np.arange(nn), n, replace=False))
-    print('sel', sel)
+    logging.debug('sel', sel)
 
     dfs = []
     for v, tag in zip(vs, tags):
-        print('tag', tag)
+        logging.debug('tag', tag)
         df = pd.DataFrame( 
             dict( 
                 tag=tag,
@@ -95,10 +96,10 @@ def calpost_reader(f, tslice=slice(None, None), x=None, y=None, z=None,
             self.file_obj = open(*self.args, **self.kwds)
             firstline = next(self.file_obj)
             if 'CONFIDENTIAL' in firstline:
-                print('confidential!!')
+                logging.debug('confidential!!')
                 self.confidential = True
             else:
-                print('not !!')
+                logging.debug('not condidential!!')
                 self.confidential = False
             self.file_obj.seek(0)
 
@@ -130,19 +131,19 @@ def calpost_reader(f, tslice=slice(None, None), x=None, y=None, z=None,
     if isinstance(f, list):
         dat = [calpost_reader(_, slice(None, None), x, y, z, rdx_map, is_subregion) for _ in f]
         dat = calpost_cat(dat)
-        print('ts.shp=', dat['ts'].shape)
-        print('v.shp=', dat['v'].shape)
-        print('ts.typ=', type(dat['ts']))
-        print('v.typ=', type(dat['v']))
-        print('s=', tslice)
-        print(dat['ts'][tslice].shape)
-        print(dat['v'][tslice].shape)
-        print(dat['ts'][60:].shape)
-        print(dat['v'][60:].shape)
+        logging.debug('ts.shp=', dat['ts'].shape)
+        logging.debug('v.shp=', dat['v'].shape)
+        logging.debug('ts.typ=', type(dat['ts']))
+        logging.debug('v.typ=', type(dat['v']))
+        logging.debug('s=', tslice)
+        logging.debug(dat['ts'][tslice].shape)
+        logging.debug(dat['v'][tslice].shape)
+        logging.debug(dat['ts'][60:].shape)
+        logging.debug(dat['v'][60:].shape)
         dat['ts'] = dat['ts'][tslice]
         dat['v'] = dat['v'][tslice]
-        print('ts.shp=', dat['ts'].shape)
-        print('v.shp=', dat['v'].shape)
+        logging.debug('ts.shp=', dat['ts'].shape)
+        logging.debug('v.shp=', dat['v'].shape)
         return dat
 
     if z is not None:
@@ -154,28 +155,28 @@ def calpost_reader(f, tslice=slice(None, None), x=None, y=None, z=None,
     line = next(f)
     name_lay =line[31:] 
     name, lay = [_.strip() for _ in (name_lay[:13], name_lay[13:])]
-    print('name: ', name)
-    print('layer: ', lay)
+    logging.info('name: ', name)
+    logging.info('layer: ', lay)
     next(f)
     units = next(f)
     m = re.search(r'\((.*)\)', units)
     assert m
     units = m[1]
-    print('units: ', units)
+    logging.info('units: ', units)
     nrec = next(f)
     #m = re.search(r'(\d+)\s+ Receptors', nrec)
     m = re.search(r'(\d+)\s+ (Receptors|Sources)', nrec)
     assert m
     nrec = m[1]
     nrec = int(nrec)
-    print(m[2])
+    logging.debug(m[2])
     if m[2] == 'Sources':
         is_source = True
         is_gridded = False
     else:
         is_source = False
     row_per_rec = 1 + nrec // 10000 # calpost has hard-wired max ncol
-    #print('nr, row_per_rec', nrec, row_per_rec)
+    #logging.debug('nr, row_per_rec', nrec, row_per_rec)
     next(f) # line for hour spec
 
     line=next(f)
@@ -238,8 +239,8 @@ def calpost_reader(f, tslice=slice(None, None), x=None, y=None, z=None,
 
             x = x[:int(len(x)/nz)]
             y = y[:int(len(y)/nz)]
-    print('len():', len(ix), len(iy), len(x), len(y))
-    print('len()*nz:', len(ix), len(iy), len(x)*nz, len(y)*nz)
+    logging.debug('len():', len(ix), len(iy), len(x), len(y))
+    logging.debug('len()*nz:', len(ix), len(iy), len(x)*nz, len(y)*nz)
     ptid = pd.DataFrame.from_dict({
         'ix': ix,
         'iy': iy,
@@ -260,33 +261,33 @@ def calpost_reader(f, tslice=slice(None, None), x=None, y=None, z=None,
 
     nx = max(ix)
     ny = max(iy)
-    print('typ:', typ)
-    print('nx,ny,nx*ny:', nx, ny, nx*ny)
-    print('len(x),len(y),len(x)*len(y)', len(x), len(y), len(x)*len(y))
-    print('nx==len(x)*len(y):', nx == len(x)*len(y))
+    logging.debug('typ:', typ)
+    logging.debug('nx,ny,nx*ny:', nx, ny, nx*ny)
+    logging.debug('len(x),len(y),len(x)*len(y)', len(x), len(y), len(x)*len(y))
+    logging.debug('nx==len(x)*len(y):', nx == len(x)*len(y))
     is_gridded = True
     map_subregion = None
-    print('nrec=',nrec)
+    logging.info('nrec=',nrec)
     if is_source:
         # not receptor but source attribution!
         is_gridded=False
     elif nrec < 4:
         # no way to be a grid
-        print('discrete, nrec = ', nrec)
+        logging.info('discrete, nrec = ', nrec)
         is_gridded=False
     elif len(x) == nx and len(y) == ny:
-        print('gridded 2d')
+        logging.info('gridded 2d')
         # this is good, gridded data, 2D
-        # print('GRID')
+        # logging.debug('GRID')
         pass
     elif len(x) * len(y) == nx / nz:
-        print('gridded 3d')
-        # print('DESC')
+        logging.info('gridded 3d')
+        # logging.debug('DESC')
         nx = len(x)
         ny = len(y)
 
     else:
-        print('discrete')
+        logging.info('discrete')
         # see if the data is subset of array
         # if len(x) * len(y) * .1  < nx / nz:
         # TODO
@@ -296,46 +297,46 @@ def calpost_reader(f, tslice=slice(None, None), x=None, y=None, z=None,
         # * if selected x, y are approximately evenly spqced, and if not
         #   interpolat
         # * or allow user to specify extent
-        print('is_subregion=', is_subregion)
+        logging.debug('is_subregion=', is_subregion)
         if is_subregion is None:
             x = np.sort(x)
             y = np.sort(y)
             # * even better yet, allow non-grid data as input
             xd = x[1:] - x[:-1]
             yd = y[1:] - y[:-1]
-            print('dmax, dmin, drng, dmean, dmean*.05, drng<dmean*.05')
-            print(xd.max(), xd.min(), xd.max()-xd.min(), xd.mean(), xd.mean()*.05, (xd.max()-xd.min()) < (xd.mean()*.05))
-            print(yd.max(), yd.min(), yd.max()-yd.min(), yd.mean(), yd.mean()*.05, (yd.max()-yd.min()) < (yd.mean()*.05))
+            logging.debug('dmax, dmin, drng, dmean, dmean*.05, drng<dmean*.05')
+            logging.debug(xd.max(), xd.min(), xd.max()-xd.min(), xd.mean(), xd.mean()*.05, (xd.max()-xd.min()) < (xd.mean()*.05))
+            logging.debug(yd.max(), yd.min(), yd.max()-yd.min(), yd.mean(), yd.mean()*.05, (yd.max()-yd.min()) < (yd.mean()*.05))
             
             is_subregion = (
                 ((xd.max() - xd.min()) < (xd.mean() * .05)) and 
                 ((yd.max() - yd.min()) < (yd.mean() * .05))
             )
-        print('is_subregion=', is_subregion)
+        logging.debug('is_subregion=', is_subregion)
         #is_subregion = True
 
         if is_subregion:
-            print('is_subregion')
+            logging.debug('is_subregion')
 
             nx = len(x)
             ny = len(y)
-            print('len(xr), len(x)', len(xr), len(x))
-            print('len(yr), len(y)', len(yr), len(y))
-            print('nz', nz)
-            print('len(xr)/nz', len(xr)/nz)
-            print('len(yr)/nz', len(yr)/nz)
+            logging.debug('len(xr), len(x)', len(xr), len(x))
+            logging.debug('len(yr), len(y)', len(yr), len(y))
+            logging.debug('nz', nz)
+            logging.debug('len(xr)/nz', len(xr)/nz)
+            logging.debug('len(yr)/nz', len(yr)/nz)
 
             idx = [(_ == x).argmax() for _ in xr[:int(len(xr)/nz)]]
             jdx = [(_ == y).argmax() for _ in yr[:int(len(yr)/nz)]]
             map_subregion = [(j, i) for (j, i) in zip(jdx, idx)]
 
         else:
-            print('not is_subregion')
+            logging.debug('not is_subregion')
             is_gridded = False
-            print('len(x),len(y)=', len(x), len(y))
-            print('nx,ny=', nx, ny)
-            print(len(x)*len(y), nx/nz)
-            print(len(x)*len(y)*.1, nx/nz)
+            logging.debug('len(x),len(y)=', len(x), len(y))
+            logging.debug('nx,ny=', nx, ny)
+            logging.debug(len(x)*len(y), nx/nz)
+            logging.debug(len(x)*len(y)*.1, nx/nz)
             #raise RuntimeError('non gridded data...')
             warnings.warn('non gridded data', pu.PlotterWarning)
 
@@ -368,7 +369,7 @@ def calpost_reader(f, tslice=slice(None, None), x=None, y=None, z=None,
         ts = datetime.datetime.strptime(line[:16], ' %Y %j %H%M ')
         ts = ts.replace(tzinfo=pytz.utc).astimezone(pytz.timezone('Etc/GMT+6'))
 
-        # print(ts)
+        # logging.debug(ts)
         lst_ts.append(ts)
 
         v = np.fromstring(line[16:], dtype=float, sep=' ')
@@ -399,9 +400,10 @@ def calpost_reader(f, tslice=slice(None, None), x=None, y=None, z=None,
                 vv = v.reshape(nz, ny, nx)
             else:
                 vv = v.reshape(ny, nx)
-        # print(v)
+        # logging.debug(v)
         lst_v.append(vv)
     ts = np.array(lst_ts)
+    print('len(v)=',len(v))
     v = np.stack(lst_v, axis=0)
     o = {'name': name, 'units': units, 'ts': ts, 'grid': grid, 'y': y,
             'x': x, 'v': v, 'ptid': ptid, 'cpruntitle': rtitle}
@@ -448,8 +450,8 @@ def calpost_cat(lst, use_later_files=False):
 
     # time step size
     td = [_['ts'][1] - _['ts'][0] for _ in lst]
-    # print('td (timestep size) =',td)
-    # print('(td == td[0]) = ',[_ == td[0] for _ in td])
+    # logging.debug('td (timestep size) =',td)
+    # logging.debug('(td == td[0]) = ',[_ == td[0] for _ in td])
     if not all([_ == td[0] for _ in td]):
         raise cprValueError('incompatible time step size: {}'.format(td))
 
@@ -472,7 +474,7 @@ def calpost_cat(lst, use_later_files=False):
     overlaps = [get_overlap(x['ts'], y['ts'], td[0]) for x, y
                 in zip(lst[:-1], lst[1:])]
 
-    # print('overlaps=',overlaps)
+    # logging.debug('overlaps=',overlaps)
     if any(_ < 0 for _ in overlaps):
         pos = ['{}/{}'.format(p, p + 1) for p in range(len(lst) - 1)]
         msg1 = ', '.join([pos[i] for i,_ in enumerate(overlaps) if _ == -1])
@@ -491,13 +493,13 @@ def calpost_cat(lst, use_later_files=False):
 
     # v and ts need to be overwritten by concatenated array
 
-    print('overlaps:', overlaps)
+    logging.info('overlaps:', overlaps)
     if use_later_files:
         chop = [None if _ == len(overlaps) else _ for _ in overlaps]
 
-        print('file trange:', [d['ts'][::(len(d['ts'])-1)] for d in lst])
+        logging.debug('file trange:', [d['ts'][::(len(d['ts'])-1)] for d in lst])
 
-        print('piked trange:', 
+        logging.debug('piked trange:', 
               [ d['ts'][:-o][::(-o-1)] for d, o in
              zip(lst[:-1], chop)] 
               + [ lst[-1]['ts'][::(len(lst[-1]['ts'])-1)] ] )
