@@ -6,10 +6,17 @@ from itertools import islice
 import datetime
 import re
 import pytz
-import warnings
 from . import plotter_util as pu
-import logging
 
+import warnings
+import logging, sys
+
+# Configure logging to print to stdout
+logging.basicConfig( 
+        level=logging.INFO,  # Set the logging level 
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',  # Set the log message format 
+        handlers=[logging.StreamHandler(sys.stdout)]  # Set the handler to print to stdout
+        )
 
 class cprValueError(ValueError):
     pass
@@ -155,14 +162,14 @@ def calpost_reader(f, tslice=slice(None, None), x=None, y=None, z=None,
     line = next(f)
     name_lay =line[31:] 
     name, lay = [_.strip() for _ in (name_lay[:13], name_lay[13:])]
-    logging.info('name: ', name)
-    logging.info('layer: ', lay)
+    logging.info('name: %s', name)
+    logging.info('layer: %s', lay)
     next(f)
     units = next(f)
     m = re.search(r'\((.*)\)', units)
     assert m
     units = m[1]
-    logging.info('units: ', units)
+    logging.info('units: %s', units)
     nrec = next(f)
     #m = re.search(r'(\d+)\s+ Receptors', nrec)
     m = re.search(r'(\d+)\s+ (Receptors|Sources)', nrec)
@@ -261,19 +268,19 @@ def calpost_reader(f, tslice=slice(None, None), x=None, y=None, z=None,
 
     nx = max(ix)
     ny = max(iy)
-    logging.debug('typ:', typ)
-    logging.debug('nx,ny,nx*ny:', nx, ny, nx*ny)
-    logging.debug('len(x),len(y),len(x)*len(y)', len(x), len(y), len(x)*len(y))
-    logging.debug('nx==len(x)*len(y):', nx == len(x)*len(y))
+    logging.debug('typ: %s', typ)
+    logging.debug('nx,ny,nx*ny: %s, %s, %s', nx, ny, nx*ny)
+    logging.debug('len(x),len(y),len(x)*len(y), %s %s %s', len(x), len(y), len(x)*len(y))
+    logging.debug('nx==len(x)*len(y): %s', nx == len(x)*len(y))
     is_gridded = True
     map_subregion = None
-    logging.info('nrec=',nrec)
+    logging.info('nrec=%s',nrec)
     if is_source:
         # not receptor but source attribution!
         is_gridded=False
     elif nrec < 4:
         # no way to be a grid
-        logging.info('discrete, nrec = ', nrec)
+        logging.info('discrete, nrec = %s', nrec)
         is_gridded=False
     elif len(x) == nx and len(y) == ny:
         logging.info('gridded 2d')
@@ -297,7 +304,7 @@ def calpost_reader(f, tslice=slice(None, None), x=None, y=None, z=None,
         # * if selected x, y are approximately evenly spqced, and if not
         #   interpolat
         # * or allow user to specify extent
-        logging.debug('is_subregion=', is_subregion)
+        logging.debug('is_subregion= %s', is_subregion)
         if is_subregion is None:
             x = np.sort(x)
             y = np.sort(y)
@@ -305,14 +312,14 @@ def calpost_reader(f, tslice=slice(None, None), x=None, y=None, z=None,
             xd = x[1:] - x[:-1]
             yd = y[1:] - y[:-1]
             logging.debug('dmax, dmin, drng, dmean, dmean*.05, drng<dmean*.05')
-            logging.debug(xd.max(), xd.min(), xd.max()-xd.min(), xd.mean(), xd.mean()*.05, (xd.max()-xd.min()) < (xd.mean()*.05))
-            logging.debug(yd.max(), yd.min(), yd.max()-yd.min(), yd.mean(), yd.mean()*.05, (yd.max()-yd.min()) < (yd.mean()*.05))
+            logging.debug('%s %s %s %s %s %s', xd.max(), xd.min(), xd.max()-xd.min(), xd.mean(), xd.mean()*.05, (xd.max()-xd.min()) < (xd.mean()*.05))
+            logging.debug('%s %s %s %s %s %s', yd.max(), yd.min(), yd.max()-yd.min(), yd.mean(), yd.mean()*.05, (yd.max()-yd.min()) < (yd.mean()*.05))
             
             is_subregion = (
                 ((xd.max() - xd.min()) < (xd.mean() * .05)) and 
                 ((yd.max() - yd.min()) < (yd.mean() * .05))
             )
-        logging.debug('is_subregion=', is_subregion)
+        logging.debug('is_subregion= %s', is_subregion)
         #is_subregion = True
 
         if is_subregion:
@@ -320,11 +327,11 @@ def calpost_reader(f, tslice=slice(None, None), x=None, y=None, z=None,
 
             nx = len(x)
             ny = len(y)
-            logging.debug('len(xr), len(x)', len(xr), len(x))
-            logging.debug('len(yr), len(y)', len(yr), len(y))
-            logging.debug('nz', nz)
-            logging.debug('len(xr)/nz', len(xr)/nz)
-            logging.debug('len(yr)/nz', len(yr)/nz)
+            logging.debug('len(xr), len(x) = %s %s', len(xr), len(x))
+            logging.debug('len(yr), len(y) = %s %s', len(yr), len(y))
+            logging.debug('nz = %s', nz)
+            logging.debug('len(xr)/nz = %s', len(xr)/nz)
+            logging.debug('len(yr)/nz = %s', len(yr)/nz)
 
             idx = [(_ == x).argmax() for _ in xr[:int(len(xr)/nz)]]
             jdx = [(_ == y).argmax() for _ in yr[:int(len(yr)/nz)]]
@@ -333,10 +340,10 @@ def calpost_reader(f, tslice=slice(None, None), x=None, y=None, z=None,
         else:
             logging.debug('not is_subregion')
             is_gridded = False
-            logging.debug('len(x),len(y)=', len(x), len(y))
-            logging.debug('nx,ny=', nx, ny)
-            logging.debug(len(x)*len(y), nx/nz)
-            logging.debug(len(x)*len(y)*.1, nx/nz)
+            logging.debug('len(x),len(y)= %s %s', len(x), len(y))
+            logging.debug('nx,ny= %s %s', nx, ny)
+            logging.debug('%s %s', len(x)*len(y), nx/nz)
+            logging.debug('%s %s', len(x)*len(y)*.1, nx/nz)
             #raise RuntimeError('non gridded data...')
             warnings.warn('non gridded data', pu.PlotterWarning)
 
@@ -403,7 +410,6 @@ def calpost_reader(f, tslice=slice(None, None), x=None, y=None, z=None,
         # logging.debug(v)
         lst_v.append(vv)
     ts = np.array(lst_ts)
-    print('len(v)=',len(v))
     v = np.stack(lst_v, axis=0)
     o = {'name': name, 'units': units, 'ts': ts, 'grid': grid, 'y': y,
             'x': x, 'v': v, 'ptid': ptid, 'cpruntitle': rtitle}
@@ -493,7 +499,7 @@ def calpost_cat(lst, use_later_files=False):
 
     # v and ts need to be overwritten by concatenated array
 
-    logging.info('overlaps:', overlaps)
+    logging.info('overlaps: %s', overlaps)
     if use_later_files:
         chop = [None if _ == len(overlaps) else _ for _ in overlaps]
 
