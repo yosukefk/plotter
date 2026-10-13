@@ -221,10 +221,15 @@ class PlotterCore:
                 self.im.set_data(arr)
 
             if self.contour_options is not None:
-                # have to remove old one, and make new one...
-                # https://stackoverflow.com/questions/23250004/updating-contours-for-matplotlib-animation
-                for c in self.cnt.collections:
-                    c.remove()
+                try:
+                    # saw this https://discourse.matplotlib.org/t/collections-attribute-deprecation-in-version-3-8/24164/15
+                    self.cnt.remove()
+                except:
+                    # old method
+                    # have to remove old one, and make new one...
+                    # https://stackoverflow.com/questions/23250004/updating-contours-for-matplotlib-animation
+                    for c in self.cnt.collections:  <- this used to work
+                        c.remove()
                 kwds = self.contour_options
                 if self.is_gridded:
                     self.cnt = self.ax.contourf(self.x, self.y, arr,
