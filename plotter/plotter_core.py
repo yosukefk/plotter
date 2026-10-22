@@ -228,7 +228,7 @@ class PlotterCore:
                     # old method
                     # have to remove old one, and make new one...
                     # https://stackoverflow.com/questions/23250004/updating-contours-for-matplotlib-animation
-                    for c in self.cnt.collections:  <- this used to work
+                    for c in self.cnt.collections:  # <- this used to work
                         c.remove()
                 kwds = self.contour_options
                 if self.is_gridded:
